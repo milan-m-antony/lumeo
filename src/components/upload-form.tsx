@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
-import { useFormState } from "react-dom";
+import React, { useEffect, useRef, useActionState } from "react";
 import { UploadCloud } from "lucide-react";
 
 import { uploadFile, type FormState } from "@/app/actions";
@@ -20,7 +19,7 @@ const initialState: FormState = {
 export default function UploadForm() {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [state, formAction] = useFormState(uploadFile, initialState);
+  const [state, formAction] = useActionState(uploadFile, initialState);
 
   useEffect(() => {
     if (state.message) {
