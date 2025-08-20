@@ -40,7 +40,7 @@ export async function addMedia(item: { caption: string; file: File }): Promise<M
     caption: item.caption,
     type,
     timestamp: new Date(),
-    url: `https://placehold.co/600x${type === 'photo' ? 400 + Math.floor(Math.random() * 200) : 400}.png`,
+    url: `https://placehold.co/600x400.png`,
     aiHint: type === 'photo' ? "abstract art" : "nature video"
   };
 
