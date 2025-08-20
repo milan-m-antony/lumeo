@@ -4,17 +4,17 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { addMedia } from "@/lib/data";
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB for Telegram
 const ACCEPTED_MEDIA_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm"];
 
 const FormSchema = z.object({
-  caption: z.string().max(255, "Caption must be 255 characters or less.").optional(),
+  caption: z.string().max(1024, "Caption must be 1024 characters or less.").optional(),
   file: z
     .instanceof(File, { message: "File is required." })
     .refine((file) => file.size > 0, "File is required.")
     .refine(
       (file) => file.size <= MAX_FILE_SIZE,
-      `Max file size is 5MB.`
+      `Max file size is 50MB.`
     )
     .refine(
       (file) => ACCEPTED_MEDIA_TYPES.includes(file.type),
@@ -49,19 +49,56 @@ export async function uploadFile(
   }
 
   const { file, caption } = validatedFields.data;
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+
+  if (!token || !chatId) {
+    return {
+        message: "Server configuration error: Telegram bot token or chat ID is missing.",
+        success: false
+    }
+  }
+
+  const isVideo = file.type.startsWith("video/");
+  const telegramApiMethod = isVideo ? "sendVideo" : "sendPhoto";
+  const apiUrl = `https://api.telegram.org/bot${token}/${telegramApiMethod}`;
+
+  const telegramFormData = new FormData();
+  telegramFormData.append("chat_id", chatId);
+  telegramFormData.append(isVideo ? "video" : "photo", file);
+  if (caption) {
+    telegramFormData.append("caption", caption);
+  }
 
   try {
-    // 1. Simulate uploading to Telegram and getting a file_id
-    // In a real app: const telegramResponse = await fetch(`https://api.telegram.org/bot${TOKEN}/sendPhoto`, ...);
+    const telegramResponse = await fetch(apiUrl, {
+        method: "POST",
+        body: telegramFormData
+    });
+
+    const telegramResult = await telegramResponse.json();
+
+    if (!telegramResult.ok) {
+        console.error("Telegram API error:", telegramResult);
+        return { message: `Failed to upload to Telegram: ${telegramResult.description}`, success: false };
+    }
     
-    // 2. Simulate storing metadata in a database (e.g., Supabase)
-    await addMedia({ caption: caption || "", file });
+    const message = telegramResult.result;
+    const telegramFileId = isVideo ? message.video.file_id : message.photo[message.photo.length - 1].file_id;
+
+    await addMedia({ 
+        telegramFileId, 
+        caption: caption || "", 
+        type: isVideo ? 'video' : 'photo',
+    });
 
     revalidatePath("/");
     return { message: "File uploaded successfully!", success: true };
   } catch (e) {
+    console.error(e)
+    const message = e instanceof Error ? e.message : "An unknown error occurred."
     return {
-      message: "Database error: Failed to upload file.",
+      message: `Database or API error: ${message}`,
       success: false,
     };
   }

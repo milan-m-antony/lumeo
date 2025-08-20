@@ -1,51 +1,75 @@
-// This is a mock database. In a real application, you would use a service like Supabase.
+import { createClient } from '@supabase/supabase-js'
 
 export type Media = {
-  id: string;
+  id: string; // Will be the Supabase row ID
   type: "photo" | "video";
   caption: string;
   timestamp: Date;
-  url: string;
+  url: string; // URL from Telegram API
   aiHint?: string;
   telegramFileId: string;
 };
 
-// In-memory store
-let mediaStore: Media[] = [
-  { id: '1', type: 'photo', caption: 'Serene mountain lake at dawn', timestamp: new Date('2023-10-27T10:00:00Z'), url: 'https://placehold.co/600x400.png', aiHint: 'mountain lake', telegramFileId: 'fake_id_1' },
-  { id: '2', type: 'photo', caption: 'Vibrant city skyline at night', timestamp: new Date('2023-10-27T09:50:00Z'), url: 'https://placehold.co/400x600.png', aiHint: 'city night', telegramFileId: 'fake_id_2' },
-  { id: '3', type: 'photo', caption: 'A majestic lion in the savannah', timestamp: new Date('2023-10-27T09:35:00Z'), url: 'https://placehold.co/600x400.png', aiHint: 'lion savannah', telegramFileId: 'fake_id_3' },
-  { id: '4', type: 'video', caption: 'Ocean waves crashing on the shore', timestamp: new Date('2023-10-27T09:20:00Z'), url: 'https://placehold.co/600x400.png', aiHint: 'ocean waves', telegramFileId: 'fake_id_4' },
-  { id: '5', type: 'photo', caption: 'Modern architectural marvel', timestamp: new Date('2023-10-27T09:05:00Z'), url: 'https://placehold.co/400x600.png', aiHint: 'modern architecture', telegramFileId: 'fake_id_5' },
-  { id: '6', type: 'photo', caption: 'Cozy cabin in a snowy forest', timestamp: new Date('2023-10-27T08:35:00Z'), url: 'https://placehold.co/600x400.png', aiHint: 'snowy forest', telegramFileId: 'fake_id_6' },
-];
-let idCounter = mediaStore.length;
+// Create a single supabase client for interacting with your database
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const token = process.env.TELEGRAM_BOT_TOKEN!;
 
 
-// Simulate network latency
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-export async function getMedia(): Promise<Media[]> {
-  await sleep(50); // Simulate DB query time
-  return [...mediaStore].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+async function getTelegramFileUrl(fileId: string): Promise<string> {
+    const response = await fetch(`https://api.telegram.org/bot${token}/getFile?file_id=${fileId}`);
+    const data = await response.json();
+    if (!data.ok) {
+        throw new Error(`Telegram getFile failed: ${data.description}`);
+    }
+    const filePath = data.result.file_path;
+    return `https://api.telegram.org/file/bot${token}/${filePath}`;
 }
 
-export async function addMedia(item: { caption: string; file: File }): Promise<Media> {
-  await sleep(500); // Simulate upload and DB insertion time
-  
-  const type = item.file.type.startsWith("image/") ? "photo" : "video";
-  const newId = `${++idCounter}`;
 
-  const newMedia: Media = {
-    id: newId,
-    telegramFileId: `fake_telegram_id_${newId}`,
-    caption: item.caption,
-    type,
-    timestamp: new Date(),
-    url: `https://placehold.co/600x400.png`,
-    aiHint: type === 'photo' ? "abstract art" : "nature video"
-  };
+export async function getMedia(): Promise<Media[]> {
+  const { data, error } = await supabase
+    .from('media')
+    .select('*')
+    .order('timestamp', { ascending: false });
 
-  mediaStore.unshift(newMedia);
-  return newMedia;
+  if (error) {
+    console.error('Supabase error:', error);
+    throw new Error('Failed to fetch media from the database.');
+  }
+
+  const mediaWithUrls = await Promise.all(data.map(async (item) => ({
+    ...item,
+    url: await getTelegramFileUrl(item.telegramFileId),
+    timestamp: new Date(item.timestamp),
+  })));
+
+  return mediaWithUrls as Media[];
+}
+
+export async function addMedia(item: { telegramFileId: string; caption: string; type: 'photo' | 'video' }): Promise<any> {
+    const { telegramFileId, caption, type } = item;
+
+    const { data, error } = await supabase
+    .from('media')
+    .insert([
+      { 
+        telegramFileId: telegramFileId, 
+        caption: caption,
+        type: type,
+        timestamp: new Date().toISOString(),
+        aiHint: type === 'photo' ? 'abstract art' : 'nature video' // placeholder
+      },
+    ])
+    .select()
+
+
+  if (error) {
+    console.error('Supabase insert error:', error);
+    throw new Error('Failed to add media to the database.');
+  }
+
+  return data;
 }
