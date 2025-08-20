@@ -63,9 +63,10 @@ export async function uploadFile(
   const telegramApiMethod = isVideo ? "sendVideo" : "sendPhoto";
   const apiUrl = `https://api.telegram.org/bot${token}/${telegramApiMethod}`;
 
+  // Reconstruct FormData inside the server action
   const telegramFormData = new FormData();
-  telegramFormData.append("chat_id", String(chatId));
-  telegramFormData.append(isVideo ? "video" : "photo", file);
+  telegramFormData.append("chat_id", chatId);
+  telegramFormData.append(isVideo ? "video" : "photo", file, file.name);
   if (caption) {
     telegramFormData.append("caption", caption);
   }
@@ -73,14 +74,14 @@ export async function uploadFile(
   try {
     const telegramResponse = await fetch(apiUrl, {
         method: "POST",
-        body: telegramFormData
+        body: telegramFormData,
     });
 
     const telegramResult = await telegramResponse.json();
 
     if (!telegramResult.ok) {
-        console.error("Telegram API error:", telegramResult);
-        return { message: `Failed to upload to Telegram: ${telegramResult.description}`, success: false };
+        console.error("Telegram API Error:", telegramResult);
+        return { message: `Failed to upload to Telegram: ${telegramResult.description} (Error code: ${telegramResult.error_code})`, success: false };
     }
     
     const message = telegramResult.result;
@@ -95,8 +96,8 @@ export async function uploadFile(
     revalidatePath("/");
     return { message: "File uploaded successfully!", success: true };
   } catch (e) {
-    console.error(e)
-    const message = e instanceof Error ? e.message : "An unknown error occurred."
+    console.error("Upload Action Error:", e);
+    const message = e instanceof Error ? e.message : "An unknown error occurred during the upload process."
     return {
       message: `Database or API error: ${message}`,
       success: false,
