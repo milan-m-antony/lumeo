@@ -64,7 +64,7 @@ export async function uploadFile(
   const apiUrl = `https://api.telegram.org/bot${token}/${telegramApiMethod}`;
 
   const telegramFormData = new FormData();
-  telegramFormData.append("chat_id", chatId);
+  telegramFormData.append("chat_id", String(chatId));
   telegramFormData.append(isVideo ? "video" : "photo", file);
   if (caption) {
     telegramFormData.append("caption", caption);
