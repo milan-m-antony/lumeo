@@ -49,7 +49,7 @@ export default function MediaItem({ media, index }: MediaItemProps) {
                 <>
                  <Image
                     src={url}
-                    alt={media.caption}
+                    alt={media.caption || 'Untitled media'}
                     width={600}
                     height={400}
                     data-ai-hint={media.ai_hint}
