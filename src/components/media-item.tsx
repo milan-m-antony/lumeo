@@ -4,9 +4,8 @@ import Image from "next/image";
 import { PlayCircle, FileVideo, ImageIcon, Loader2 } from "lucide-react";
 import { type Media } from "@/lib/data";
 import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { getTelegramFileUrl } from "@/lib/data";
+import { getTelegramFileUrlAction } from "@/app/actions";
 
 type MediaItemProps = {
   media: Media;
@@ -22,7 +21,7 @@ export default function MediaItem({ media, index }: MediaItemProps) {
     async function loadUrl() {
         try {
             setLoading(true);
-            const newUrl = await getTelegramFileUrl(media.telegram_file_id);
+            const newUrl = await getTelegramFileUrlAction(media.telegram_file_id);
             setUrl(newUrl);
         } catch (error) {
             console.error("Failed to get media URL", error);

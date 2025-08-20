@@ -13,19 +13,8 @@ export type Media = {
 // Create a single supabase client for interacting with your database
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const token = process.env.TELEGRAM_BOT_TOKEN!;
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
-export async function getTelegramFileUrl(fileId: string): Promise<string> {
-    const response = await fetch(`https://api.telegram.org/bot${token}/getFile?file_id=${fileId}`);
-    const data = await response.json();
-    if (!data.ok) {
-        throw new Error(`Telegram getFile failed: ${data.description}`);
-    }
-    const filePath = data.result.file_path;
-    return `https://api.telegram.org/file/bot${token}/${filePath}`;
-}
 
 export async function getBaseMedia(): Promise<Media[]> {
   const { data, error } = await supabase

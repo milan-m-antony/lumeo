@@ -31,6 +31,21 @@ export type FormState = {
   success: boolean;
 };
 
+export async function getTelegramFileUrlAction(fileId: string): Promise<string> {
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    if (!token) {
+        throw new Error("Telegram bot token is not configured.");
+    }
+    const response = await fetch(`https://api.telegram.org/bot${token}/getFile?file_id=${fileId}`);
+    const data = await response.json();
+    if (!data.ok) {
+        throw new Error(`Telegram getFile failed: ${data.description}`);
+    }
+    const filePath = data.result.file_path;
+    return `https://api.telegram.org/file/bot${token}/${filePath}`;
+}
+
+
 export async function uploadFile(
   prevState: FormState,
   formData: FormData
