@@ -19,6 +19,8 @@ let mediaStore: Media[] = [
   { id: '5', type: 'photo', caption: 'Modern architectural marvel', timestamp: new Date('2023-10-27T09:05:00Z'), url: 'https://placehold.co/400x600.png', aiHint: 'modern architecture', telegramFileId: 'fake_id_5' },
   { id: '6', type: 'photo', caption: 'Cozy cabin in a snowy forest', timestamp: new Date('2023-10-27T08:35:00Z'), url: 'https://placehold.co/600x400.png', aiHint: 'snowy forest', telegramFileId: 'fake_id_6' },
 ];
+let idCounter = mediaStore.length;
+
 
 // Simulate network latency
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -32,7 +34,7 @@ export async function addMedia(item: { caption: string; file: File }): Promise<M
   await sleep(500); // Simulate upload and DB insertion time
   
   const type = item.file.type.startsWith("image/") ? "photo" : "video";
-  const newId = crypto.randomUUID();
+  const newId = `${++idCounter}`;
 
   const newMedia: Media = {
     id: newId,
