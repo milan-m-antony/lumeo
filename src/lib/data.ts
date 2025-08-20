@@ -4,10 +4,10 @@ export type Media = {
   id: string; // Will be the Supabase row ID
   type: "photo" | "video";
   caption: string;
-  timestamp: Date;
+  created_at: Date;
   url: string; // URL from Telegram API
-  aiHint?: string;
-  telegramFileId: string;
+  ai_hint?: string;
+  telegram_file_id: string;
 };
 
 // Create a single supabase client for interacting with your database
@@ -33,7 +33,7 @@ export async function getMedia(): Promise<Media[]> {
   const { data, error } = await supabase
     .from('media')
     .select('*')
-    .order('timestamp', { ascending: false });
+    .order('created_at', { ascending: false });
 
   if (error) {
     console.error('Supabase error:', error);
@@ -42,25 +42,24 @@ export async function getMedia(): Promise<Media[]> {
 
   const mediaWithUrls = await Promise.all(data.map(async (item) => ({
     ...item,
-    url: await getTelegramFileUrl(item.telegramFileId),
-    timestamp: new Date(item.timestamp),
+    url: await getTelegramFileUrl(item.telegram_file_id),
+    created_at: new Date(item.created_at),
   })));
 
   return mediaWithUrls as Media[];
 }
 
-export async function addMedia(item: { telegramFileId: string; caption: string; type: 'photo' | 'video' }): Promise<any> {
-    const { telegramFileId, caption, type } = item;
+export async function addMedia(item: { telegram_file_id: string; caption: string; type: 'photo' | 'video' }): Promise<any> {
+    const { telegram_file_id, caption, type } = item;
 
     const { data, error } = await supabase
     .from('media')
     .insert([
       { 
-        telegramFileId: telegramFileId, 
+        telegram_file_id: telegram_file_id, 
         caption: caption,
         type: type,
-        timestamp: new Date().toISOString(),
-        aiHint: type === 'photo' ? 'abstract art' : 'nature video' // placeholder
+        ai_hint: type === 'photo' ? 'abstract art' : 'nature video' // placeholder
       },
     ])
     .select()

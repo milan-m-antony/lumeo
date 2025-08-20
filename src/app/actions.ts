@@ -87,7 +87,7 @@ export async function uploadFile(
     const telegramFileId = isVideo ? message.video.file_id : message.photo[message.photo.length - 1].file_id;
 
     await addMedia({ 
-        telegramFileId, 
+        telegram_file_id: telegramFileId, 
         caption: caption || "", 
         type: isVideo ? 'video' : 'photo',
     });

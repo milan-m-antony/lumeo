@@ -24,7 +24,7 @@ export default function MediaItem({ media, index }: MediaItemProps) {
             alt={media.caption}
             width={600}
             height={400}
-            data-ai-hint={media.aiHint}
+            data-ai-hint={media.ai_hint}
             className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
 
