@@ -1,11 +1,8 @@
 import UploadForm from "@/components/upload-form";
 import Gallery from "@/components/gallery";
-import { getMedia } from "@/lib/data";
 import { Separator } from "@/components/ui/separator";
 
-export default async function Home() {
-  const media = await getMedia();
-
+export default function Home() {
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
       <header className="text-center my-8 md:my-12">
@@ -25,7 +22,7 @@ export default async function Home() {
 
         <section id="gallery">
           <h2 className="text-3xl font-bold tracking-tight text-center mb-8">Gallery</h2>
-          <Gallery media={media} />
+          <Gallery />
         </section>
       </main>
       <footer className="text-center py-8 mt-12 text-muted-foreground">

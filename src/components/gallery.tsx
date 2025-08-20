@@ -1,12 +1,51 @@
-import { type Media } from "@/lib/data";
+"use client";
+
+import { useEffect, useState } from "react";
+import { type Media, getBaseMedia } from "@/lib/data";
 import MediaItem from "./media-item";
-import { Frown } from "lucide-react";
+import { Frown, Loader2 } from "lucide-react";
 
-type GalleryProps = {
-  media: Media[];
-};
+export default function Gallery() {
+  const [media, setMedia] = useState<Media[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export default function Gallery({ media }: GalleryProps) {
+  useEffect(() => {
+    async function loadMedia() {
+      try {
+        setLoading(true);
+        const mediaData = await getBaseMedia();
+        setMedia(mediaData);
+        setError(null);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to load media.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadMedia();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="text-center text-muted-foreground p-8">
+        <Loader2 className="mx-auto h-12 w-12 animate-spin" />
+        <p className="mt-4 text-lg">Loading Gallery...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+       <div className="text-center text-destructive-foreground bg-destructive p-8 rounded-lg">
+        <Frown className="mx-auto h-12 w-12" />
+        <h3 className="mt-4 text-lg font-medium">Error Loading Gallery</h3>
+        <p className="mt-1 text-sm">{error}</p>
+      </div>
+    );
+  }
+
+
   if (media.length === 0) {
     return (
       <div className="text-center text-muted-foreground p-8 border-2 border-dashed rounded-lg">

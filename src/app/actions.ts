@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { addMedia } from "@/lib/data";
+import { addMedia, getTelegramFileUrl as getFileUrl } from "@/lib/data";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB for Telegram
 const ACCEPTED_MEDIA_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm"];
@@ -102,4 +102,8 @@ export async function uploadFile(
       success: false,
     };
   }
+}
+
+export async function getTelegramFileUrl(fileId: string) {
+    return getFileUrl(fileId);
 }
