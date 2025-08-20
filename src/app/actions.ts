@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { addMedia, getTelegramFileUrl as getFileUrl } from "@/lib/data";
+import { addMedia } from "@/lib/data";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB for Telegram
 const ACCEPTED_MEDIA_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm"];
@@ -63,15 +63,19 @@ export async function uploadFile(
   const telegramApiMethod = isVideo ? "sendVideo" : "sendPhoto";
   const apiUrl = `https://api.telegram.org/bot${token}/${telegramApiMethod}`;
 
-  // Reconstruct FormData inside the server action
-  const telegramFormData = new FormData();
-  telegramFormData.append("chat_id", chatId);
-  telegramFormData.append(isVideo ? "video" : "photo", file, file.name);
-  if (caption) {
-    telegramFormData.append("caption", caption);
-  }
-
   try {
+    // Convert file to ArrayBuffer to ensure it's correctly handled in the server environment
+    const fileBuffer = await file.arrayBuffer();
+    const blob = new Blob([fileBuffer], { type: file.type });
+
+    // Reconstruct FormData inside the server action
+    const telegramFormData = new FormData();
+    telegramFormData.append("chat_id", chatId);
+    telegramFormData.append(isVideo ? "video" : "photo", blob, file.name);
+    if (caption) {
+      telegramFormData.append("caption", caption);
+    }
+  
     const telegramResponse = await fetch(apiUrl, {
         method: "POST",
         body: telegramFormData,
@@ -103,8 +107,4 @@ export async function uploadFile(
       success: false,
     };
   }
-}
-
-export async function getTelegramFileUrl(fileId: string) {
-    return getFileUrl(fileId);
 }

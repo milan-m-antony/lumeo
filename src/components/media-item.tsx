@@ -6,7 +6,7 @@ import { type Media } from "@/lib/data";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { getTelegramFileUrl } from "@/app/actions";
+import { getTelegramFileUrl } from "@/lib/data";
 
 type MediaItemProps = {
   media: Media;
