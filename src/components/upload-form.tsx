@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useActionState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { UploadCloud } from "lucide-react";
 
 import { uploadFile, type FormState } from "@/app/actions";
@@ -16,23 +16,36 @@ const initialState: FormState = {
 };
 
 export default function UploadForm() {
-  const [state, formAction] = useActionState(uploadFile, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
+  const [state, setState] = useState<FormState>(initialState);
+  const [isPending, setIsPending] = useState(false);
 
+  const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsPending(true);
+    const formData = new FormData(event.currentTarget);
+    const result = await uploadFile(initialState, formData);
+    setState(result);
+    setIsPending(false);
+  };
+  
   useEffect(() => {
-    if (state.success) {
-      toast({
-        title: "Success!",
-        description: state.message,
-      });
-      formRef.current?.reset();
-    } else if (state.message && !state.success) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: state.message,
-      });
+    if (state.message) {
+      if (state.success) {
+        toast({
+          title: "Success!",
+          description: state.message,
+        });
+        formRef.current?.reset();
+        setState(initialState);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: state.message,
+        });
+      }
     }
   }, [state, toast]);
 
@@ -45,7 +58,7 @@ export default function UploadForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form ref={formRef} action={formAction} className="space-y-6">
+        <form ref={formRef} onSubmit={handleFormSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="file">File</Label>
             <div className="flex items-center gap-4">
@@ -72,7 +85,7 @@ export default function UploadForm() {
               </p>
             )}
           </div>
-          <SubmitButton />
+          <SubmitButton pending={isPending} />
         </form>
       </CardContent>
     </Card>

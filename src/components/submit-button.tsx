@@ -1,11 +1,9 @@
 "use client";
 
-import { useFormStatus } from "react-dom";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function SubmitButton() {
-  const { pending } = useFormStatus();
+export function SubmitButton({ pending }: { pending: boolean }) {
 
   return (
     <Button type="submit" disabled={pending} className="w-full bg-primary hover:bg-primary/90">
