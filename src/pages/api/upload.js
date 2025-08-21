@@ -23,41 +23,68 @@ export default async function handler(req, res) {
     
     const caption = Array.isArray(fields.caption) ? fields.caption[0] : fields.caption || "";
     const file = files.file;
-    const filePath = Array.isArray(file) ? file[0].filepath : file.filepath;
     
-    if (!filePath) {
-        return res.status(400).json({ error: "File is missing." });
+    if (!file) {
+      return res.status(400).json({ error: "File is missing." });
     }
+    
+    const fileInfo = Array.isArray(file) ? file[0] : file;
+    const filePath = fileInfo.filepath;
+    const fileType = fileInfo.mimetype;
 
-    // Send to Telegram
     const tgForm = new FormData();
     tgForm.append("chat_id", process.env.TELEGRAM_CHANNEL_ID);
-    tgForm.append("document", fs.createReadStream(filePath));
     tgForm.append("caption", caption);
 
-    const tgRes = await fetch(
-      `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendDocument`,
-      { method: "POST", body: tgForm }
-    );
+    let telegramUrl;
+    let fileKey;
+
+    // Check if the file is an image and use the appropriate API
+    if (fileType && fileType.startsWith("image/")) {
+      telegramUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendPhoto`;
+      fileKey = "photo";
+    } else {
+      telegramUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendDocument`;
+      fileKey = "document";
+    }
+    
+    tgForm.append(fileKey, fs.createReadStream(filePath));
+
+    const tgRes = await fetch(telegramUrl, { method: "POST", body: tgForm });
     const tgData = await tgRes.json();
     
-    // Clean up the temporary file
-    fs.unlinkSync(filePath);
+    fs.unlinkSync(filePath); // Clean up the temporary file
 
     if (!tgData.ok) {
         console.error("Telegram upload failed:", tgData);
-        return res.status(500).json({ error: "Telegram upload failed" });
+        return res.status(500).json({ error: `Telegram upload failed: ${tgData.description}` });
     }
 
-    const fileId = tgData.result.document.file_id;
-    const messageId = tgData.result.message_id;
+    // Extract file_id based on the type of media sent
+    const result = tgData.result;
+    let fileId;
+    let dbFileType;
+
+    if (result.photo) {
+      // For photos, Telegram returns an array of different sizes, we take the largest one
+      fileId = result.photo[result.photo.length - 1].file_id;
+      dbFileType = 'photo';
+    } else if (result.document) {
+      fileId = result.document.file_id;
+      dbFileType = 'document';
+    } else {
+      console.error("Unrecognized Telegram response:", result);
+      return res.status(500).json({ error: "Unrecognized Telegram API response." });
+    }
+
+    const messageId = result.message_id;
 
     // Save metadata in Supabase
     const { data, error } = await supabase.from("files").insert([
       {
         file_id: fileId,
         caption,
-        type: "document",
+        type: dbFileType,
         tg_message_id: messageId,
       },
     ]).select();

@@ -24,54 +24,45 @@ export default function Home() {
       });
   }, [filter]);
 
-  const getFileUrl = (fileId) => {
-    // Note: This constructs the URL on the client-side and requires the bot token to be public.
-    // This is generally not recommended for production.
-    // A better approach would be an API route that redirects or proxies the download.
-    const token = process.env.NEXT_PUBLIC_TG_BOT_TOKEN;
-    if (!token) {
-        console.error("Telegram bot token is not configured on the client-side.");
-        return "#";
-    }
-    // This URL gets the file info, not the file itself. 
-    // A second step is needed to get the file_path and construct the final download URL.
-    // For simplicity in this example, we're linking to a conceptual download page.
-    // A real implementation would need an API route like /api/download?file_id=...
-    return `https://api.telegram.org/bot${token}/getFile?file_id=${fileId}`;
-  }
-
-
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ fontFamily: 'sans-serif', padding: "20px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-        <h1>My Cloud Gallery</h1>
-        <Link href="/upload" style={{ textDecoration: 'underline', color: 'blue' }}>
+        <h1 style={{ fontSize: '2rem' }}>TeleGallery</h1>
+        <Link href="/upload" style={{ textDecoration: 'none', color: '#fff', backgroundColor: '#007bff', padding: '10px 15px', borderRadius: '5px' }}>
           Upload File
         </Link>
       </div>
       <input
         type="text"
-        placeholder="Search by caption"
+        placeholder="Search by caption..."
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
-        style={{ width: "100%", padding: "8px", marginBottom: "20px" }}
+        style={{ width: "100%", padding: "12px", marginBottom: "20px", fontSize: '1rem', boxSizing: 'border-box', borderRadius: '5px', border: '1px solid #ccc' }}
       />
 
-      {loading && <p>Loading...</p>}
+      {loading && <p>Loading gallery...</p>}
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: "20px" }}>
         {files && files.map((f) => (
-          <div key={f.id} style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '8px', width: '200px' }}>
-            <p><b>Caption:</b> {f.caption || "No caption"}</p>
-            <p><b>File ID:</b> {f.file_id}</p>
-            {/* This will not directly download the file but shows the concept */}
+          <div key={f.id} style={{ border: '1px solid #ddd', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column' }}>
+            {f.type === 'photo' && (
+                <img 
+                    src={`/api/download?file_id=${f.file_id}`} 
+                    alt={f.caption || "Gallery image"} 
+                    style={{ maxWidth: '100%', height: '200px', objectFit: 'cover', borderRadius: '4px', marginBottom: '10px' }} 
+                />
+            )}
+            <div style={{ flexGrow: 1 }}>
+                <p style={{ margin: 0, fontWeight: 'bold' }}>{f.caption || "No caption"}</p>
+                <p style={{ fontSize: '0.8rem', color: '#666', margin: '5px 0 10px 0' }}>Type: {f.type}</p>
+            </div>
             <a
               href={`/api/download?file_id=${f.file_id}`}
               target="_blank"
               rel="noreferrer"
-              style={{ textDecoration: 'underline', color: 'blue' }}
+              style={{ textDecoration: 'none', color: '#007bff', alignSelf: 'flex-start' }}
             >
-              Download
+              Download File
             </a>
           </div>
         ))}
