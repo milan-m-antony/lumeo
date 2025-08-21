@@ -1,5 +1,10 @@
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Edit, Download, Save, X, Image as ImageIcon } from "lucide-react";
 
 export default function Home() {
   const [files, setFiles] = useState([]);
@@ -18,13 +23,13 @@ export default function Home() {
             setFiles(data);
             setError(null);
           } else {
-            setFiles([]); // Ensure files is always an array
+            setFiles([]);
             setError(data.error || "Failed to load files.");
           }
           setLoading(false);
       })
       .catch((err) => {
-        setFiles([]); // Also handle fetch errors
+        setFiles([]);
         setError(err.message || "An unexpected error occurred.");
         setLoading(false);
       });
@@ -53,76 +58,97 @@ export default function Home() {
     
     if (result.success && result.file) {
         setFiles(files.map(f => (f.id === fileId ? result.file : f)));
-        handleCancelEdit(); // Exit editing mode
+        handleCancelEdit();
     } else {
         alert("Failed to update caption: " + (result.error || "Unknown error"));
     }
   };
 
-
   return (
-    <div style={{ fontFamily: 'sans-serif', padding: "20px", maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: 'wrap', gap: '10px' }}>
-        <h1 style={{ fontSize: '2rem', margin: 0 }}>TeleGallery</h1>
-        <Link href="/upload" style={{ textDecoration: 'none', color: '#fff', backgroundColor: '#007bff', padding: '10px 15px', borderRadius: '5px' }}>
-          Upload File
-        </Link>
-      </div>
-      <input
-        type="text"
-        placeholder="Search by caption..."
-        value={filter}
-        onChange={(e) => setFilter(e.target.value)}
-        style={{ width: "100%", padding: "12px", marginBottom: "20px", fontSize: '1rem', boxSizing: 'border-box', borderRadius: '5px', border: '1px solid #ccc' }}
-      />
+    <div className="bg-background min-h-screen font-body">
+      <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header className="flex justify-between items-center mb-8 pb-4 border-b">
+          <h1 className="text-4xl font-bold text-primary">TeleGallery</h1>
+          <Link href="/upload" passHref>
+            <Button>
+              Upload File
+            </Button>
+          </Link>
+        </header>
 
-      {loading && <p>Loading gallery...</p>}
-      {error && <p style={{color: 'red'}}>Error: {error}</p>}
+        <div className="mb-8">
+          <Input
+            type="text"
+            placeholder="Search by caption..."
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="max-w-md mx-auto"
+          />
+        </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: "20px" }}>
-        {files && files.map((f) => (
-          <div key={f.id} style={{ border: '1px solid #ddd', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column' }}>
-            {f.type === 'photo' && (
-                <img 
-                    src={`/api/download?file_id=${f.file_id}`} 
-                    alt={f.caption || "Gallery image"} 
-                    style={{ maxWidth: '100%', height: '200px', objectFit: 'cover', borderRadius: '4px', marginBottom: '10px' }} 
-                />
-            )}
-             <div style={{ flexGrow: 1 }}>
+        {loading && <p className="text-center text-muted-foreground">Loading gallery...</p>}
+        {error && <p className="text-center text-destructive">Error: {error}</p>}
+
+        {!loading && !error && files.length === 0 && (
+          <div className="text-center text-muted-foreground py-16">
+            <h2 className="text-2xl font-semibold">Empty Gallery</h2>
+            <p className="mt-2">Upload a file to get started.</p>
+          </div>
+        )}
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {files.map((f) => (
+            <Card key={f.id} className="flex flex-col overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+              <CardHeader className="p-0">
+                {f.type === 'photo' ? (
+                  <img 
+                      src={`/api/download?file_id=${f.file_id}`} 
+                      alt={f.caption || "Gallery image"} 
+                      className="w-full h-48 object-cover"
+                      data-ai-hint="gallery photo"
+                  />
+                ) : (
+                  <div className="w-full h-48 bg-secondary flex items-center justify-center">
+                    <ImageIcon className="w-16 h-16 text-muted-foreground" />
+                  </div>
+                )}
+              </CardHeader>
+              <CardContent className="p-4 flex-grow">
                 {editingId === f.id ? (
-                    <input
-                        type="text"
+                  <div className="flex flex-col gap-2">
+                    <Input
                         value={editingCaption}
                         onChange={(e) => setEditingCaption(e.target.value)}
-                        style={{ width: '100%', padding: '8px', boxSizing: 'border-box', marginBottom: '10px' }}
+                        placeholder="Enter caption"
                     />
+                  </div>
                 ) : (
-                    <p style={{ margin: 0, fontWeight: 'bold' }}>{f.caption || "No caption"}</p>
+                  <p className="font-semibold text-lg truncate" title={f.caption}>{f.caption || "No caption"}</p>
                 )}
-                <p style={{ fontSize: '0.8rem', color: '#666', margin: '5px 0 10px 0' }}>Type: {f.type}</p>
-            </div>
-            
-            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto'}}>
-                 <a
-                  href={`/api/download?file_id=${f.file_id}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ textDecoration: 'none', color: '#007bff', alignSelf: 'flex-start' }}
-                >
-                  Download
-                </a>
+                 <p className="text-sm text-muted-foreground mt-1 capitalize">{f.type}</p>
+              </CardContent>
+              <CardFooter className="p-4 bg-muted/50 flex justify-between items-center">
                 {editingId === f.id ? (
-                    <div>
-                        <button onClick={() => handleUpdateCaption(f.id)} style={{marginRight: '5px'}}>Save</button>
-                        <button onClick={handleCancelEdit}>Cancel</button>
+                    <div className="flex gap-2">
+                      <Button size="icon" variant="outline" onClick={() => handleUpdateCaption(f.id)}><Save className="w-4 h-4" /></Button>
+                      <Button size="icon" variant="destructive" onClick={handleCancelEdit}><X className="w-4 h-4" /></Button>
                     </div>
                 ) : (
-                    <button onClick={() => handleEditClick(f)}>Edit</button>
+                  <div className="flex gap-2">
+                    <Button size="icon" variant="outline" onClick={() => handleEditClick(f)}>
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                     <a href={`/api/download?file_id=${f.file_id}`} target="_blank" rel="noreferrer">
+                      <Button size="icon" variant="outline">
+                        <Download className="w-4 h-4" />
+                      </Button>
+                    </a>
+                  </div>
                 )}
-            </div>
-          </div>
-        ))}
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );
