@@ -78,13 +78,12 @@ export default function Home() {
     if (!file) return 'download';
     
     const caption = file.caption || 'lumeo_file';
-    // Sanitize caption to be a valid filename
     const safeCaption = caption.replace(/[^a-z0-9_ -]/gi, '_').replace(/ /g, '_');
     
     switch (file.type) {
         case 'photo': return `${safeCaption}.jpeg`;
         case 'video': return `${safeCaption}.mp4`;
-        case 'document': return `${safeCaption}.zip`; // Assuming most docs might be anything, zip is safe
+        case 'document': return `${safeCaption}.zip`;
         default: return safeCaption;
     }
   };
@@ -182,9 +181,9 @@ export default function Home() {
                     )}
                   </DialogTitle>
                 </DialogHeader>
-                <div className="flex-grow p-4 overflow-auto flex items-center justify-center bg-black/90">
+                <div className="flex-grow p-4 overflow-auto flex items-center justify-center bg-black/90 min-h-0">
                     {selectedFile.type === 'photo' && <img src={getFileUrl(selectedFile.file_id)} alt={selectedFile.caption} className="max-w-full max-h-full object-contain" />}
-                    {selectedFile.type === 'video' && <video src={getFileUrl(selectedFile.file_id)} controls autoPlay className="max-w-full max-h-[calc(90vh-150px)]" />}
+                    {selectedFile.type === 'video' && <video src={getFileUrl(selectedFile.file_id)} controls autoPlay className="max-w-full max-h-full" />}
                     {selectedFile.type === 'document' && (
                         <div className="flex flex-col items-center justify-center h-64 bg-secondary rounded-md p-8">
                            <FileText className="w-24 h-24 text-muted-foreground" />
@@ -215,3 +214,5 @@ export default function Home() {
     </div>
   );
 }
+
+    
