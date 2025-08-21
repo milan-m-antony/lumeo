@@ -2,7 +2,6 @@
 "use server";
 
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
 import { addMedia } from "@/lib/data";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB for Telegram
@@ -30,6 +29,7 @@ export type FormState = {
     file?: string[];
   };
   success: boolean;
+  newMedia?: any;
 };
 
 export async function getTelegramFileUrlAction(fileId: string): Promise<string> {
@@ -103,14 +103,17 @@ export async function uploadFile(
     const message = telegramResult.result;
     const telegramFileId = isVideo ? message.video.file_id : message.photo[message.photo.length - 1].file_id;
 
-    await addMedia({ 
+    const newDbEntry = await addMedia({ 
         telegram_file_id: telegramFileId, 
         caption: caption || "", 
         type: isVideo ? 'video' : 'photo',
     });
 
-    revalidatePath("/");
-    return { message: "File uploaded successfully!", success: true };
+    return { 
+        message: "File uploaded successfully!", 
+        success: true,
+        newMedia: newDbEntry[0] 
+    };
   } catch (e) {
     console.error("Upload Action Error:", e);
     const message = e instanceof Error ? e.message : "An unknown error occurred during the upload process."

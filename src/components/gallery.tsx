@@ -1,30 +1,17 @@
+
 "use client";
 
-import { useEffect, useState } from "react";
-import { type Media, getBaseMedia } from "@/lib/data";
-import MediaItem from "./media-item";
 import { Frown, Loader2 } from "lucide-react";
+import { type Media } from "@/lib/data";
+import MediaItem from "./media-item";
 
-export default function Gallery() {
-  const [media, setMedia] = useState<Media[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface GalleryProps {
+    media: Media[];
+    loading: boolean;
+    error: string | null;
+}
 
-  useEffect(() => {
-    async function loadMedia() {
-      try {
-        setLoading(true);
-        const mediaData = await getBaseMedia();
-        setMedia(mediaData);
-        setError(null);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to load media.");
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadMedia();
-  }, []);
+export default function Gallery({ media, loading, error }: GalleryProps) {
 
   if (loading) {
     return (

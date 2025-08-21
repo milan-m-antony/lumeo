@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { SubmitButton } from "./submit-button";
+import { Media } from "@/lib/data";
 
 const initialState: FormState = {
   message: "",
@@ -18,7 +19,11 @@ const initialState: FormState = {
   errors: {},
 };
 
-export default function UploadForm() {
+interface UploadFormProps {
+    onUploadSuccess: (media: Media) => void;
+}
+
+export default function UploadForm({ onUploadSuccess }: UploadFormProps) {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction] = useActionState(uploadFile, initialState);
@@ -30,6 +35,9 @@ export default function UploadForm() {
           title: "Success!",
           description: state.message,
         });
+        if (state.newMedia) {
+            onUploadSuccess(state.newMedia);
+        }
         formRef.current?.reset();
       } else {
         toast({
@@ -39,7 +47,7 @@ export default function UploadForm() {
         });
       }
     }
-  }, [state, toast]);
+  }, [state, toast, onUploadSuccess]);
 
   return (
     <Card>
