@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Edit, Download, Save, X, Image as ImageIcon, Video, FileText, Search, PlayCircle, Loader2 } from "lucide-react";
 
 export default function Home() {
@@ -170,24 +170,21 @@ export default function Home() {
       </main>
 
       <Dialog open={!!selectedFile} onOpenChange={(isOpen) => !isOpen && setSelectedFile(null)}>
-          <DialogContent className="max-w-5xl w-full h-[90vh] sm:h-auto sm:max-h-[90vh] p-0 flex flex-col">
+          <DialogContent className="max-w-5xl w-full h-auto max-h-[90vh] p-0 flex flex-col">
              {selectedFile && (
                 <>
-                <DialogHeader className="p-4 border-b flex-shrink-0 flex flex-row items-center justify-between space-y-0">
-                  <DialogTitle className="truncate flex-grow mr-4">
+                <DialogHeader className="p-4 border-b flex-shrink-0">
+                  <DialogTitle className="truncate">
                     {editingId === selectedFile.id ? (
                         <Input value={editingCaption} onChange={(e) => setEditingCaption(e.target.value)} placeholder="Enter caption" className="text-lg"/>
                     ) : (
                         selectedFile.caption || "No Caption"
                     )}
                   </DialogTitle>
-                  <DialogClose asChild>
-                    <Button variant="ghost" size="icon"><X className="w-4 h-4" /></Button>
-                  </DialogClose>
                 </DialogHeader>
-                <div className="p-4 flex-grow overflow-hidden flex items-center justify-center bg-black/80">
+                <div className="flex-grow p-4 overflow-auto flex items-center justify-center bg-black/90">
                     {selectedFile.type === 'photo' && <img src={getFileUrl(selectedFile.file_id)} alt={selectedFile.caption} className="max-w-full max-h-full object-contain" />}
-                    {selectedFile.type === 'video' && <video src={getFileUrl(selectedFile.file_id)} controls autoPlay className="max-w-full max-h-full" />}
+                    {selectedFile.type === 'video' && <video src={getFileUrl(selectedFile.file_id)} controls autoPlay className="max-w-full max-h-[calc(90vh-150px)]" />}
                     {selectedFile.type === 'document' && (
                         <div className="flex flex-col items-center justify-center h-64 bg-secondary rounded-md p-8">
                            <FileText className="w-24 h-24 text-muted-foreground" />
