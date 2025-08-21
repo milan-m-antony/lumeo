@@ -45,6 +45,7 @@ const AppMenu = () => {
         { href: '/albums', label: 'Albums', icon: LayoutGrid },
         { href: '/upload', label: 'Upload', icon: UploadCloud },
         { href: '/trash', label: 'Trash', icon: Trash2 },
+        { href: '/storage', label: 'Storage', icon: Database },
     ];
 
     const handleLinkClick = () => {
@@ -80,56 +81,6 @@ const AppMenu = () => {
     );
 };
 
-const StorageInfo = () => {
-    const [storage, setStorage] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        fetch('/api/storage-summary')
-            .then(res => res.json())
-            .then(data => {
-                if(data && !data.error) {
-                    setStorage(data);
-                }
-            })
-            .catch(console.error)
-            .finally(() => setLoading(false));
-    }, []);
-
-    const { state } = useSidebar();
-
-    if (loading) {
-        return (
-             <div className="px-4 py-2 space-y-2">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-             </div>
-        )
-    }
-
-    if (!storage) return null;
-
-    return (
-        <div className="px-4 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
-             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <Send className="w-3.5 h-3.5" />
-                    <span className="font-medium">Telegram</span>
-                </div>
-                <span>{storage.telegram?.pretty || '0 B'}</span>
-             </div>
-             <div className="flex items-center justify-between mt-1">
-                 <div className="flex items-center gap-2">
-                    <Database className="w-3.5 h-3.5" />
-                    <span className="font-medium">Database</span>
-                 </div>
-                 <span>{storage.supabase?.pretty || '0 B'}</span>
-             </div>
-        </div>
-    )
-}
-
-
 const Layout = ({ children }) => {
     return (
         <SidebarProvider>
@@ -147,9 +98,6 @@ const Layout = ({ children }) => {
                         <AppMenu />
                     </SidebarContent>
                     <SidebarFooter>
-                        <SidebarSeparator />
-                        <StorageInfo />
-                        <SidebarSeparator />
                         <SidebarTrigger />
                     </SidebarFooter>
                 </Sidebar>
