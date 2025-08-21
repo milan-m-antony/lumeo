@@ -190,8 +190,8 @@ export default function Home() {
         
         <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6 gap-4 space-y-4">
           {files.map((f) => (
-            <Card key={f.id} className="break-inside-avoid overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 group cursor-pointer">
-              <CardContent className="p-0" onClick={() => setSelectedFile(f)}>
+            <Card key={f.id} className="break-inside-avoid overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 group">
+              <CardContent className="p-0 cursor-pointer" onClick={() => setSelectedFile(f)}>
                 {renderFilePreview(f)}
               </CardContent>
             </Card>
@@ -200,7 +200,7 @@ export default function Home() {
       </main>
 
       <Dialog open={!!selectedFile} onOpenChange={(isOpen) => !isOpen && setSelectedFile(null)}>
-          <DialogContent className="max-w-5xl w-full max-h-[90vh] p-0 flex flex-col">
+          <DialogContent className="max-w-3xl w-11/12 h-[90vh] p-0 flex flex-col">
              {selectedFile && (
                 <>
                 <DialogHeader className="p-4 border-b flex-shrink-0">
