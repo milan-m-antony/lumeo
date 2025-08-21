@@ -28,8 +28,8 @@ export default function Home() {
     loadMedia();
   }, []);
 
-  const addNewMedia = (newMedia: Media) => {
-     setMedia(prevMedia => [newMedia, ...prevMedia]);
+  const addNewMedia = (newMediaItem: Media) => {
+     setMedia(prevMedia => [newMediaItem, ...prevMedia]);
   }
 
   return (

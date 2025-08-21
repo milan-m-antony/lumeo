@@ -82,7 +82,7 @@ export async function uploadFile(
 
   try {
     const telegramFormData = new FormData();
-    telegramFormData.append("chat_id", String(chatId));
+    telegramFormData.append("chat_id", chatId);
     telegramFormData.append(isVideo ? "video" : "photo", file);
     if (caption) {
       telegramFormData.append("caption", caption);
