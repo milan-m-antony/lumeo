@@ -6,7 +6,7 @@ export default async function handler(req, res) {
 
   let query = supabase
     .from("files")
-    .select("*")
+    .select("*, file_album_links(album_id)") // Also fetch the album links
     .is('deleted_at', null) // Only fetch files that are not in the trash
     .order('created_at', { ascending: false });
 

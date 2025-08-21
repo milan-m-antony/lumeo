@@ -5,11 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CheckCircle, AlertCircle, UploadCloud, Image as ImageIcon, Video, FileText } from "lucide-react";
+import { CheckCircle, AlertCircle, UploadCloud, X as XIcon, ChevronDown, Folder } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
-
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 
 export default function Upload() {
   const [file, setFile] = useState(null);
@@ -17,8 +19,8 @@ export default function Upload() {
   const [error, setError] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
-  const [albums, setAlbums] = useState([]);
-  const [selectedAlbum, setSelectedAlbum] = useState('none');
+  const [allAlbums, setAllAlbums] = useState([]);
+  const [selectedAlbumIds, setSelectedAlbumIds] = useState(new Set());
   const { toast } = useToast();
 
   useEffect(() => {
@@ -26,7 +28,7 @@ export default function Upload() {
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
-          setAlbums(data);
+          setAllAlbums(data);
         }
       })
       .catch(err => console.error("Failed to fetch albums", err));
@@ -35,7 +37,6 @@ export default function Upload() {
   const onDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
       const selectedFile = acceptedFiles[0];
-      // Create a preview URL
       selectedFile.preview = URL.createObjectURL(selectedFile);
       setFile(selectedFile);
       setError(null);
@@ -52,6 +53,25 @@ export default function Upload() {
     }
   });
 
+  const handleAlbumSelect = (albumId) => {
+    const newSelection = new Set(selectedAlbumIds);
+    if (newSelection.has(albumId)) {
+      newSelection.delete(albumId);
+    } else {
+      newSelection.add(albumId);
+    }
+    setSelectedAlbumIds(newSelection);
+  };
+  
+  const resetForm = () => {
+      setFile(null);
+      setCaption("");
+      setSelectedAlbumIds(new Set());
+      setUploadProgress(0);
+      setIsUploading(false);
+      setError(null);
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) {
@@ -66,11 +86,10 @@ export default function Upload() {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("caption", caption);
-    if (selectedAlbum !== 'none') {
-        formData.append("albumId", selectedAlbum);
-    }
+    selectedAlbumIds.forEach(id => {
+        formData.append("albumIds", id);
+    });
 
-    // Using XMLHttpRequest to monitor progress
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/upload", true);
 
@@ -91,16 +110,15 @@ export default function Upload() {
               description: `"${response.file.caption || file.name}" has been added.`,
               variant: "default",
           });
-          setFile(null);
-          setCaption("");
-          setSelectedAlbum("none");
-          // Keep progress at 100 to show completion, will be reset on new file selection
+          resetForm();
+          setUploadProgress(100); // Keep progress at 100 for a moment
+          setTimeout(() => setUploadProgress(0), 2000); // Reset after 2s
         } else {
-          setUploadProgress(0); // Reset on error
+          setUploadProgress(0);
           setError(response.error || "An unknown error occurred during upload.");
         }
       } catch (e) {
-          setUploadProgress(0); // Reset on error
+          setUploadProgress(0);
           setError("An unexpected error occurred parsing the server response.");
       }
     };
@@ -114,13 +132,6 @@ export default function Upload() {
     xhr.send(formData);
   };
   
-  const handleFileSelect = (newFile) => {
-    setFile(newFile);
-    setUploadProgress(0);
-    setError(null);
-    setIsUploading(false);
-  }
-
   const renderPreview = () => {
     if (!file) return null;
     const fileType = file.type.split('/')[0];
@@ -130,10 +141,12 @@ export default function Upload() {
       return <img src={file.preview} alt="Preview" className="max-h-48 rounded-md object-contain" onLoad={() => URL.revokeObjectURL(file.preview)} />;
     }
     if (fileType === 'video') {
-       return <Video className={iconClass} />;
+       return <video className="max-h-48 rounded-md" src={file.preview} controls />;
     }
-    return <FileText className={iconClass} />;
+    return <Folder className={iconClass} />;
   }
+  
+  const selectedAlbums = allAlbums.filter(album => selectedAlbumIds.has(album.id));
 
 
   return (
@@ -143,7 +156,7 @@ export default function Upload() {
                 <h1 className="text-2xl font-bold text-foreground">Upload File</h1>
             </div>
          </header>
-         <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8 flex items-center justify-center">
+         <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
             <div className="w-full flex justify-center">
                 <Card className="w-full max-w-2xl shadow-lg">
                   <form onSubmit={handleSubmit}>
@@ -154,7 +167,7 @@ export default function Upload() {
                                 <div className="flex flex-col items-center gap-2">
                                     {renderPreview()}
                                     <p className="font-medium truncate max-w-xs">{file.name}</p>
-                                    <Button variant="link" size="sm" onClick={(e) => { e.stopPropagation(); handleFileSelect(null); }}>Choose another file</Button>
+                                    <Button variant="link" size="sm" onClick={(e) => { e.stopPropagation(); resetForm(); }}>Choose another file</Button>
                                 </div>
                             ) : (
                               <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -171,18 +184,46 @@ export default function Upload() {
                                 <Input id="caption" type="text" placeholder="Add an optional caption..." value={caption} onChange={(e) => setCaption(e.target.value)} className="mt-1"/>
                             </div>
                              <div>
-                                <Label htmlFor="album" className="font-medium">Album</Label>
-                                <Select value={selectedAlbum} onValueChange={setSelectedAlbum}>
-                                    <SelectTrigger id="album" className="w-full mt-1">
-                                        <SelectValue placeholder="Select an album (optional)" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="none">No Album (add to main gallery)</SelectItem>
-                                        {albums.map(album => (
-                                            <SelectItem key={album.id} value={String(album.id)}>{album.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <Label className="font-medium">Albums (optional)</Label>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="outline" className="w-full justify-start font-normal mt-1">
+                                            <div className="flex items-center justify-between w-full">
+                                                <span className="truncate">
+                                                    {selectedAlbums.length === 0 && "Select albums..."}
+                                                    {selectedAlbums.length > 0 && selectedAlbums.map(a => a.name).join(', ')}
+                                                </span>
+                                                <ChevronDown className="h-4 w-4 opacity-50"/>
+                                            </div>
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                                       <ScrollArea className="h-48">
+                                          <div className="p-2 space-y-2">
+                                              {allAlbums.map(album => (
+                                                  <div key={album.id} className="flex items-center space-x-2">
+                                                      <Checkbox
+                                                          id={`album-upload-${album.id}`}
+                                                          checked={selectedAlbumIds.has(album.id)}
+                                                          onCheckedChange={() => handleAlbumSelect(album.id)}
+                                                      />
+                                                      <Label htmlFor={`album-upload-${album.id}`} className="font-normal w-full truncate cursor-pointer">{album.name}</Label>
+                                                  </div>
+                                              ))}
+                                          </div>
+                                       </ScrollArea>
+                                    </PopoverContent>
+                                </Popover>
+                                <div className="pt-2 flex flex-wrap gap-1">
+                                    {selectedAlbums.map(album => (
+                                        <Badge key={album.id} variant="secondary">
+                                            {album.name}
+                                            <button type="button" onClick={() => handleAlbumSelect(album.id)} className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                                                <XIcon className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                                            </button>
+                                        </Badge>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                         
@@ -190,7 +231,8 @@ export default function Upload() {
                             <div className="w-full mt-6">
                                 <Progress value={uploadProgress} />
                                 <p className="text-sm text-center mt-2 text-muted-foreground">
-                                  {isUploading ? `Uploading... ${uploadProgress}%` : (uploadProgress === 100 ? 'Upload complete!' : '')}
+                                  {isUploading && uploadProgress < 100 ? `Uploading... ${uploadProgress}%` : ''}
+                                  {uploadProgress === 100 && !isUploading && 'Upload complete!'}
                                 </p>
                             </div>
                         )}
@@ -206,7 +248,7 @@ export default function Upload() {
                     </CardContent>
                     <CardFooter className="w-full p-6 pt-0">
                         <Button type="submit" disabled={!file || isUploading} className="w-full">
-                            {isUploading ? 'Uploading...' : 'Upload & Add to Gallery'}
+                            {isUploading ? 'Uploading...' : 'Upload File'}
                         </Button>
                     </CardFooter>
                   </form>

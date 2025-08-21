@@ -4,12 +4,12 @@ Lumeo is a Next.js application that acts as a personal media gallery, using Tele
 
 ## Features
 
--   **Album Organization:** Group your files into albums for easy categorization.
+-   **Album Organization:** Group your files into multiple albums for flexible categorization.
 -   **Multi-file Type Support:** Upload and manage images, videos, and other documents.
 -   **Telegram-based Storage:** Leverages Telegram's robust and generous file storage capabilities.
 -   **Supabase Backend:** Uses Supabase for fast and reliable metadata storage and querying.
 -   **Responsive Gallery:** A masonry-style gallery for viewing your media.
--   **File Management:** Edit captions and manage your files.
+-   **File Management:** Edit captions and manage your files across multiple albums.
 -   **Trash Bin:** Soft-delete files and restore them later, or delete them permanently.
 
 ## Getting Started
@@ -50,10 +50,11 @@ Supabase will be used to store the metadata for your files, such as captions, fi
 1.  Go to the **SQL Editor** (the database icon in the left sidebar).
 2.  Click "**New query**".
 3.  Copy the entire SQL script below and paste it into the editor. This script will drop any old tables first to ensure a fresh start.
-4.  Click the "**Run**" button. This will create the `files` and `albums` tables and enable the necessary access policies.
+4.  Click the "**Run**" button. This will create the `files`, `albums`, and `file_album_links` tables and enable the necessary access policies.
 
 ```sql
 -- Drop existing tables in reverse order of creation due to dependencies
+DROP TABLE IF EXISTS public.file_album_links;
 DROP TABLE IF EXISTS public.files;
 DROP TABLE IF EXISTS public.albums;
 
@@ -74,9 +75,16 @@ CREATE TABLE public.files (
   type TEXT NOT NULL,
   tg_message_id BIGINT NOT NULL,
   thumbnail_file_id TEXT,
-  deleted_at TIMESTAMPTZ,
-  album_id BIGINT REFERENCES public.albums(id) ON DELETE SET NULL
+  deleted_at TIMESTAMPTZ
 );
+
+-- Create the junction table for the many-to-many relationship
+CREATE TABLE public.file_album_links (
+    file_id BIGINT NOT NULL REFERENCES public.files(id) ON DELETE CASCADE,
+    album_id BIGINT NOT NULL REFERENCES public.albums(id) ON DELETE CASCADE,
+    PRIMARY KEY (file_id, album_id)
+);
+
 
 -- Enable Row Level Security for albums
 ALTER TABLE public.albums ENABLE ROW LEVEL SECURITY;
@@ -117,6 +125,23 @@ USING (true);
 CREATE POLICY "Allow public delete access for files"
 ON public.files FOR DELETE
 USING (true);
+
+-- Enable Row Level Security for the link table
+ALTER TABLE public.file_album_links ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for public access on the link table
+CREATE POLICY "Allow public read for file_album_links"
+ON public.file_album_links FOR SELECT
+USING (true);
+
+CREATE POLICY "Allow public insert for file_album_links"
+ON public.file_album_links FOR INSERT
+WITH CHECK (true);
+
+CREATE POLICY "Allow public delete for file_album_links"
+ON public.file_album_links FOR DELETE
+USING (true);
+
 ```
 
 ### 3. Telegram Setup

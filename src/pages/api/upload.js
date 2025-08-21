@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     });
   }
 
-  const form = formidable({ multiples: false });
+  const form = formidable({ multiples: true }); // Allow multiples for album IDs
   
   form.parse(req, async (err, fields, files) => {
     let filePath;
@@ -37,7 +37,10 @@ export default async function handler(req, res) {
       }
       
       const caption = Array.isArray(fields.caption) ? fields.caption[0] : fields.caption || "";
-      const albumId = Array.isArray(fields.albumId) ? fields.albumId[0] : fields.albumId;
+      let albumIds = fields.albumIds ? (Array.isArray(fields.albumIds) ? fields.albumIds : [fields.albumIds]) : [];
+      albumIds = albumIds.filter(id => id && id !== 'none');
+
+
       const file = files.file;
       
       if (!file || file.length === 0) {
@@ -108,20 +111,35 @@ export default async function handler(req, res) {
         thumbnail_file_id: thumbnailFileId,
       };
 
-      if (albumId && albumId !== 'none') {
-        dbData.album_id = parseInt(albumId, 10);
-      }
-
-      const { data, error } = await supabase.from("files").insert([dbData]).select().single();
+      const { data: insertedFile, error } = await supabase.from("files").insert([dbData]).select().single();
 
       if (error) {
           console.error("Supabase insert error:", error);
-          // Attempt to delete the just-uploaded message from Telegram if DB insert fails
           await fetch(`https://api.telegram.org/bot${token}/deleteMessage?chat_id=${chatId}&message_id=${messageId}`);
           return res.status(500).json({ error: `Database insert failed: ${error.message}` });
       }
 
-      res.json({ success: true, file: data });
+      // If there are album IDs, create the links
+      if (albumIds.length > 0) {
+        const links = albumIds.map(albumId => ({
+            file_id: insertedFile.id,
+            album_id: parseInt(albumId, 10),
+        }));
+
+        const { error: linkError } = await supabase.from('file_album_links').insert(links);
+
+        if (linkError) {
+             console.error("Supabase link insert error:", linkError);
+             // Don't delete the file, just log the error. The user can link it manually.
+             // But we should inform the user about this.
+             return res.status(500).json({ 
+                 error: `File uploaded but failed to link to albums: ${linkError.message}`,
+                 file: insertedFile // still return the file data
+            });
+        }
+      }
+
+      res.json({ success: true, file: insertedFile });
 
     } catch (error) {
         console.error("An unexpected error occurred in the upload handler:", error);

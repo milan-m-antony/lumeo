@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     // Fetch a single album
     const { data, error } = await supabase
       .from('albums')
-      .select('*')
+      .select('*, file_album_links(count)')
       .eq('id', id)
       .single();
 
@@ -17,7 +17,15 @@ export default async function handler(req, res) {
     if (!data) {
         return res.status(404).json({ error: "Album not found" });
     }
-    return res.status(200).json(data);
+    
+     // Rename for consistency with the list view
+    const { file_album_links, ...rest } = data;
+    const finalData = {
+        ...rest,
+        files: [{ count: file_album_links[0]?.count || 0 }]
+    };
+
+    return res.status(200).json(finalData);
   } else if (req.method === 'PUT') {
     // Update an album
     const { name, description } = req.body;
@@ -38,9 +46,8 @@ export default async function handler(req, res) {
     }
     return res.status(200).json(data);
   } else if (req.method === 'DELETE') {
-    // Delete an album
-    // Note: This only deletes the album record. Files within the album are not deleted
-    // but their album_id will be set to NULL due to the ON DELETE SET NULL constraint.
+    // Note: This only deletes the album record and its links in file_album_links. 
+    // The files themselves are not deleted. This is handled by the CASCADE setting in the DB.
     const { data, error } = await supabase
         .from('albums')
         .delete()

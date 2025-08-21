@@ -6,31 +6,24 @@ export default async function handler(req, res) {
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const { id, caption, album_id } = req.body;
+  // This endpoint now only handles updating the caption.
+  // Album linking is handled by /api/file-album-link.js
+  const { id, caption } = req.body;
 
   if (!id) {
     return res.status(400).json({ error: 'File ID is required' });
   }
 
-  const updateData = {};
-  if (caption !== undefined) {
-    updateData.caption = caption || ""; // Allow empty caption
-  }
-  if (album_id !== undefined) {
-    // If album_id is 'none', set it to null, otherwise use the provided id
-    updateData.album_id = album_id === 'none' ? null : album_id;
-  }
-
-  if (Object.keys(updateData).length === 0) {
-    return res.status(400).json({ error: 'No update data provided.' });
+  if (caption === undefined) {
+      return res.status(400).json({ error: 'No caption data provided.' });
   }
 
   const { data, error } = await supabase
     .from('files')
-    .update(updateData)
+    .update({ caption: caption || "" }) // Allow empty caption
     .eq('id', id)
     .select()
-    .single(); // .single() is important to get the updated object back
+    .single();
 
   if (error) {
     console.error("Supabase update error:", error);
