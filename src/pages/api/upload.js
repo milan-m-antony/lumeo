@@ -81,12 +81,15 @@ export default async function handler(req, res) {
 
       const result = tgData.result;
       let fileId;
+      let thumbnailFileId = null;
 
       if (result.photo) {
-        // Find the largest photo (usually the last one)
         fileId = result.photo[result.photo.length - 1].file_id;
       } else if (result.video) {
         fileId = result.video.file_id;
+        if (result.video.thumbnail) {
+            thumbnailFileId = result.video.thumbnail.file_id;
+        }
       } else if (result.document) {
         fileId = result.document.file_id;
       } else {
@@ -102,6 +105,7 @@ export default async function handler(req, res) {
           caption,
           type: dbFileType,
           tg_message_id: messageId,
+          thumbnail_file_id: thumbnailFileId,
         },
       ]).select().single();
 

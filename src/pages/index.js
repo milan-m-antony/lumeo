@@ -5,7 +5,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Edit, Download, Save, X, Image as ImageIcon, UploadCloud, Video, FileText, Search } from "lucide-react";
+import { Edit, Download, Save, X, Image as ImageIcon, UploadCloud, Video, FileText, Search, PlayCircle } from "lucide-react";
 
 export default function Home() {
   const [files, setFiles] = useState([]);
@@ -63,7 +63,6 @@ export default function Home() {
     const result = await res.json();
     if (result.success && result.file) {
         setFiles(files.map(f => (f.id === fileId ? result.file : f)));
-        // Update the selected file as well if it's being viewed
         if (selectedFile && selectedFile.id === fileId) {
             setSelectedFile(result.file);
         }
@@ -81,6 +80,16 @@ export default function Home() {
       case 'photo':
         return <img src={getFileUrl(file.file_id)} alt={file.caption} className="w-full h-full object-cover" data-ai-hint="gallery photo" onError={(e) => {e.target.onerror = null; e.target.src='https://placehold.co/400x400.png';}} />;
       case 'video':
+        if (file.thumbnail_file_id) {
+          return (
+            <div className="relative w-full h-full">
+              <img src={getFileUrl(file.thumbnail_file_id)} alt={`${file.caption} thumbnail`} className="w-full h-full object-cover" onError={(e) => {e.target.onerror = null; e.target.src='https://placehold.co/400x400.png';}}/>
+              <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                  <PlayCircle className="w-12 h-12 text-white/80" />
+              </div>
+            </div>
+          );
+        }
         return <div className="w-full h-full bg-secondary flex items-center justify-center"><Video className={iconClass} /></div>;
       case 'document':
         return <div className="w-full h-full bg-secondary flex items-center justify-center"><FileText className={iconClass} /></div>;
