@@ -75,7 +75,8 @@ CREATE TABLE public.files (
   type TEXT NOT NULL,
   tg_message_id BIGINT NOT NULL,
   thumbnail_file_id TEXT,
-  deleted_at TIMESTAMPTZ
+  deleted_at TIMESTAMPTZ,
+  file_size BIGINT
 );
 
 -- Create the junction table for the many-to-many relationship
@@ -142,6 +143,21 @@ CREATE POLICY "Allow public delete for file_album_links"
 ON public.file_album_links FOR DELETE
 USING (true);
 
+```
+
+**D. Create Database Function for Storage Calculation:**
+
+1.  In the Supabase **SQL Editor**, click "**New query**" again.
+2.  Paste the following SQL to create a function that calculates the total size of your database.
+3.  Click the "**Run**" button.
+
+```sql
+CREATE OR REPLACE FUNCTION get_database_size()
+RETURNS BIGINT AS $$
+  SELECT sum(pg_total_relation_size(quote_ident(schemaname) || '.' || quote_ident(tablename)))::BIGINT 
+  FROM pg_tables 
+  WHERE schemaname = 'public';
+$$ LANGUAGE SQL;
 ```
 
 ### 3. Telegram Setup
