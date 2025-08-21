@@ -63,6 +63,10 @@ export default function Home() {
     const result = await res.json();
     if (result.success && result.file) {
         setFiles(files.map(f => (f.id === fileId ? result.file : f)));
+        // Update the selected file as well if it's being viewed
+        if (selectedFile && selectedFile.id === fileId) {
+            setSelectedFile(result.file);
+        }
         handleCancelEdit();
     } else {
         alert("Failed to update caption: " + (result.error || "Unknown error"));
@@ -75,7 +79,7 @@ export default function Home() {
     const iconClass = "w-16 h-16 text-muted-foreground";
     switch (file.type) {
       case 'photo':
-        return <img src={getFileUrl(file.file_id)} alt={file.caption} className="w-full h-full object-cover" data-ai-hint="gallery photo" onError={(e) => e.target.src = 'https://placehold.co/400x400.png'} />;
+        return <img src={getFileUrl(file.file_id)} alt={file.caption} className="w-full h-full object-cover" data-ai-hint="gallery photo" onError={(e) => {e.target.onerror = null; e.target.src='https://placehold.co/400x400.png';}} />;
       case 'video':
         return <div className="w-full h-full bg-secondary flex items-center justify-center"><Video className={iconClass} /></div>;
       case 'document':
@@ -144,36 +148,36 @@ export default function Home() {
         </div>
 
         <Dialog open={!!selectedFile} onOpenChange={(isOpen) => !isOpen && setSelectedFile(null)}>
-          <DialogContent className="max-w-4xl w-full h-auto max-h-[90vh] p-0">
+          <DialogContent className="max-w-4xl w-full h-auto max-h-[90vh] p-0 flex flex-col">
              {selectedFile && (
                 <>
-                <DialogHeader className="p-4 border-b">
+                <DialogHeader className="p-4 border-b flex-shrink-0">
                   <DialogTitle className="truncate">
                     {editingId === selectedFile.id ? (
-                        <Input value={editingCaption} onChange={(e) => setEditingCaption(e.target.value)} placeholder="Enter caption"/>
+                        <Input value={editingCaption} onChange={(e) => setEditingCaption(e.target.value)} placeholder="Enter caption" className="text-lg"/>
                     ) : (
                         selectedFile.caption || "No Caption"
                     )}
                   </DialogTitle>
                 </DialogHeader>
-                <div className="p-4 flex-grow overflow-y-auto">
-                    {selectedFile.type === 'photo' && <img src={getFileUrl(selectedFile.file_id)} alt={selectedFile.caption} className="max-w-full max-h-[70vh] mx-auto" />}
-                    {selectedFile.type === 'video' && <video src={getFileUrl(selectedFile.file_id)} controls autoPlay className="max-w-full max-h-[70vh] mx-auto" />}
+                <div className="p-4 flex-grow overflow-y-auto flex items-center justify-center bg-secondary/30">
+                    {selectedFile.type === 'photo' && <img src={getFileUrl(selectedFile.file_id)} alt={selectedFile.caption} className="max-w-full max-h-[70vh] object-contain" />}
+                    {selectedFile.type === 'video' && <video src={getFileUrl(selectedFile.file_id)} controls autoPlay className="max-w-full max-h-[70vh]" />}
                     {selectedFile.type === 'document' && (
-                        <div className="flex flex-col items-center justify-center h-64 bg-secondary rounded-md">
+                        <div className="flex flex-col items-center justify-center h-64 bg-secondary rounded-md p-8">
                            <FileText className="w-24 h-24 text-muted-foreground" />
-                           <p className="mt-4 text-lg">This is a document.</p>
+                           <p className="mt-4 text-lg text-center">This is a document preview.</p>
                            <a href={getFileUrl(selectedFile.file_id)} download target="_blank" rel="noreferrer">
                               <Button className="mt-4">Download Document</Button>
                            </a>
                         </div>
                     )}
                 </div>
-                <CardFooter className="p-4 bg-muted/50 flex justify-end items-center gap-2">
+                <CardFooter className="p-4 bg-muted/50 flex justify-end items-center gap-2 flex-shrink-0">
                     {editingId === selectedFile.id ? (
                         <>
-                          <Button size="icon" variant="outline" onClick={() => handleUpdateCaption(selectedFile.id)}><Save className="w-4 h-4" /></Button>
-                          <Button size="icon" variant="destructive" onClick={handleCancelEdit}><X className="w-4 h-4" /></Button>
+                          <Button size="icon" variant="outline" onClick={() => handleUpdateCaption(selectedFile.id)} title="Save Caption"><Save className="w-4 h-4" /></Button>
+                          <Button size="icon" variant="destructive" onClick={handleCancelEdit} title="Cancel Edit"><X className="w-4 h-4" /></Button>
                         </>
                     ) : (
                         <Button size="icon" variant="outline" onClick={() => handleEditClick(selectedFile)} title="Edit Caption"><Edit className="w-4 h-4" /></Button>
