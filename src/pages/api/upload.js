@@ -18,8 +18,8 @@ export default async function handler(req, res) {
   }
 
   // --- Environment Variable Validation ---
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHANNEL_ID;
+  const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
+  const chatId = process.env.TELEGRAM_CHANNEL_ID?.trim();
 
   if (!token || !chatId) {
     console.error("Missing Telegram environment variables. Please check your .env.local file.");
@@ -80,6 +80,7 @@ export default async function handler(req, res) {
       let dbFileType;
 
       if (result.photo) {
+        // Find the largest photo (usually the last one)
         fileId = result.photo[result.photo.length - 1].file_id;
         dbFileType = 'photo';
       } else if (result.document) {
@@ -92,6 +93,7 @@ export default async function handler(req, res) {
 
       const messageId = result.message_id;
 
+      // Save metadata in Supabase
       const { data, error } = await supabase.from("files").insert([
         {
           file_id: fileId,
@@ -103,6 +105,9 @@ export default async function handler(req, res) {
 
       if (error) {
           console.error("Supabase insert error:", error);
+          // Even if Supabase fails, the Telegram upload was successful.
+          // We should ideally handle this better (e.g., retry logic or cleanup),
+          // but for now, we'll return an error to the user.
           return res.status(500).json({ error: error.message });
       }
 
