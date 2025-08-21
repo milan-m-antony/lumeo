@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ export default function Upload() {
   const [error, setError] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadComplete, setUploadComplete] = useState(false);
   const [allAlbums, setAllAlbums] = useState([]);
   const [selectedAlbumIds, setSelectedAlbumIds] = useState(new Set());
   const { toast } = useToast();
@@ -40,6 +42,8 @@ export default function Upload() {
       selectedFile.preview = URL.createObjectURL(selectedFile);
       setFile(selectedFile);
       setError(null);
+      setUploadComplete(false);
+      setUploadProgress(0);
     }
   }, []);
 
@@ -63,14 +67,14 @@ export default function Upload() {
     setSelectedAlbumIds(newSelection);
   };
   
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
       setFile(null);
       setCaption("");
       setSelectedAlbumIds(new Set());
-      setUploadProgress(0);
       setIsUploading(false);
       setError(null);
-  }
+      setUploadComplete(true);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -80,6 +84,7 @@ export default function Upload() {
     }
     
     setIsUploading(true);
+    setUploadComplete(false);
     setUploadProgress(0);
     setError(null);
 
@@ -111,8 +116,11 @@ export default function Upload() {
               variant: "default",
           });
           resetForm();
-          setUploadProgress(100); // Keep progress at 100 for a moment
-          setTimeout(() => setUploadProgress(0), 2000); // Reset after 2s
+          setUploadProgress(100);
+          setTimeout(() => {
+            setUploadComplete(false);
+            setUploadProgress(0);
+          }, 2000);
         } else {
           setUploadProgress(0);
           setError(response.error || "An unknown error occurred during upload.");
@@ -167,7 +175,7 @@ export default function Upload() {
                                 <div className="flex flex-col items-center gap-2">
                                     {renderPreview()}
                                     <p className="font-medium truncate max-w-xs">{file.name}</p>
-                                    <Button variant="link" size="sm" onClick={(e) => { e.stopPropagation(); resetForm(); }}>Choose another file</Button>
+                                    <Button variant="link" size="sm" onClick={(e) => { e.stopPropagation(); setFile(null); setUploadProgress(0); setUploadComplete(false); }}>Choose another file</Button>
                                 </div>
                             ) : (
                               <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -227,12 +235,12 @@ export default function Upload() {
                             </div>
                         </div>
                         
-                        {(isUploading || uploadProgress > 0) && (
+                        {(isUploading || uploadProgress > 0 || uploadComplete) && (
                             <div className="w-full mt-6">
                                 <Progress value={uploadProgress} />
                                 <p className="text-sm text-center mt-2 text-muted-foreground">
-                                  {isUploading && uploadProgress < 100 ? `Uploading... ${uploadProgress}%` : ''}
-                                  {uploadProgress === 100 && !isUploading && 'Upload complete!'}
+                                  {isUploading && `Uploading... ${uploadProgress}%`}
+                                  {uploadComplete && 'Upload complete!'}
                                 </p>
                             </div>
                         )}
@@ -258,3 +266,5 @@ export default function Upload() {
     </div>
   );
 }
+
+    
