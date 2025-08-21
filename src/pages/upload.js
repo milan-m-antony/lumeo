@@ -1,12 +1,11 @@
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ArrowLeft, CheckCircle, AlertCircle, UploadCloud, Image as ImageIcon, Video, FileText } from "lucide-react";
+import { CheckCircle, AlertCircle, UploadCloud, Image as ImageIcon, Video, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 
@@ -67,18 +66,22 @@ export default function Upload() {
     xhr.onload = () => {
       setIsUploading(false);
       setUploadProgress(100);
-      const response = JSON.parse(xhr.responseText);
-
-      if (xhr.status === 200 && response.success) {
-        toast({
-            title: "Upload Successful!",
-            description: `"${response.file.caption || file.name}" has been added to the gallery.`,
-            variant: "default",
-        });
-        setFile(null);
-        setCaption("");
-      } else {
-        setError(response.error || "An unknown error occurred during upload.");
+      try {
+        const response = JSON.parse(xhr.responseText);
+        if (xhr.status === 200 && response.success) {
+          toast({
+              title: "Upload Successful!",
+              description: `"${response.file.caption || file.name}" has been added to the gallery.`,
+              variant: "default",
+          });
+          setFile(null);
+          setCaption("");
+          setUploadProgress(0);
+        } else {
+          setError(response.error || "An unknown error occurred during upload.");
+        }
+      } catch (e) {
+          setError("An unexpected error occurred parsing the server response.");
       }
     };
 
@@ -106,66 +109,62 @@ export default function Upload() {
 
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 font-body">
-      <Card className="w-full max-w-lg shadow-lg">
-        <CardHeader>
-          <div className="flex items-center gap-4 mb-2">
-             <Link href="/" passHref>
-                <Button variant="outline" size="icon" aria-label="Back to gallery"><ArrowLeft className="h-4 w-4" /></Button>
-            </Link>
-            <div className="flex-grow">
-              <CardTitle className="text-2xl text-primary">Upload to TeleGallery</CardTitle>
-              <CardDescription>Drag & drop a file or click to select</CardDescription>
+    <div className="flex flex-col h-full w-full">
+         <header className="flex-shrink-0 bg-background/95 sticky top-0 z-10 backdrop-blur-sm">
+            <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 border-b">
+                <h1 className="text-2xl font-bold text-foreground">Upload File</h1>
             </div>
-          </div>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="flex flex-col gap-6">
-              <div {...getRootProps()} className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}>
-                  <input {...getInputProps()} />
-                  {file ? (
-                      <div className="flex flex-col items-center gap-2">
-                          {renderPreview()}
-                          <p className="font-medium truncate">{file.name}</p>
-                          <Button variant="link" size="sm" onClick={() => setFile(null)}>Choose another file</Button>
-                      </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                      <UploadCloud className="w-12 h-12"/>
-                      <p className="font-semibold">{isDragActive ? "Drop the file here..." : "Drag & drop file here, or click to select"}</p>
-                      <p className="text-xs">Supports images, videos, and documents.</p>
+         </header>
+         <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8 flex items-center justify-center">
+            <Card className="w-full max-w-2xl shadow-lg">
+              <form onSubmit={handleSubmit}>
+                <CardContent className="p-6 flex flex-col gap-6">
+                    <div {...getRootProps()} className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}>
+                        <input {...getInputProps()} />
+                        {file ? (
+                            <div className="flex flex-col items-center gap-2">
+                                {renderPreview()}
+                                <p className="font-medium truncate">{file.name}</p>
+                                <Button variant="link" size="sm" onClick={() => { setFile(null); setUploadProgress(0); }}>Choose another file</Button>
+                            </div>
+                        ) : (
+                          <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                            <UploadCloud className="w-12 h-12"/>
+                            <p className="font-semibold">{isDragActive ? "Drop the file here..." : "Drag & drop file here, or click to select"}</p>
+                            <p className="text-xs">Supports images, videos, and documents.</p>
+                          </div>
+                        )}
                     </div>
-                  )}
-              </div>
 
-              <div className="grid w-full items-center gap-1.5">
-                  <label htmlFor="caption" className="font-medium">Caption</label>
-                  <Input id="caption" type="text" placeholder="Add an optional caption..." value={caption} onChange={(e) => setCaption(e.target.value)} />
-              </div>
-              
-              {isUploading && (
-                  <div className="w-full">
-                      <Progress value={uploadProgress} />
-                      <p className="text-sm text-center mt-2 text-muted-foreground">{uploadProgress}% complete</p>
-                  </div>
-              )}
+                    <div className="grid w-full items-center gap-1.5">
+                        <label htmlFor="caption" className="font-medium">Caption</label>
+                        <Input id="caption" type="text" placeholder="Add an optional caption..." value={caption} onChange={(e) => setCaption(e.target.value)} />
+                    </div>
+                    
+                    {(isUploading || uploadProgress > 0) && (
+                        <div className="w-full">
+                            <Progress value={uploadProgress} />
+                            <p className="text-sm text-center mt-2 text-muted-foreground">{uploadProgress}% complete</p>
+                        </div>
+                    )}
 
-              {error && (
-                   <Alert variant="destructive" className="w-full">
-                     <AlertCircle className="h-4 w-4" />
-                     <AlertTitle>Upload Failed</AlertTitle>
-                     <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-              )}
+                    {error && (
+                         <Alert variant="destructive" className="w-full">
+                           <AlertCircle className="h-4 w-4" />
+                           <AlertTitle>Upload Failed</AlertTitle>
+                           <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                    )}
 
-          </CardContent>
-          <CardFooter>
-              <Button type="submit" disabled={!file || isUploading} className="w-full">
-                  {isUploading ? 'Uploading...' : 'Upload & Add to Gallery'}
-              </Button>
-          </CardFooter>
-        </form>
-      </Card>
+                </CardContent>
+                <CardFooter>
+                    <Button type="submit" disabled={!file || isUploading} className="w-full">
+                        {isUploading ? 'Uploading...' : 'Upload & Add to Gallery'}
+                    </Button>
+                </CardFooter>
+              </form>
+            </Card>
+         </main>
     </div>
   );
 }
