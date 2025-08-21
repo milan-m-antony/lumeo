@@ -116,12 +116,12 @@ export default function Trash() {
         </div>
       </header>
 
-      <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8 flex items-center justify-center">
+      <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
         {loading && <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
         {error && <p className="text-center text-destructive">Error: {error}</p>}
 
         {!loading && !error && trashedFiles.length === 0 && (
-          <div className="text-center text-muted-foreground py-16">
+          <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground">
             <Trash2 className="w-24 h-24 mx-auto text-muted-foreground/50" strokeWidth={1} />
             <h2 className="text-2xl mt-4 font-semibold">Your Trash is Empty</h2>
             <p className="mt-2">Deleted files will appear here.</p>
