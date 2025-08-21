@@ -169,7 +169,7 @@ export default function Home() {
       </main>
 
       <Dialog open={!!selectedFile} onOpenChange={(isOpen) => !isOpen && setSelectedFile(null)}>
-          <DialogContent className="max-w-5xl w-full h-auto max-h-[90vh] p-0 flex flex-col">
+          <DialogContent className="max-w-5xl w-full max-h-[90vh] p-0 flex flex-col">
              {selectedFile && (
                 <>
                 <DialogHeader className="p-4 border-b flex-shrink-0">
