@@ -15,7 +15,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { GalleryHorizontal, UploadCloud, Home, Menu } from 'lucide-react';
+import { GalleryHorizontal, UploadCloud, Home, Menu, Trash2 } from 'lucide-react';
 
 const MobileHeader = () => {
     const { toggleSidebar } = useSidebar();
@@ -40,6 +40,7 @@ const AppMenu = () => {
     const menuItems = [
         { href: '/', label: 'Gallery', icon: GalleryHorizontal },
         { href: '/upload', label: 'Upload', icon: UploadCloud },
+        { href: '/trash', label: 'Trash', icon: Trash2 },
     ];
 
     const handleLinkClick = () => {

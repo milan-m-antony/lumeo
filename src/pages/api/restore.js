@@ -15,13 +15,13 @@ export default async function handler(req, res) {
   try {
     const { data, error } = await supabase
       .from('files')
-      .update({ deleted_at: new Date().toISOString() })
+      .update({ deleted_at: null })
       .eq('id', id)
       .select()
       .single();
 
     if (error) {
-      console.error("Supabase soft delete error:", error);
+      console.error("Supabase restore error:", error);
       throw new Error(error.message);
     }
     
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
     res.status(200).json({ success: true, file: data });
 
   } catch (error) {
-    console.error('Soft delete operation failed:', error);
-    res.status(500).json({ success: false, error: error.message || 'Failed to move file to trash' });
+    console.error('Restore operation failed:', error);
+    res.status(500).json({ success: false, error: error.message || 'Failed to restore file' });
   }
 }

@@ -3,12 +3,16 @@ import { supabase } from "../../lib/supabase";
 export default async function handler(req, res) {
   const { caption, type } = req.query;
 
-  let query = supabase.from("files").select("*").order('created_at', { ascending: false });
+  let query = supabase
+    .from("files")
+    .select("*")
+    .is('deleted_at', null) // Only fetch files that are not in the trash
+    .order('created_at', { ascending: false });
 
   if (caption) {
     query = query.ilike("caption", `%${caption}%`);
   }
-  // Allow filtering by type, but ignore if type is 'all'
+  
   if (type && type !== 'all') {
     query = query.eq("type", type);
   }

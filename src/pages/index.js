@@ -79,27 +79,27 @@ export default function Home() {
     }
   };
 
-  const handleDeleteFile = async (fileToDelete) => {
-    if (!fileToDelete) return;
+  const handleMoveToTrash = async (fileToTrash) => {
+    if (!fileToTrash) return;
 
     const res = await fetch('/api/delete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: fileToDelete.id, tg_message_id: fileToDelete.tg_message_id }),
+      body: JSON.stringify({ id: fileToTrash.id }),
     });
     const result = await res.json();
 
     if (result.success) {
-      setFiles(files.filter(f => f.id !== fileToDelete.id));
+      setFiles(files.filter(f => f.id !== fileToTrash.id));
       setSelectedFile(null); // Close the modal
       toast({
-        title: "File Deleted",
-        description: "The file has been successfully removed.",
+        title: "Moved to Trash",
+        description: "The file has been moved to the trash bin.",
       });
     } else {
       toast({
-        title: "Deletion Failed",
-        description: result.error || "Could not delete the file.",
+        title: "Failed to Move",
+        description: result.error || "Could not move the file to trash.",
         variant: "destructive",
       });
     }
@@ -202,7 +202,7 @@ export default function Home() {
       </main>
 
       <Dialog open={!!selectedFile} onOpenChange={(isOpen) => !isOpen && setSelectedFile(null)}>
-          <DialogContent className="max-w-4xl w-[90vw] h-[90vh] p-0 flex flex-col">
+          <DialogContent className="max-w-4xl w-[90vw] p-0 flex flex-col sm:max-h-[80vh]">
              {selectedFile && (
                 <>
                 <DialogHeader className="p-4 border-b flex-shrink-0">
@@ -240,19 +240,18 @@ export default function Home() {
                         <Button size="icon" variant="outline" onClick={() => handleEditClick(selectedFile)} title="Edit Caption"><Edit className="w-4 h-4" /></Button>
                          <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button size="icon" variant="destructive" title="Delete File"><Trash2 className="w-4 h-4" /></Button>
+                              <Button size="icon" variant="destructive" title="Move to Trash"><Trash2 className="w-4 h-4" /></Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                                 <AlertDialogHeader>
-                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete the file
-                                    from your gallery and from Telegram.
+                                    This will move the file to the trash. You can restore it later.
                                 </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteFile(selectedFile)}>Delete</AlertDialogAction>
+                                <AlertDialogAction onClick={() => handleMoveToTrash(selectedFile)}>Move to Trash</AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>
