@@ -86,16 +86,21 @@ export default async function handler(req, res) {
       const result = tgData.result;
       let fileId;
       let thumbnailFileId = null;
+      let fileSize = 0;
 
       if (result.photo) {
-        fileId = result.photo[result.photo.length - 1].file_id;
+        const bestPhoto = result.photo[result.photo.length - 1];
+        fileId = bestPhoto.file_id;
+        fileSize = bestPhoto.file_size || 0;
       } else if (result.video) {
         fileId = result.video.file_id;
+        fileSize = result.video.file_size || 0;
         if (result.video.thumbnail) {
             thumbnailFileId = result.video.thumbnail.file_id;
         }
       } else if (result.document) {
         fileId = result.document.file_id;
+        fileSize = result.document.file_size || 0;
       } else {
         console.error("Unrecognized Telegram response:", result);
         return res.status(500).json({ error: "Unrecognized Telegram API response." });
@@ -109,6 +114,7 @@ export default async function handler(req, res) {
         type: dbFileType,
         tg_message_id: messageId,
         thumbnail_file_id: thumbnailFileId,
+        file_size: fileSize,
       };
 
       const { data: insertedFile, error } = await supabase.from("files").insert([dbData]).select().single();
