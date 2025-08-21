@@ -12,8 +12,26 @@ import {
   SidebarInset,
   SidebarTrigger,
   SidebarFooter,
+  useSidebar,
 } from '@/components/ui/sidebar';
-import { GalleryHorizontal, UploadCloud, Settings, Home } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { GalleryHorizontal, UploadCloud, Home, Menu } from 'lucide-react';
+
+const MobileHeader = () => {
+    const { toggleSidebar } = useSidebar();
+    return (
+        <header className="md:hidden flex items-center justify-between p-2 border-b bg-background sticky top-0 z-30">
+            <div className="flex items-center gap-2">
+                <Home className="w-6 h-6 text-primary" />
+                <h1 className="text-xl font-bold text-foreground">lumeo</h1>
+            </div>
+            <Button variant="ghost" size="icon" onClick={toggleSidebar}>
+                <Menu />
+                <span className="sr-only">Toggle Menu</span>
+            </Button>
+        </header>
+    )
+}
 
 const Layout = ({ children }) => {
     const router = useRouter();
@@ -21,7 +39,6 @@ const Layout = ({ children }) => {
     const menuItems = [
         { href: '/', label: 'Gallery', icon: GalleryHorizontal },
         { href: '/upload', label: 'Upload', icon: UploadCloud },
-        // { href: '/settings', label: 'Settings', icon: Settings }, // Example for future use
     ];
 
     return (
@@ -60,7 +77,10 @@ const Layout = ({ children }) => {
                         <SidebarTrigger />
                     </SidebarFooter>
                 </Sidebar>
-                <SidebarInset>{children}</SidebarInset>
+                <div className="flex flex-col flex-1">
+                    <MobileHeader />
+                    <SidebarInset>{children}</SidebarInset>
+                </div>
             </div>
         </SidebarProvider>
     );
