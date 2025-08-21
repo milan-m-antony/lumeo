@@ -118,7 +118,7 @@ export default function Upload() {
          <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8 flex items-center justify-center">
             <Card className="w-full max-w-2xl shadow-lg">
               <form onSubmit={handleSubmit}>
-                <CardContent className="p-6 flex flex-col gap-6">
+                <CardContent className="p-6 flex flex-col items-center justify-center gap-6">
                     <div {...getRootProps()} className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}>
                         <input {...getInputProps()} />
                         {file ? (
