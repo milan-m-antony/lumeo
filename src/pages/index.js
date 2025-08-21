@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -72,6 +73,21 @@ export default function Home() {
   };
 
   const getFileUrl = (fileId) => `/api/download?file_id=${fileId}`;
+
+  const getDownloadFilename = (file) => {
+    if (!file) return 'download';
+    
+    const caption = file.caption || 'lumeo_file';
+    // Sanitize caption to be a valid filename
+    const safeCaption = caption.replace(/[^a-z0-9_ -]/gi, '_').replace(/ /g, '_');
+    
+    switch (file.type) {
+        case 'photo': return `${safeCaption}.jpeg`;
+        case 'video': return `${safeCaption}.mp4`;
+        case 'document': return `${safeCaption}.zip`; // Assuming most docs might be anything, zip is safe
+        default: return safeCaption;
+    }
+  };
 
   const renderFilePreview = (file) => {
     const iconClass = "w-16 h-16 text-muted-foreground";
@@ -176,7 +192,7 @@ export default function Home() {
                         <div className="flex flex-col items-center justify-center h-64 bg-secondary rounded-md p-8">
                            <FileText className="w-24 h-24 text-muted-foreground" />
                            <p className="mt-4 text-lg text-center">This is a document preview.</p>
-                           <a href={getFileUrl(selectedFile.file_id)} download target="_blank" rel="noreferrer">
+                           <a href={getFileUrl(selectedFile.file_id)} download={getDownloadFilename(selectedFile)} target="_blank" rel="noreferrer">
                               <Button className="mt-4">Download Document</Button>
                            </a>
                         </div>
@@ -191,7 +207,7 @@ export default function Home() {
                     ) : (
                         <Button size="icon" variant="outline" onClick={() => handleEditClick(selectedFile)} title="Edit Caption"><Edit className="w-4 h-4" /></Button>
                     )}
-                    <a href={getFileUrl(selectedFile.file_id)} download target="_blank" rel="noreferrer" title="Download File">
+                    <a href={getFileUrl(selectedFile.file_id)} download={getDownloadFilename(selectedFile)} target="_blank" rel="noreferrer" title="Download File">
                       <Button size="icon" variant="outline"><Download className="w-4 h-4" /></Button>
                     </a>
                 </CardFooter>
