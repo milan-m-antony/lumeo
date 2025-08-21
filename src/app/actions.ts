@@ -50,6 +50,16 @@ export async function uploadFile(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+
+  if (!token || !chatId) {
+    return {
+        message: "Server configuration error: Telegram bot token or chat ID is not set. Please check your environment variables.",
+        success: false
+    }
+  }
+
   const validatedFields = FormSchema.safeParse({
     caption: formData.get("caption"),
     file: formData.get("file"),
@@ -64,16 +74,7 @@ export async function uploadFile(
   }
 
   const { file, caption } = validatedFields.data;
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
-
-  if (!token || !chatId) {
-    return {
-        message: "Server configuration error: Telegram bot token or chat ID is missing.",
-        success: false
-    }
-  }
-
+  
   const isVideo = file.type.startsWith("video/");
   const telegramApiMethod = isVideo ? "sendVideo" : "sendPhoto";
   const apiUrl = `https://api.telegram.org/bot${token}/${telegramApiMethod}`;
