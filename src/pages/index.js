@@ -169,7 +169,7 @@ export default function Home() {
       </main>
 
       <Dialog open={!!selectedFile} onOpenChange={(isOpen) => !isOpen && setSelectedFile(null)}>
-          <DialogContent className="max-w-5xl w-full max-h-[90vh] p-0 flex flex-col">
+          <DialogContent className="max-w-5xl w-full h-[90vh] p-0 flex flex-col">
              {selectedFile && (
                 <>
                 <DialogHeader className="p-4 border-b flex-shrink-0">
@@ -181,7 +181,7 @@ export default function Home() {
                     )}
                   </DialogTitle>
                 </DialogHeader>
-                <div className="flex-grow p-4 overflow-auto flex items-center justify-center bg-black/90 min-h-0">
+                <div className="flex-grow p-4 flex items-center justify-center bg-black/90 min-h-0">
                     {selectedFile.type === 'photo' && <img src={getFileUrl(selectedFile.file_id)} alt={selectedFile.caption} className="max-w-full max-h-full object-contain" />}
                     {selectedFile.type === 'video' && <video src={getFileUrl(selectedFile.file_id)} controls autoPlay className="max-w-full max-h-full" />}
                     {selectedFile.type === 'document' && (
@@ -214,5 +214,3 @@ export default function Home() {
     </div>
   );
 }
-
-    
