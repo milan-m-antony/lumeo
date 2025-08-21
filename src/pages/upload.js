@@ -65,7 +65,6 @@ export default function Upload() {
 
     xhr.onload = () => {
       setIsUploading(false);
-      setUploadProgress(100);
       try {
         const response = JSON.parse(xhr.responseText);
         if (xhr.status === 200 && response.success) {
@@ -76,23 +75,33 @@ export default function Upload() {
           });
           setFile(null);
           setCaption("");
-          setUploadProgress(0);
+          // Keep progress at 100 to show completion, will be reset on new file selection
         } else {
+          setUploadProgress(0); // Reset on error
           setError(response.error || "An unknown error occurred during upload.");
         }
       } catch (e) {
+          setUploadProgress(0); // Reset on error
           setError("An unexpected error occurred parsing the server response.");
       }
     };
 
     xhr.onerror = () => {
       setIsUploading(false);
+      setUploadProgress(0);
       setError("Upload failed. Please check your network connection and try again.");
     };
 
     xhr.send(formData);
   };
   
+  const handleFileSelect = (newFile) => {
+    setFile(newFile);
+    setUploadProgress(0);
+    setError(null);
+    setIsUploading(false);
+  }
+
   const renderPreview = () => {
     if (!file) return null;
     const fileType = file.type.split('/')[0];
@@ -126,7 +135,7 @@ export default function Upload() {
                                 <div className="flex flex-col items-center gap-2">
                                     {renderPreview()}
                                     <p className="font-medium truncate max-w-xs">{file.name}</p>
-                                    <Button variant="link" size="sm" onClick={(e) => { e.stopPropagation(); setFile(null); setUploadProgress(0); }}>Choose another file</Button>
+                                    <Button variant="link" size="sm" onClick={(e) => { e.stopPropagation(); handleFileSelect(null); }}>Choose another file</Button>
                                 </div>
                             ) : (
                               <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -145,7 +154,9 @@ export default function Upload() {
                         {(isUploading || uploadProgress > 0) && (
                             <div className="w-full mt-6">
                                 <Progress value={uploadProgress} />
-                                <p className="text-sm text-center mt-2 text-muted-foreground">{uploadProgress > 0 && uploadProgress < 100 ? `${uploadProgress}% complete` : ''}</p>
+                                <p className="text-sm text-center mt-2 text-muted-foreground">
+                                  {isUploading ? `Uploading... ${uploadProgress}%` : (uploadProgress === 100 ? 'Upload complete!' : '')}
+                                </p>
                             </div>
                         )}
 
