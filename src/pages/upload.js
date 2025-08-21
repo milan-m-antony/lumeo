@@ -119,13 +119,13 @@ export default function Upload() {
             <Card className="w-full max-w-2xl shadow-lg">
               <form onSubmit={handleSubmit}>
                 <CardContent className="p-6 flex flex-col items-center justify-center gap-6">
-                    <div {...getRootProps()} className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}>
+                    <div {...getRootProps()} className={`w-full border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}>
                         <input {...getInputProps()} />
                         {file ? (
                             <div className="flex flex-col items-center gap-2">
                                 {renderPreview()}
-                                <p className="font-medium truncate">{file.name}</p>
-                                <Button variant="link" size="sm" onClick={() => { setFile(null); setUploadProgress(0); }}>Choose another file</Button>
+                                <p className="font-medium truncate max-w-xs">{file.name}</p>
+                                <Button variant="link" size="sm" onClick={(e) => { e.stopPropagation(); setFile(null); setUploadProgress(0); }}>Choose another file</Button>
                             </div>
                         ) : (
                           <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -144,7 +144,7 @@ export default function Upload() {
                     {(isUploading || uploadProgress > 0) && (
                         <div className="w-full">
                             <Progress value={uploadProgress} />
-                            <p className="text-sm text-center mt-2 text-muted-foreground">{uploadProgress}% complete</p>
+                            <p className="text-sm text-center mt-2 text-muted-foreground">{uploadProgress > 0 && uploadProgress < 100 ? `${uploadProgress}% complete` : ''}</p>
                         </div>
                     )}
 

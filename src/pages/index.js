@@ -81,7 +81,7 @@ export default function Home() {
       case 'video':
         if (file.thumbnail_file_id) {
           return (
-            <div className="relative w-full h-auto">
+            <div className="relative w-full h-auto group">
               <img src={getFileUrl(file.thumbnail_file_id)} alt={`${file.caption} thumbnail`} className="w-full h-auto block" onError={(e) => {e.target.onerror = null; e.target.src='https://placehold.co/400x600.png';}}/>
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                   <PlayCircle className="w-12 h-12 text-white/80" />
@@ -100,9 +100,9 @@ export default function Home() {
   return (
     <div className="flex flex-col h-full w-full">
       <header className="flex-shrink-0 bg-background/95 sticky top-0 z-10 backdrop-blur-sm">
-        <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 border-b">
+        <div className="px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 h-auto sm:h-16 border-b py-4 sm:py-0">
             <h1 className="text-2xl font-bold text-foreground">Gallery</h1>
-             <div className="flex items-center gap-2">
+             <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                 <div className="relative w-full sm:max-w-xs">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -110,7 +110,7 @@ export default function Home() {
                         placeholder="Search by caption..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="pl-10 bg-muted/50 border-0 focus-visible:ring-primary"
+                        className="pl-10 bg-muted/50 border-0 focus-visible:ring-primary w-full"
                     />
                 </div>
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
@@ -154,11 +154,11 @@ export default function Home() {
       </main>
 
       <Dialog open={!!selectedFile} onOpenChange={(isOpen) => !isOpen && setSelectedFile(null)}>
-          <DialogContent className="max-w-5xl w-full h-[90vh] p-0 flex flex-col">
+          <DialogContent className="max-w-5xl w-full h-[90vh] sm:h-auto sm:max-h-[90vh] p-0 flex flex-col">
              {selectedFile && (
                 <>
                 <DialogHeader className="p-4 border-b flex-shrink-0 flex flex-row items-center justify-between space-y-0">
-                  <DialogTitle className="truncate flex-grow">
+                  <DialogTitle className="truncate flex-grow mr-4">
                     {editingId === selectedFile.id ? (
                         <Input value={editingCaption} onChange={(e) => setEditingCaption(e.target.value)} placeholder="Enter caption" className="text-lg"/>
                     ) : (

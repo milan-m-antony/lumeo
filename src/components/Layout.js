@@ -32,7 +32,7 @@ const Layout = ({ children }) => {
                         <div className="flex items-center gap-2 p-2">
                              <Home className="w-8 h-8 text-primary" />
                              <h1 className="text-2xl font-bold text-foreground group-data-[collapsible=icon]:hidden">
-                                TeleGallery
+                                lumeo
                              </h1>
                         </div>
                     </SidebarHeader>
