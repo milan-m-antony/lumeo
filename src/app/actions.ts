@@ -1,3 +1,4 @@
+
 "use server";
 
 import { z } from "zod";
@@ -80,12 +81,9 @@ export async function uploadFile(
   const apiUrl = `https://api.telegram.org/bot${token}/${telegramApiMethod}`;
 
   try {
-    const fileBuffer = await file.arrayBuffer();
-    const blob = new Blob([fileBuffer], { type: file.type });
-
     const telegramFormData = new FormData();
-    telegramFormData.append("chat_id", chatId);
-    telegramFormData.append(isVideo ? "video" : "photo", blob, file.name);
+    telegramFormData.append("chat_id", String(chatId));
+    telegramFormData.append(isVideo ? "video" : "photo", file);
     if (caption) {
       telegramFormData.append("caption", caption);
     }
