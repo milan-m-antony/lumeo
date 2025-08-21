@@ -33,14 +33,45 @@ const MobileHeader = () => {
     )
 }
 
-const Layout = ({ children }) => {
+const AppMenu = () => {
     const router = useRouter();
+    const { isMobile, setOpenMobile } = useSidebar();
 
     const menuItems = [
         { href: '/', label: 'Gallery', icon: GalleryHorizontal },
         { href: '/upload', label: 'Upload', icon: UploadCloud },
     ];
 
+    const handleLinkClick = () => {
+        if (isMobile) {
+            setOpenMobile(false);
+        }
+    };
+
+    return (
+        <SidebarMenu>
+            {menuItems.map((item) => (
+                 <SidebarMenuItem key={item.href} onClick={handleLinkClick}>
+                    <Link href={item.href} passHref legacyBehavior>
+                        <SidebarMenuButton
+                             asChild
+                             isActive={router.pathname === item.href}
+                             tooltip={{children: item.label}}
+                        >
+                            <a>
+                                <item.icon />
+                                <span>{item.label}</span>
+                            </a>
+                        </SidebarMenuButton>
+                    </Link>
+                 </SidebarMenuItem>
+            ))}
+         </SidebarMenu>
+    );
+};
+
+
+const Layout = ({ children }) => {
     return (
         <SidebarProvider>
             <div className="flex min-h-screen bg-background">
@@ -54,24 +85,7 @@ const Layout = ({ children }) => {
                         </div>
                     </SidebarHeader>
                     <SidebarContent>
-                         <SidebarMenu>
-                            {menuItems.map((item) => (
-                                 <SidebarMenuItem key={item.href}>
-                                    <Link href={item.href} passHref legacyBehavior>
-                                        <SidebarMenuButton
-                                             asChild
-                                             isActive={router.pathname === item.href}
-                                             tooltip={{children: item.label}}
-                                        >
-                                            <a>
-                                                <item.icon />
-                                                <span>{item.label}</span>
-                                            </a>
-                                        </SidebarMenuButton>
-                                    </Link>
-                                 </SidebarMenuItem>
-                            ))}
-                         </SidebarMenu>
+                        <AppMenu />
                     </SidebarContent>
                     <SidebarFooter>
                         <SidebarTrigger />
