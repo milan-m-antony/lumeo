@@ -79,11 +79,9 @@ export async function uploadFile(
   const apiUrl = `https://api.telegram.org/bot${token}/${telegramApiMethod}`;
 
   try {
-    // Convert file to ArrayBuffer to ensure it's correctly handled in the server environment
     const fileBuffer = await file.arrayBuffer();
     const blob = new Blob([fileBuffer], { type: file.type });
 
-    // Reconstruct FormData inside the server action
     const telegramFormData = new FormData();
     telegramFormData.append("chat_id", chatId);
     telegramFormData.append(isVideo ? "video" : "photo", blob, file.name);
