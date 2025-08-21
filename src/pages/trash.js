@@ -124,7 +124,7 @@ export default function Trash() {
           <div className="text-center text-muted-foreground py-16">
             <Trash2 className="w-24 h-24 mx-auto text-muted-foreground/50" strokeWidth={1} />
             <h2 className="text-2xl mt-4 font-semibold">Your Trash is Empty</h2>
-            <p className="mt-2">Deleted files will appear here for 30 days.</p>
+            <p className="mt-2">Deleted files will appear here.</p>
           </div>
         )}
         
