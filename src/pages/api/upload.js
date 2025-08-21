@@ -1,4 +1,3 @@
-
 import formidable from "formidable";
 import fs from "fs";
 import FormData from "form-data";
@@ -17,17 +16,15 @@ export default async function handler(req, res) {
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  // --- Environment Variable Validation ---
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
   const chatId = process.env.TELEGRAM_CHANNEL_ID?.trim();
 
   if (!token || !chatId) {
-    console.error("Missing Telegram environment variables. Please check your .env.local file.");
+    console.error("Missing Telegram environment variables.");
     return res.status(500).json({
-      error: "Server configuration error: Telegram Bot Token or Channel ID is not set. Please contact the administrator.",
+      error: "Server configuration error: Telegram Bot Token or Channel ID is not set.",
     });
   }
-  // -----------------------------------------
 
   const form = formidable({ multiples: false });
   
@@ -48,7 +45,7 @@ export default async function handler(req, res) {
       
       const fileInfo = Array.isArray(file) ? file[0] : file;
       filePath = fileInfo.filepath;
-      const fileType = fileInfo.mimetype;
+      const fileType = fileInfo.mimetype || "";
 
       const tgForm = new FormData();
       tgForm.append("chat_id", chatId);
@@ -56,13 +53,20 @@ export default async function handler(req, res) {
 
       let telegramUrl;
       let fileKey;
+      let dbFileType;
 
-      if (fileType && fileType.startsWith("image/")) {
+      if (fileType.startsWith("image/")) {
         telegramUrl = `https://api.telegram.org/bot${token}/sendPhoto`;
         fileKey = "photo";
+        dbFileType = 'photo';
+      } else if (fileType.startsWith("video/")) {
+        telegramUrl = `https://api.telegram.org/bot${token}/sendVideo`;
+        fileKey = "video";
+        dbFileType = 'video';
       } else {
         telegramUrl = `https://api.telegram.org/bot${token}/sendDocument`;
         fileKey = "document";
+        dbFileType = 'document';
       }
       
       tgForm.append(fileKey, fs.createReadStream(filePath));
@@ -77,15 +81,14 @@ export default async function handler(req, res) {
 
       const result = tgData.result;
       let fileId;
-      let dbFileType;
 
       if (result.photo) {
         // Find the largest photo (usually the last one)
         fileId = result.photo[result.photo.length - 1].file_id;
-        dbFileType = 'photo';
+      } else if (result.video) {
+        fileId = result.video.file_id;
       } else if (result.document) {
         fileId = result.document.file_id;
-        dbFileType = 'document';
       } else {
         console.error("Unrecognized Telegram response:", result);
         return res.status(500).json({ error: "Unrecognized Telegram API response." });
@@ -93,7 +96,6 @@ export default async function handler(req, res) {
 
       const messageId = result.message_id;
 
-      // Save metadata in Supabase
       const { data, error } = await supabase.from("files").insert([
         {
           file_id: fileId,
@@ -101,28 +103,22 @@ export default async function handler(req, res) {
           type: dbFileType,
           tg_message_id: messageId,
         },
-      ]).select();
+      ]).select().single();
 
       if (error) {
           console.error("Supabase insert error:", error);
-          // Even if Supabase fails, the Telegram upload was successful.
-          // We should ideally handle this better (e.g., retry logic or cleanup),
-          // but for now, we'll return an error to the user.
           return res.status(500).json({ error: error.message });
       }
 
-      res.json({ success: true, file: data[0] });
+      res.json({ success: true, file: data });
 
     } catch (error) {
         console.error("An unexpected error occurred in the upload handler:", error);
         res.status(500).json({ error: "An unexpected server error occurred." });
     } finally {
-        // Clean up the temporary file
         if (filePath) {
             fs.unlink(filePath, (unlinkErr) => {
-                if (unlinkErr) {
-                    console.error("Error deleting temporary file:", unlinkErr);
-                }
+                if (unlinkErr) console.error("Error deleting temporary file:", unlinkErr);
             });
         }
     }

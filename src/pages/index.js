@@ -1,39 +1,47 @@
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Edit, Download, Save, X, Image as ImageIcon, UploadCloud } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Edit, Download, Save, X, Image as ImageIcon, UploadCloud, Video, FileText, Search } from "lucide-react";
 
 export default function Home() {
   const [files, setFiles] = useState([]);
-  const [filter, setFilter] = useState("");
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [editingCaption, setEditingCaption] = useState("");
   const [error, setError] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
 
-  useEffect(() => {
+  const fetchData = useCallback(() => {
     setLoading(true);
-    fetch(`/api/files?caption=${filter}`)
-      .then((res) => res.json())
+    fetch(`/api/files?caption=${search}&type=${typeFilter}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Network response was not ok");
+        return res.json();
+      })
       .then(data => {
           if (Array.isArray(data)) {
             setFiles(data);
             setError(null);
           } else {
-            setFiles([]);
-            setError(data.error || "Failed to load files.");
+            throw new Error(data.error || "Failed to load files.");
           }
-          setLoading(false);
       })
       .catch((err) => {
         setFiles([]);
         setError(err.message || "An unexpected error occurred.");
-        setLoading(false);
-      });
-  }, [filter]);
+      })
+      .finally(() => setLoading(false));
+  }, [search, typeFilter]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleEditClick = (file) => {
     setEditingId(file.id);
@@ -47,15 +55,12 @@ export default function Home() {
 
   const handleUpdateCaption = async (fileId) => {
     if (!fileId) return;
-
     const res = await fetch('/api/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: fileId, caption: editingCaption }),
     });
-    
     const result = await res.json();
-    
     if (result.success && result.file) {
         setFiles(files.map(f => (f.id === fileId ? result.file : f)));
         handleCancelEdit();
@@ -64,10 +69,21 @@ export default function Home() {
     }
   };
 
-  const onImageError = (e) => {
-    e.target.onerror = null; // prevent infinite loop
-    e.target.src = "https://placehold.co/600x400.png";
-  }
+  const getFileUrl = (fileId) => `/api/download?file_id=${fileId}`;
+
+  const renderFilePreview = (file) => {
+    const iconClass = "w-16 h-16 text-muted-foreground";
+    switch (file.type) {
+      case 'photo':
+        return <img src={getFileUrl(file.file_id)} alt={file.caption} className="w-full h-full object-cover" data-ai-hint="gallery photo" onError={(e) => e.target.src = 'https://placehold.co/400x400.png'} />;
+      case 'video':
+        return <div className="w-full h-full bg-secondary flex items-center justify-center"><Video className={iconClass} /></div>;
+      case 'document':
+        return <div className="w-full h-full bg-secondary flex items-center justify-center"><FileText className={iconClass} /></div>;
+      default:
+        return <div className="w-full h-full bg-secondary flex items-center justify-center"><ImageIcon className={iconClass} /></div>;
+    }
+  };
 
   return (
     <div className="bg-background min-h-screen font-body text-foreground">
@@ -75,21 +91,32 @@ export default function Home() {
         <header className="flex flex-col sm:flex-row justify-between items-center mb-8 pb-4 border-b border-border">
           <h1 className="text-4xl font-bold text-primary mb-4 sm:mb-0">TeleGallery</h1>
           <Link href="/upload" passHref>
-            <Button>
-              <UploadCloud className="mr-2 h-4 w-4" />
-              Upload File
-            </Button>
+            <Button><UploadCloud className="mr-2 h-4 w-4" />Upload File</Button>
           </Link>
         </header>
 
-        <div className="mb-8 flex justify-center">
-          <Input
-            type="text"
-            placeholder="Search by caption..."
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="max-w-md w-full"
-          />
+        <div className="mb-8 flex flex-col sm:flex-row gap-4">
+            <div className="relative w-full sm:max-w-xs">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                    type="text"
+                    placeholder="Search by caption..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-10"
+                />
+            </div>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Filter by type" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="photo">Photos</SelectItem>
+                    <SelectItem value="video">Videos</SelectItem>
+                    <SelectItem value="document">Documents</SelectItem>
+                </SelectContent>
+            </Select>
         </div>
 
         {loading && <p className="text-center text-muted-foreground">Loading gallery...</p>}
@@ -97,69 +124,69 @@ export default function Home() {
 
         {!loading && !error && files.length === 0 && (
            <div className="text-center text-muted-foreground py-16">
-            <div className="flex justify-center mb-4">
-                <ImageIcon className="w-24 h-24 text-muted-foreground/50" strokeWidth={1} />
-            </div>
-            <h2 className="text-2xl font-semibold">Your Gallery is Empty</h2>
-            <p className="mt-2">Upload your first file to see it here.</p>
+            <ImageIcon className="w-24 h-24 mx-auto text-muted-foreground/50" strokeWidth={1} />
+            <h2 className="text-2xl mt-4 font-semibold">Your Gallery is Empty</h2>
+            <p className="mt-2">Upload your first file or adjust your filters.</p>
           </div>
         )}
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
           {files.map((f) => (
-            <Card key={f.id} className="flex flex-col overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 group">
-              <CardHeader className="p-0 relative">
-                {f.type === 'photo' ? (
-                  <img 
-                      src={`/api/download?file_id=${f.file_id}`} 
-                      alt={f.caption || "Gallery image"} 
-                      className="w-full h-48 object-cover"
-                      data-ai-hint="gallery photo"
-                      onError={onImageError}
-                  />
-                ) : (
-                  <div className="w-full h-48 bg-secondary flex items-center justify-center">
-                    <ImageIcon className="w-16 h-16 text-muted-foreground" />
-                  </div>
-                )}
-                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </CardHeader>
-              <CardContent className="p-4 flex-grow">
-                {editingId === f.id ? (
-                  <div className="flex flex-col gap-2">
-                    <Input
-                        value={editingCaption}
-                        onChange={(e) => setEditingCaption(e.target.value)}
-                        placeholder="Enter caption"
-                    />
-                  </div>
-                ) : (
-                  <p className="font-semibold text-lg truncate" title={f.caption}>{f.caption || "No caption"}</p>
-                )}
-                 <p className="text-sm text-muted-foreground mt-1 capitalize">{f.type === 'photo' ? 'Photo' : 'Document'}</p>
+            <Card key={f.id} className="flex flex-col overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 group aspect-square">
+              <CardContent className="p-0 flex-grow relative cursor-pointer" onClick={() => setSelectedFile(f)}>
+                 {renderFilePreview(f)}
+                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <p className="text-white text-center p-2 truncate">{f.caption || "No Caption"}</p>
+                 </div>
               </CardContent>
-              <CardFooter className="p-4 bg-muted/50 flex justify-between items-center">
-                {editingId === f.id ? (
-                    <div className="flex gap-2">
-                      <Button size="icon" variant="outline" onClick={() => handleUpdateCaption(f.id)}><Save className="w-4 h-4" /></Button>
-                      <Button size="icon" variant="destructive" onClick={handleCancelEdit}><X className="w-4 h-4" /></Button>
-                    </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <Button size="icon" variant="outline" onClick={() => handleEditClick(f)} title="Edit Caption">
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                     <a href={`/api/download?file_id=${f.file_id}`} target="_blank" rel="noreferrer" title="Download File">
-                      <Button size="icon" variant="outline">
-                        <Download className="w-4 h-4" />
-                      </Button>
-                    </a>
-                  </div>
-                )}
-              </CardFooter>
             </Card>
           ))}
         </div>
+
+        <Dialog open={!!selectedFile} onOpenChange={(isOpen) => !isOpen && setSelectedFile(null)}>
+          <DialogContent className="max-w-4xl w-full h-auto max-h-[90vh] p-0">
+             {selectedFile && (
+                <>
+                <DialogHeader className="p-4 border-b">
+                  <DialogTitle className="truncate">
+                    {editingId === selectedFile.id ? (
+                        <Input value={editingCaption} onChange={(e) => setEditingCaption(e.target.value)} placeholder="Enter caption"/>
+                    ) : (
+                        selectedFile.caption || "No Caption"
+                    )}
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="p-4 flex-grow overflow-y-auto">
+                    {selectedFile.type === 'photo' && <img src={getFileUrl(selectedFile.file_id)} alt={selectedFile.caption} className="max-w-full max-h-[70vh] mx-auto" />}
+                    {selectedFile.type === 'video' && <video src={getFileUrl(selectedFile.file_id)} controls autoPlay className="max-w-full max-h-[70vh] mx-auto" />}
+                    {selectedFile.type === 'document' && (
+                        <div className="flex flex-col items-center justify-center h-64 bg-secondary rounded-md">
+                           <FileText className="w-24 h-24 text-muted-foreground" />
+                           <p className="mt-4 text-lg">This is a document.</p>
+                           <a href={getFileUrl(selectedFile.file_id)} download target="_blank" rel="noreferrer">
+                              <Button className="mt-4">Download Document</Button>
+                           </a>
+                        </div>
+                    )}
+                </div>
+                <CardFooter className="p-4 bg-muted/50 flex justify-end items-center gap-2">
+                    {editingId === selectedFile.id ? (
+                        <>
+                          <Button size="icon" variant="outline" onClick={() => handleUpdateCaption(selectedFile.id)}><Save className="w-4 h-4" /></Button>
+                          <Button size="icon" variant="destructive" onClick={handleCancelEdit}><X className="w-4 h-4" /></Button>
+                        </>
+                    ) : (
+                        <Button size="icon" variant="outline" onClick={() => handleEditClick(selectedFile)} title="Edit Caption"><Edit className="w-4 h-4" /></Button>
+                    )}
+                    <a href={getFileUrl(selectedFile.file_id)} download target="_blank" rel="noreferrer" title="Download File">
+                      <Button size="icon" variant="outline"><Download className="w-4 h-4" /></Button>
+                    </a>
+                </CardFooter>
+                </>
+             )}
+          </DialogContent>
+        </Dialog>
+
       </div>
     </div>
   );
