@@ -117,8 +117,8 @@ export default function Upload() {
          </header>
          <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8 flex items-center justify-center">
             <Card className="w-full max-w-2xl shadow-lg">
-              <form onSubmit={handleSubmit}>
-                <CardContent className="p-6 flex flex-col items-center justify-center gap-6">
+              <form onSubmit={handleSubmit} className="flex flex-col items-center justify-center gap-6">
+                <CardContent className="p-6 w-full">
                     <div {...getRootProps()} className={`w-full border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}>
                         <input {...getInputProps()} />
                         {file ? (
@@ -136,20 +136,20 @@ export default function Upload() {
                         )}
                     </div>
 
-                    <div className="grid w-full items-center gap-1.5">
+                    <div className="grid w-full items-center gap-1.5 mt-6">
                         <label htmlFor="caption" className="font-medium">Caption</label>
                         <Input id="caption" type="text" placeholder="Add an optional caption..." value={caption} onChange={(e) => setCaption(e.target.value)} />
                     </div>
                     
                     {(isUploading || uploadProgress > 0) && (
-                        <div className="w-full">
+                        <div className="w-full mt-6">
                             <Progress value={uploadProgress} />
                             <p className="text-sm text-center mt-2 text-muted-foreground">{uploadProgress > 0 && uploadProgress < 100 ? `${uploadProgress}% complete` : ''}</p>
                         </div>
                     )}
 
                     {error && (
-                         <Alert variant="destructive" className="w-full">
+                         <Alert variant="destructive" className="w-full mt-6">
                            <AlertCircle className="h-4 w-4" />
                            <AlertTitle>Upload Failed</AlertTitle>
                            <AlertDescription>{error}</AlertDescription>
@@ -157,7 +157,7 @@ export default function Upload() {
                     )}
 
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="w-full">
                     <Button type="submit" disabled={!file || isUploading} className="w-full">
                         {isUploading ? 'Uploading...' : 'Upload & Add to Gallery'}
                     </Button>
