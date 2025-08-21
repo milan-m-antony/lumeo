@@ -202,7 +202,7 @@ export default function Home() {
       </main>
 
       <Dialog open={!!selectedFile} onOpenChange={(isOpen) => !isOpen && setSelectedFile(null)}>
-          <DialogContent className="max-w-5xl w-full max-h-[90vh] p-0 flex flex-col">
+          <DialogContent className="max-w-4xl w-[90vw] h-[90vh] p-0 flex flex-col">
              {selectedFile && (
                 <>
                 <DialogHeader className="p-4 border-b flex-shrink-0">
@@ -214,10 +214,10 @@ export default function Home() {
                     )}
                   </DialogTitle>
                 </DialogHeader>
-                <div className="flex-grow p-4 flex items-center justify-center bg-background min-h-0">
+                <div className="flex-grow p-4 flex items-center justify-center bg-secondary min-h-0">
                     <div className="relative w-full h-full flex items-center justify-center">
                       {selectedFile.type === 'photo' && <img src={getFileUrl(selectedFile.file_id)} alt={selectedFile.caption} className="max-w-full max-h-full object-contain" />}
-                      {selectedFile.type === 'video' && <video src={getFileUrl(selectedFile.file_id)} controls autoPlay className="max-w-full max-h-full" />}
+                      {selectedFile.type === 'video' && <video src={getFileUrl(selectedFile.file_id)} controls autoPlay className="max-w-full max-h-full object-contain" />}
                       {selectedFile.type === 'document' && (
                           <div className="flex flex-col items-center justify-center h-64 bg-secondary rounded-md p-8">
                             <FileText className="w-24 h-24 text-muted-foreground" />
