@@ -1,4 +1,5 @@
 
+
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from 'next/router';
 import { Button } from "@/components/ui/button";
@@ -219,7 +220,10 @@ export default function AlbumDetail() {
                         <ArrowLeft />
                     </Link>
                 </Button>
-                <h1 className="text-2xl font-bold text-foreground truncate" title={album?.name}>{album?.name}</h1>
+                <div>
+                  <h1 className="text-2xl font-bold text-foreground truncate" title={album?.name}>{album?.name}</h1>
+                  <p className="text-sm text-muted-foreground">{files.length} items</p>
+                </div>
             </div>
              <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                 <div className="relative w-full sm:max-w-xs">

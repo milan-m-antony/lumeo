@@ -1,4 +1,5 @@
 
+
 import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -78,22 +79,18 @@ export default function Home() {
     });
     const result = await res.json();
     if (result.success && result.file) {
-        // If file is moved to an album, remove it from the main gallery view
-        if (updateData.album_id) {
-          setFiles(files.filter(f => f.id !== fileId));
-          setSelectedFile(null); // Close modal
-          toast({
-            title: "File Moved",
-            description: "The file has been moved to the album.",
-          });
-        } else {
-          // Otherwise, just update the file in place
-          setFiles(files.map(f => (f.id === fileId ? result.file : f)));
-          if (selectedFile && selectedFile.id === fileId) {
-              setSelectedFile(result.file);
-          }
+        // Since we show all files, just update the file in place
+        setFiles(files.map(f => (f.id === fileId ? result.file : f)));
+        if (selectedFile && selectedFile.id === fileId) {
+            setSelectedFile(result.file);
         }
         handleCancelEdit();
+        if (updateData.album_id) {
+             toast({
+                title: "File Moved",
+                description: "The file has been moved to the album.",
+            });
+        }
     } else {
         toast({
             title: "Update Failed",
@@ -182,7 +179,7 @@ export default function Home() {
     <div className="flex flex-col h-full w-full">
       <header className="flex-shrink-0 bg-background/95 sticky top-0 z-10 backdrop-blur-sm">
         <div className="px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 h-auto sm:h-16 border-b py-4 sm:py-0">
-            <h1 className="text-2xl font-bold text-foreground">Unfiled Gallery</h1>
+            <h1 className="text-2xl font-bold text-foreground">Gallery</h1>
              <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                 <div className="relative w-full sm:max-w-xs">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -216,8 +213,8 @@ export default function Home() {
         {!loading && !error && files.length === 0 && (
            <div className="text-center text-muted-foreground py-16">
             <ImageIcon className="w-24 h-24 mx-auto text-muted-foreground/50" strokeWidth={1} />
-            <h2 className="text-2xl mt-4 font-semibold">Your Unfiled Gallery is Empty</h2>
-            <p className="mt-2">Use the sidebar to upload files or organize them into albums.</p>
+            <h2 className="text-2xl mt-4 font-semibold">Your Gallery is Empty</h2>
+            <p className="mt-2">Use the sidebar to upload your first file.</p>
           </div>
         )}
         

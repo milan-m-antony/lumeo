@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useCallback } from "react";
 import Link from 'next/link';
 import { useRouter } from "next/router";
@@ -14,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Loader2, Folder, PlusCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -63,7 +64,9 @@ export default function Albums() {
 
     const result = await res.json();
     if (res.ok) {
-        setAlbums([result, ...albums]);
+        // Since the new album won't have a cover or file count yet, we can add a placeholder
+        const newAlbumWithDefaults = { ...result, files: [{count: 0}], cover_file_id: null };
+        setAlbums([newAlbumWithDefaults, ...albums]);
         toast({ title: "Album Created!", description: `"${result.name}" has been created.` });
         setNewAlbumName("");
         setNewAlbumDescription("");
@@ -72,6 +75,8 @@ export default function Albums() {
         toast({ title: "Failed to Create Album", description: result.error, variant: "destructive" });
     }
   }
+
+  const getFileUrl = (fileId) => `/api/download?file_id=${fileId}`;
 
   return (
     <div className="flex flex-col h-full w-full">
@@ -125,16 +130,29 @@ export default function Albums() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {albums.map(album => (
                 <Link href={`/album/${album.id}`} key={album.id} passHref>
-                    <Card className="cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all duration-200">
-                        <CardHeader>
-                            <div className="flex items-center gap-4">
-                                <Folder className="w-8 h-8 text-primary" />
-                                <div className="flex-grow">
-                                    <CardTitle className="truncate">{album.name}</CardTitle>
-                                    <CardDescription className="truncate mt-1">{album.description || "No description"}</CardDescription>
+                    <Card className="cursor-pointer group overflow-hidden hover:shadow-lg hover:border-primary/50 transition-all duration-200 flex flex-col h-full">
+                        <CardContent className="p-0 relative aspect-[4/3]">
+                            {album.cover_file_id ? (
+                                <img 
+                                    src={getFileUrl(album.cover_thumbnail_file_id || album.cover_file_id)} 
+                                    alt={`${album.name} cover photo`}
+                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                    data-ai-hint="album cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full bg-secondary flex items-center justify-center">
+                                    <Folder className="w-16 h-16 text-muted-foreground/50" />
                                 </div>
-                            </div>
-                        </CardHeader>
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                        </CardContent>
+                        <div className="p-4 flex-grow flex flex-col bg-background">
+                            <CardTitle className="truncate text-lg">{album.name}</CardTitle>
+                            <CardDescription className="truncate mt-1 flex-grow">{album.description || "No description"}</CardDescription>
+                            <p className="text-xs text-muted-foreground mt-2">
+                                {album.files[0]?.count || 0} items
+                            </p>
+                        </div>
                     </Card>
                 </Link>
             ))}

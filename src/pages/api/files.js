@@ -1,3 +1,4 @@
+
 import { supabase } from "../../lib/supabase";
 
 export default async function handler(req, res) {
@@ -7,7 +8,6 @@ export default async function handler(req, res) {
     .from("files")
     .select("*")
     .is('deleted_at', null) // Only fetch files that are not in the trash
-    .is('album_id', null) // Only fetch files that are not in an album
     .order('created_at', { ascending: false });
 
   if (caption) {
