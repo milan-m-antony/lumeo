@@ -4,12 +4,16 @@ import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Edit, Download, Save, X, Image as ImageIcon, Video, FileText, Search, PlayCircle, Loader2, Trash2, FolderPlus } from "lucide-react";
+import { Edit, Download, Save, X, Image as ImageIcon, Video, FileText, Search, PlayCircle, Loader2, Trash2, FolderUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
 
 export default function Home() {
   const [files, setFiles] = useState([]);
@@ -25,6 +29,7 @@ export default function Home() {
 
   const fetchFiles = useCallback(() => {
     setLoading(true);
+    // Fetch all files, including their album links
     fetch(`/api/files?caption=${search}&type=${typeFilter}`)
       .then((res) => {
         if (!res.ok) throw new Error("Network response was not ok");
@@ -71,26 +76,20 @@ export default function Home() {
     setEditingCaption("");
   };
 
-  const handleUpdate = async (fileId, updateData) => {
+  const handleUpdateCaption = async (fileId) => {
      const res = await fetch('/api/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: fileId, ...updateData }),
+        body: JSON.stringify({ id: fileId, caption: editingCaption }),
     });
     const result = await res.json();
     if (result.success && result.file) {
-        // Since we show all files, just update the file in place
-        setFiles(files.map(f => (f.id === fileId ? result.file : f)));
+        const updatedFile = { ...result.file, file_album_links: selectedFile.file_album_links };
+        setFiles(files.map(f => (f.id === fileId ? updatedFile : f)));
         if (selectedFile && selectedFile.id === fileId) {
-            setSelectedFile(result.file);
+            setSelectedFile(updatedFile);
         }
         handleCancelEdit();
-        if (updateData.album_id) {
-             toast({
-                title: "File Moved",
-                description: "The file has been moved to the album.",
-            });
-        }
     } else {
         toast({
             title: "Update Failed",
@@ -99,13 +98,46 @@ export default function Home() {
         });
     }
   }
-
-  const handleUpdateCaption = (fileId) => {
-    handleUpdate(fileId, { caption: editingCaption });
-  }
-
-  const handleMoveToAlbum = (fileId, albumId) => {
-    handleUpdate(fileId, { album_id: albumId });
+  
+  const handleAlbumLinkChange = async (fileId, albumId, isChecked) => {
+      const res = await fetch('/api/file-album-link', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileId, albumId, isChecked }),
+      });
+      const result = await res.json();
+      if (result.success) {
+          // Update the local state to reflect the change
+          const updatedFiles = files.map(file => {
+              if (file.id === fileId) {
+                  let newLinks = [...file.file_album_links];
+                  if (isChecked) {
+                      newLinks.push({ album_id: albumId });
+                  } else {
+                      newLinks = newLinks.filter(link => link.album_id !== albumId);
+                  }
+                  return { ...file, file_album_links: newLinks };
+              }
+              return file;
+          });
+          setFiles(updatedFiles);
+           // Also update the selected file if it's the one being changed
+          if (selectedFile && selectedFile.id === fileId) {
+             let newLinks = [...selectedFile.file_album_links];
+             if (isChecked) {
+                 newLinks.push({ album_id: albumId });
+             } else {
+                 newLinks = newLinks.filter(link => link.album_id !== albumId);
+             }
+             setSelectedFile({...selectedFile, file_album_links: newLinks});
+          }
+      } else {
+          toast({
+              title: "Update Failed",
+              description: result.error || "Could not update album link.",
+              variant: "destructive",
+          });
+      }
   };
 
 
@@ -208,10 +240,11 @@ export default function Home() {
       
       <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
         {loading && <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
+        
         {error && <p className="text-center text-destructive">Error: {error}</p>}
-
+        
         {!loading && !error && files.length === 0 && (
-           <div className="text-center text-muted-foreground py-16">
+           <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground">
             <ImageIcon className="w-24 h-24 mx-auto text-muted-foreground/50" strokeWidth={1} />
             <h2 className="text-2xl mt-4 font-semibold">Your Gallery is Empty</h2>
             <p className="mt-2">Use the sidebar to upload your first file.</p>
@@ -268,17 +301,29 @@ export default function Home() {
                         <Button size="icon" variant="outline" onClick={() => handleEditClick(selectedFile)} title="Edit Caption"><Edit className="w-4 h-4" /></Button>
                          <Popover>
                             <PopoverTrigger asChild>
-                               <Button size="icon" variant="outline" title="Move to Album"><FolderPlus className="w-4 h-4" /></Button>
+                               <Button size="icon" variant="outline" title="Manage Albums"><FolderUp className="w-4 h-4" /></Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-56 p-0">
-                                <p className="p-2 text-sm font-medium border-b">Move to Album</p>
-                                <div className="p-1">
-                                    {albums.length > 0 ? albums.map(album => (
-                                        <Button key={album.id} variant="ghost" className="w-full justify-start" onClick={() => handleMoveToAlbum(selectedFile.id, album.id)}>
-                                            {album.name}
-                                        </Button>
-                                    )) : <p className="text-xs text-muted-foreground p-2">No albums yet.</p>}
+                            <PopoverContent className="w-64 p-0">
+                                <div className="p-3 border-b">
+                                  <p className="text-sm font-medium">Add to Albums</p>
                                 </div>
+                                <ScrollArea className="h-48">
+                                  <div className="p-2 space-y-2">
+                                      {albums.length > 0 ? albums.map(album => {
+                                          const isChecked = selectedFile.file_album_links.some(link => link.album_id === album.id);
+                                          return (
+                                            <div key={album.id} className="flex items-center space-x-2">
+                                              <Checkbox
+                                                  id={`album-${album.id}`}
+                                                  checked={isChecked}
+                                                  onCheckedChange={(checked) => handleAlbumLinkChange(selectedFile.id, album.id, checked)}
+                                              />
+                                              <Label htmlFor={`album-${album.id}`} className="font-normal w-full truncate cursor-pointer">{album.name}</Label>
+                                            </div>
+                                          );
+                                      }) : <p className="text-xs text-muted-foreground p-2">No albums yet.</p>}
+                                  </div>
+                                </ScrollArea>
                             </PopoverContent>
                         </Popover>
                          <AlertDialog>
