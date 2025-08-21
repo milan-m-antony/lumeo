@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function Home() {
   const [files, setFiles] = useState([]);
@@ -41,20 +42,26 @@ export default function Home() {
 
 
   return (
-    <div>
-      <h1>My Cloud Gallery</h1>
+    <div style={{ padding: "20px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <h1>My Cloud Gallery</h1>
+        <Link href="/upload" style={{ textDecoration: 'underline', color: 'blue' }}>
+          Upload File
+        </Link>
+      </div>
       <input
         type="text"
         placeholder="Search by caption"
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
+        style={{ width: "100%", padding: "8px", marginBottom: "20px" }}
       />
 
       {loading && <p>Loading...</p>}
 
-      <div style={{ display: "flex", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
         {files && files.map((f) => (
-          <div key={f.id} style={{ margin: 10, border: '1px solid #ccc', padding: '10px' }}>
+          <div key={f.id} style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '8px', width: '200px' }}>
             <p><b>Caption:</b> {f.caption || "No caption"}</p>
             <p><b>File ID:</b> {f.file_id}</p>
             {/* This will not directly download the file but shows the concept */}
@@ -62,6 +69,7 @@ export default function Home() {
               href={`/api/download?file_id=${f.file_id}`}
               target="_blank"
               rel="noreferrer"
+              style={{ textDecoration: 'underline', color: 'blue' }}
             >
               Download
             </a>
