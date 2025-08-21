@@ -10,8 +10,16 @@ export default function Home() {
     fetch(`/api/files?caption=${filter}`)
       .then((res) => res.json())
       .then(data => {
-          setFiles(data);
+          if (Array.isArray(data)) {
+            setFiles(data);
+          } else {
+            setFiles([]); // Ensure files is always an array
+          }
           setLoading(false);
+      })
+      .catch(() => {
+        setFiles([]); // Also handle fetch errors
+        setLoading(false);
       });
   }, [filter]);
 
