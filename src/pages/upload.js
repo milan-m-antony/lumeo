@@ -1,12 +1,14 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CheckCircle, AlertCircle, UploadCloud, Image as ImageIcon, Video, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 
 export default function Upload() {
@@ -15,7 +17,20 @@ export default function Upload() {
   const [error, setError] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [albums, setAlbums] = useState([]);
+  const [selectedAlbum, setSelectedAlbum] = useState('none');
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetch('/api/albums')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setAlbums(data);
+        }
+      })
+      .catch(err => console.error("Failed to fetch albums", err));
+  }, []);
 
   const onDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
@@ -51,6 +66,9 @@ export default function Upload() {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("caption", caption);
+    if (selectedAlbum !== 'none') {
+        formData.append("albumId", selectedAlbum);
+    }
 
     // Using XMLHttpRequest to monitor progress
     const xhr = new XMLHttpRequest();
@@ -70,11 +88,12 @@ export default function Upload() {
         if (xhr.status === 200 && response.success) {
           toast({
               title: "Upload Successful!",
-              description: `"${response.file.caption || file.name}" has been added to the gallery.`,
+              description: `"${response.file.caption || file.name}" has been added.`,
               variant: "default",
           });
           setFile(null);
           setCaption("");
+          setSelectedAlbum("none");
           // Keep progress at 100 to show completion, will be reset on new file selection
         } else {
           setUploadProgress(0); // Reset on error
@@ -146,9 +165,25 @@ export default function Upload() {
                             )}
                         </div>
 
-                        <div className="grid w-full items-center gap-1.5 mt-6">
-                            <label htmlFor="caption" className="font-medium">Caption</label>
-                            <Input id="caption" type="text" placeholder="Add an optional caption..." value={caption} onChange={(e) => setCaption(e.target.value)} />
+                        <div className="grid w-full items-center gap-4 mt-6">
+                            <div>
+                                <Label htmlFor="caption" className="font-medium">Caption</Label>
+                                <Input id="caption" type="text" placeholder="Add an optional caption..." value={caption} onChange={(e) => setCaption(e.target.value)} className="mt-1"/>
+                            </div>
+                             <div>
+                                <Label htmlFor="album" className="font-medium">Album</Label>
+                                <Select value={selectedAlbum} onValueChange={setSelectedAlbum}>
+                                    <SelectTrigger id="album" className="w-full mt-1">
+                                        <SelectValue placeholder="Select an album (optional)" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">No Album (add to main gallery)</SelectItem>
+                                        {albums.map(album => (
+                                            <SelectItem key={album.id} value={String(album.id)}>{album.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                         
                         {(isUploading || uploadProgress > 0) && (
@@ -169,7 +204,7 @@ export default function Upload() {
                         )}
 
                     </CardContent>
-                    <CardFooter className="w-full">
+                    <CardFooter className="w-full p-6 pt-0">
                         <Button type="submit" disabled={!file || isUploading} className="w-full">
                             {isUploading ? 'Uploading...' : 'Upload & Add to Gallery'}
                         </Button>

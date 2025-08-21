@@ -37,6 +37,7 @@ export default async function handler(req, res) {
       }
       
       const caption = Array.isArray(fields.caption) ? fields.caption[0] : fields.caption || "";
+      const albumId = Array.isArray(fields.albumId) ? fields.albumId[0] : fields.albumId;
       const file = files.file;
       
       if (!file || file.length === 0) {
@@ -99,19 +100,25 @@ export default async function handler(req, res) {
 
       const messageId = result.message_id;
 
-      const { data, error } = await supabase.from("files").insert([
-        {
-          file_id: fileId,
-          caption,
-          type: dbFileType,
-          tg_message_id: messageId,
-          thumbnail_file_id: thumbnailFileId,
-        },
-      ]).select().single();
+      const dbData = {
+        file_id: fileId,
+        caption,
+        type: dbFileType,
+        tg_message_id: messageId,
+        thumbnail_file_id: thumbnailFileId,
+      };
+
+      if (albumId && albumId !== 'none') {
+        dbData.album_id = parseInt(albumId, 10);
+      }
+
+      const { data, error } = await supabase.from("files").insert([dbData]).select().single();
 
       if (error) {
           console.error("Supabase insert error:", error);
-          return res.status(500).json({ error: error.message });
+          // Attempt to delete the just-uploaded message from Telegram if DB insert fails
+          await fetch(`https://api.telegram.org/bot${token}/deleteMessage?chat_id=${chatId}&message_id=${messageId}`);
+          return res.status(500).json({ error: `Database insert failed: ${error.message}` });
       }
 
       res.json({ success: true, file: data });

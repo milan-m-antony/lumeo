@@ -1,16 +1,21 @@
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from 'next/router';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Edit, Download, Save, X, Image as ImageIcon, Video, FileText, Search, PlayCircle, Loader2, Trash2, FolderPlus } from "lucide-react";
+import { Edit, Download, Save, X, Image as ImageIcon, Video, FileText, Search, PlayCircle, Loader2, Trash2, FolderPlus, ArrowLeft, FolderX, FolderSymlink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import Link from "next/link";
 
-export default function Home() {
+export default function AlbumDetail() {
+  const router = useRouter();
+  const { id: albumId } = router.query;
+  const [album, setAlbum] = useState(null);
   const [files, setFiles] = useState([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -23,8 +28,9 @@ export default function Home() {
   const { toast } = useToast();
 
   const fetchFiles = useCallback(() => {
+    if (!albumId) return;
     setLoading(true);
-    fetch(`/api/files?caption=${search}&type=${typeFilter}`)
+    fetch(`/api/files-in-album?albumId=${albumId}&caption=${search}&type=${typeFilter}`)
       .then((res) => {
         if (!res.ok) throw new Error("Network response was not ok");
         return res.json();
@@ -42,8 +48,21 @@ export default function Home() {
         setError(err.message || "An unexpected error occurred.");
       })
       .finally(() => setLoading(false));
-  }, [search, typeFilter]);
+  }, [albumId, search, typeFilter]);
 
+  const fetchAlbumDetails = useCallback(() => {
+    if (!albumId) return;
+    fetch(`/api/albums/${albumId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data && !data.error) {
+                setAlbum(data);
+            } else {
+                setError(data.error || "Could not load album details");
+            }
+        })
+  }, [albumId]);
+  
   const fetchAlbums = useCallback(() => {
     fetch('/api/albums')
       .then(res => res.json())
@@ -57,8 +76,9 @@ export default function Home() {
 
   useEffect(() => {
     fetchFiles();
+    fetchAlbumDetails();
     fetchAlbums();
-  }, [fetchFiles, fetchAlbums]);
+  }, [fetchFiles, fetchAlbumDetails, fetchAlbums]);
 
   const handleEditClick = (file) => {
     setEditingId(file.id);
@@ -78,13 +98,13 @@ export default function Home() {
     });
     const result = await res.json();
     if (result.success && result.file) {
-        // If file is moved to an album, remove it from the main gallery view
-        if (updateData.album_id) {
+        // If file is moved to another album or unfiled, remove it from this view
+        if (updateData.album_id !== albumId) {
           setFiles(files.filter(f => f.id !== fileId));
           setSelectedFile(null); // Close modal
           toast({
             title: "File Moved",
-            description: "The file has been moved to the album.",
+            description: "The file has been moved.",
           });
         } else {
           // Otherwise, just update the file in place
@@ -107,8 +127,8 @@ export default function Home() {
     handleUpdate(fileId, { caption: editingCaption });
   }
 
-  const handleMoveToAlbum = (fileId, albumId) => {
-    handleUpdate(fileId, { album_id: albumId });
+  const handleMoveToAlbum = (fileId, newAlbumId) => {
+    handleUpdate(fileId, { album_id: newAlbumId });
   };
 
 
@@ -178,11 +198,29 @@ export default function Home() {
     }
   };
 
+  if (!album && loading) {
+    return <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
+  }
+
+  if (error) {
+    return <div className="flex flex-col gap-4 justify-center items-center h-full text-destructive">
+        <p>Error: {error}</p>
+        <Button asChild><Link href="/albums"><ArrowLeft className="mr-2 h-4 w-4"/> Back to Albums</Link></Button>
+    </div>
+  }
+
   return (
     <div className="flex flex-col h-full w-full">
       <header className="flex-shrink-0 bg-background/95 sticky top-0 z-10 backdrop-blur-sm">
         <div className="px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 h-auto sm:h-16 border-b py-4 sm:py-0">
-            <h1 className="text-2xl font-bold text-foreground">Unfiled Gallery</h1>
+            <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                    <Link href="/albums" title="Back to Albums">
+                        <ArrowLeft />
+                    </Link>
+                </Button>
+                <h1 className="text-2xl font-bold text-foreground truncate" title={album?.name}>{album?.name}</h1>
+            </div>
              <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                 <div className="relative w-full sm:max-w-xs">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -211,13 +249,12 @@ export default function Home() {
       
       <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
         {loading && <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
-        {error && <p className="text-center text-destructive">Error: {error}</p>}
-
+        
         {!loading && !error && files.length === 0 && (
            <div className="text-center text-muted-foreground py-16">
             <ImageIcon className="w-24 h-24 mx-auto text-muted-foreground/50" strokeWidth={1} />
-            <h2 className="text-2xl mt-4 font-semibold">Your Unfiled Gallery is Empty</h2>
-            <p className="mt-2">Use the sidebar to upload files or organize them into albums.</p>
+            <h2 className="text-2xl mt-4 font-semibold">This Album is Empty</h2>
+            <p className="mt-2">Use the sidebar to upload new files to this album.</p>
           </div>
         )}
         
@@ -271,16 +308,19 @@ export default function Home() {
                         <Button size="icon" variant="outline" onClick={() => handleEditClick(selectedFile)} title="Edit Caption"><Edit className="w-4 h-4" /></Button>
                          <Popover>
                             <PopoverTrigger asChild>
-                               <Button size="icon" variant="outline" title="Move to Album"><FolderPlus className="w-4 h-4" /></Button>
+                               <Button size="icon" variant="outline" title="Move file"><FolderSymlink className="w-4 h-4" /></Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-56 p-0">
                                 <p className="p-2 text-sm font-medium border-b">Move to Album</p>
-                                <div className="p-1">
-                                    {albums.length > 0 ? albums.map(album => (
+                                <div className="p-1 max-h-48 overflow-y-auto">
+                                    <Button variant="ghost" className="w-full justify-start" onClick={() => handleMoveToAlbum(selectedFile.id, 'none')}>
+                                        <FolderX className="mr-2 h-4 w-4 text-destructive"/> Unfiled
+                                    </Button>
+                                    {albums.filter(a => a.id !== albumId).map(album => (
                                         <Button key={album.id} variant="ghost" className="w-full justify-start" onClick={() => handleMoveToAlbum(selectedFile.id, album.id)}>
-                                            {album.name}
+                                            <FolderPlus className="mr-2 h-4 w-4"/> {album.name}
                                         </Button>
-                                    )) : <p className="text-xs text-muted-foreground p-2">No albums yet.</p>}
+                                    ))}
                                 </div>
                             </PopoverContent>
                         </Popover>

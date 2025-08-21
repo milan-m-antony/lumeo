@@ -15,7 +15,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { GalleryHorizontal, UploadCloud, Home, Menu, Trash2 } from 'lucide-react';
+import { GalleryHorizontal, UploadCloud, Home, Menu, Trash2, LayoutGrid } from 'lucide-react';
 
 const MobileHeader = () => {
     const { toggleSidebar } = useSidebar();
@@ -39,6 +39,7 @@ const AppMenu = () => {
 
     const menuItems = [
         { href: '/', label: 'Gallery', icon: GalleryHorizontal },
+        { href: '/albums', label: 'Albums', icon: LayoutGrid },
         { href: '/upload', label: 'Upload', icon: UploadCloud },
         { href: '/trash', label: 'Trash', icon: Trash2 },
     ];
@@ -49,6 +50,11 @@ const AppMenu = () => {
         }
     };
 
+    const isPathActive = (path) => {
+        if (path === '/') return router.pathname === '/';
+        return router.pathname.startsWith(path);
+    }
+
     return (
         <SidebarMenu>
             {menuItems.map((item) => (
@@ -56,7 +62,7 @@ const AppMenu = () => {
                     <Link href={item.href} passHref legacyBehavior>
                         <SidebarMenuButton
                              asChild
-                             isActive={router.pathname === item.href}
+                             isActive={isPathActive(item.href)}
                              tooltip={{children: item.label}}
                         >
                             <a>

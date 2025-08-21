@@ -1,13 +1,17 @@
 import { supabase } from "../../lib/supabase";
 
 export default async function handler(req, res) {
-  const { caption, type } = req.query;
+  const { albumId, caption, type } = req.query;
+
+  if (!albumId) {
+    return res.status(400).json({ error: "Album ID is required" });
+  }
 
   let query = supabase
     .from("files")
     .select("*")
-    .is('deleted_at', null) // Only fetch files that are not in the trash
-    .is('album_id', null) // Only fetch files that are not in an album
+    .eq('album_id', albumId)
+    .is('deleted_at', null)
     .order('created_at', { ascending: false });
 
   if (caption) {
