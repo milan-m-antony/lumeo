@@ -1,3 +1,4 @@
+
 import formidable from "formidable";
 import fs from "fs";
 import FormData from "form-data";
@@ -11,7 +12,22 @@ export const config = {
 };
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).end();
+  if (req.method !== "POST") {
+    res.setHeader("Allow", ["POST"]);
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
+  }
+
+  // --- Environment Variable Validation ---
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHANNEL_ID;
+
+  if (!token || !chatId) {
+    console.error("Missing Telegram environment variables. Please check your .env.local file.");
+    return res.status(500).json({
+      error: "Server configuration error: Telegram Bot Token or Channel ID is not set. Please contact the administrator.",
+    });
+  }
+  // -----------------------------------------
 
   const form = formidable({ multiples: false });
   
@@ -24,7 +40,7 @@ export default async function handler(req, res) {
     const caption = Array.isArray(fields.caption) ? fields.caption[0] : fields.caption || "";
     const file = files.file;
     
-    if (!file) {
+    if (!file || file.length === 0) {
       return res.status(400).json({ error: "File is missing." });
     }
     
@@ -33,18 +49,17 @@ export default async function handler(req, res) {
     const fileType = fileInfo.mimetype;
 
     const tgForm = new FormData();
-    tgForm.append("chat_id", process.env.TELEGRAM_CHANNEL_ID);
+    tgForm.append("chat_id", chatId);
     tgForm.append("caption", caption);
 
     let telegramUrl;
     let fileKey;
 
-    // Check if the file is an image and use the appropriate API
     if (fileType && fileType.startsWith("image/")) {
-      telegramUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendPhoto`;
+      telegramUrl = `https://api.telegram.org/bot${token}/sendPhoto`;
       fileKey = "photo";
     } else {
-      telegramUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendDocument`;
+      telegramUrl = `https://api.telegram.org/bot${token}/sendDocument`;
       fileKey = "document";
     }
     
@@ -60,13 +75,11 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: `Telegram upload failed: ${tgData.description}` });
     }
 
-    // Extract file_id based on the type of media sent
     const result = tgData.result;
     let fileId;
     let dbFileType;
 
     if (result.photo) {
-      // For photos, Telegram returns an array of different sizes, we take the largest one
       fileId = result.photo[result.photo.length - 1].file_id;
       dbFileType = 'photo';
     } else if (result.document) {
@@ -79,7 +92,6 @@ export default async function handler(req, res) {
 
     const messageId = result.message_id;
 
-    // Save metadata in Supabase
     const { data, error } = await supabase.from("files").insert([
       {
         file_id: fileId,
