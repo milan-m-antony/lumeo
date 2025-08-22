@@ -100,18 +100,18 @@ export default function Trash() {
         if (file.thumbnail_file_id) {
           return <img src={getFileUrl(file.thumbnail_file_id)} alt={`${file.caption} thumbnail`} className="w-full h-32 object-cover" onError={(e) => {e.target.onerror = null; e.target.src='https://placehold.co/400x300.png';}}/>;
         }
-        return <div className="w-full h-32 bg-secondary flex items-center justify-center"><Video className={iconClass} /></div>;
+        return <div className="w-full h-32 bg-secondary/20 flex items-center justify-center"><Video className={iconClass} /></div>;
       case 'document':
-        return <div className="w-full h-32 bg-secondary flex items-center justify-center"><FileText className={iconClass} /></div>;
+        return <div className="w-full h-32 bg-secondary/20 flex items-center justify-center"><FileText className={iconClass} /></div>;
       default:
-        return <div className="w-full h-32 bg-secondary flex items-center justify-center"><ImageIcon className={iconClass} /></div>;
+        return <div className="w-full h-32 bg-secondary/20 flex items-center justify-center"><ImageIcon className={iconClass} /></div>;
     }
   };
   
   return (
     <div className="flex flex-col h-full w-full">
-      <header className="flex-shrink-0 bg-background/95 sticky top-0 z-10 backdrop-blur-sm">
-        <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 border-b">
+      <header className="flex-shrink-0 sticky top-0 z-10">
+        <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 border-b glass-effect">
           <h1 className="text-2xl font-bold text-foreground">Trash</h1>
         </div>
       </header>
@@ -130,11 +130,11 @@ export default function Trash() {
         
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           {trashedFiles.map((f) => (
-            <Card key={f.id} className="overflow-hidden shadow-md flex flex-col">
+            <Card key={f.id} className="overflow-hidden shadow-md flex flex-col bg-transparent border-border/20">
                 <CardContent className="p-0">
                     {renderFilePreview(f)}
                 </CardContent>
-                <div className="p-4 flex-grow flex flex-col">
+                <div className="p-4 flex-grow flex flex-col bg-background/50 backdrop-blur-sm">
                     <p className="text-sm font-medium truncate flex-grow" title={f.caption || "No Caption"}>{f.caption || "No Caption"}</p>
                     <p className="text-xs text-muted-foreground mt-1">
                         Deleted {formatDistanceToNow(new Date(f.deleted_at), { addSuffix: true })}

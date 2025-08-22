@@ -246,8 +246,8 @@ export default function AlbumDetail() {
 
   return (
     <div className="flex flex-col h-full w-full">
-      <header className="flex-shrink-0 bg-background/95 sticky top-0 z-10 backdrop-blur-sm">
-        <div className="px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 h-auto sm:h-16 border-b py-4 sm:py-0">
+      <header className="flex-shrink-0 sticky top-0 z-10">
+        <div className="px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 h-auto sm:h-16 border-b py-4 sm:py-0 glass-effect">
             <div className="flex items-center gap-2">
                 <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
                     <Link href="/albums" title="Back to Albums">
@@ -298,7 +298,7 @@ export default function AlbumDetail() {
         
         <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6 gap-4 space-y-4">
           {files.map((f) => (
-            <Card key={f.id} className="break-inside-avoid overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 group">
+            <Card key={f.id} className="break-inside-avoid overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 group bg-transparent border-border/20">
               <CardContent className="p-0 cursor-pointer" onClick={() => setSelectedFile(f)}>
                 {renderFilePreview(f)}
               </CardContent>
@@ -320,7 +320,7 @@ export default function AlbumDetail() {
                     )}
                   </DialogTitle>
                 </DialogHeader>
-                <div className="flex-grow p-4 flex items-center justify-center bg-secondary min-h-0">
+                <div className="flex-grow p-4 flex items-center justify-center bg-black/50 min-h-0">
                     <div className="relative w-full h-full flex items-center justify-center">
                       {selectedFile.type === 'photo' && <img src={getFileUrl(selectedFile.file_id)} alt={selectedFile.caption} className="max-w-full max-h-full object-contain" />}
                       {selectedFile.type === 'video' && <video src={getFileUrl(selectedFile.file_id)} controls autoPlay className="max-w-full max-h-full object-contain" />}
@@ -335,7 +335,7 @@ export default function AlbumDetail() {
                       )}
                     </div>
                 </div>
-                <CardFooter className="p-4 bg-background border-t flex justify-end items-center gap-2 flex-shrink-0">
+                <CardFooter className="p-4 bg-background/80 border-t flex justify-end items-center gap-2 flex-shrink-0">
                     {editingId === selectedFile.id ? (
                         <>
                           <Button size="icon" variant="outline" onClick={() => handleUpdateCaption(selectedFile.id)} title="Save Caption"><Save className="w-4 h-4" /></Button>
@@ -348,7 +348,7 @@ export default function AlbumDetail() {
                             <PopoverTrigger asChild>
                                <Button size="icon" variant="outline" title="Manage Albums"><FolderUp className="w-4 h-4" /></Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-64 p-0">
+                            <PopoverContent className="w-64 p-0 glass-effect">
                                 <div className="p-3 border-b">
                                   <p className="text-sm font-medium">Add to Albums</p>
                                 </div>

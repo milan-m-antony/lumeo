@@ -159,14 +159,14 @@ export default function Upload() {
 
   return (
     <div className="flex flex-col h-full w-full">
-         <header className="flex-shrink-0 bg-background/95 sticky top-0 z-10 backdrop-blur-sm">
-            <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 border-b">
+         <header className="flex-shrink-0 sticky top-0 z-10">
+            <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 border-b glass-effect">
                 <h1 className="text-2xl font-bold text-foreground">Upload File</h1>
             </div>
          </header>
          <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
             <div className="w-full flex justify-center">
-                <Card className="w-full max-w-2xl shadow-lg">
+                <Card className="w-full max-w-2xl shadow-lg bg-transparent border-border/20">
                   <form onSubmit={handleSubmit}>
                     <CardContent className="p-6">
                         <div {...getRootProps()} className={`w-full border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}>
@@ -205,7 +205,7 @@ export default function Upload() {
                                             </div>
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 glass-effect">
                                        <ScrollArea className="h-48">
                                           <div className="p-2 space-y-2">
                                               {allAlbums.map(album => (

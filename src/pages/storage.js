@@ -4,7 +4,7 @@ import { Loader2, Database, Send } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const StorageSkeleton = () => (
-    <Card>
+    <Card className="bg-transparent border-border/20">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
             <Skeleton className="h-6 w-24" />
             <Skeleton className="h-6 w-6 rounded-full" />
@@ -47,8 +47,8 @@ export default function Storage() {
 
     return (
         <div className="flex flex-col h-full w-full">
-            <header className="flex-shrink-0 bg-background/95 sticky top-0 z-10 backdrop-blur-sm">
-                <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 border-b">
+            <header className="flex-shrink-0 sticky top-0 z-10">
+                <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 border-b glass-effect">
                     <h1 className="text-2xl font-bold text-foreground">Storage</h1>
                 </div>
             </header>
@@ -63,7 +63,7 @@ export default function Storage() {
                     {error && <p className="text-center text-destructive">Error: {error}</p>}
                     {!loading && storage && (
                          <div className="grid gap-4 md:grid-cols-2">
-                             <Card>
+                             <Card className="bg-transparent border-border/20">
                                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                                     <CardTitle className="text-sm font-medium">
                                     Telegram Storage
@@ -77,7 +77,7 @@ export default function Storage() {
                                     </p>
                                 </CardContent>
                             </Card>
-                             <Card>
+                             <Card className="bg-transparent border-border/20">
                                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                                     <CardTitle className="text-sm font-medium">
                                         Database Size

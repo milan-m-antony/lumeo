@@ -23,7 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 const MobileHeader = () => {
     const { toggleSidebar } = useSidebar();
     return (
-        <header className="md:hidden flex items-center justify-between p-2 border-b bg-background sticky top-0 z-30">
+        <header className="md:hidden flex items-center justify-between p-2 border-b sticky top-0 z-30 glass-effect">
             <div className="flex items-center gap-2">
                 <Home className="w-6 h-6 text-primary" />
                 <h1 className="text-xl font-bold text-foreground">lumeo</h1>
@@ -84,7 +84,7 @@ const AppMenu = () => {
 const Layout = ({ children }) => {
     return (
         <SidebarProvider>
-            <div className="flex min-h-screen bg-background">
+            <div className="flex min-h-screen">
                 <Sidebar>
                     <SidebarHeader>
                         <div className="flex items-center gap-2 p-2">

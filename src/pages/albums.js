@@ -80,8 +80,8 @@ export default function Albums() {
 
   return (
     <div className="flex flex-col h-full w-full">
-      <header className="flex-shrink-0 bg-background/95 sticky top-0 z-10 backdrop-blur-sm">
-        <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 border-b">
+      <header className="flex-shrink-0 sticky top-0 z-10">
+        <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 border-b glass-effect">
           <h1 className="text-2xl font-bold text-foreground">Albums</h1>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -130,7 +130,7 @@ export default function Albums() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {albums.map(album => (
                 <Link href={`/album/${album.id}`} key={album.id} passHref>
-                    <Card className="cursor-pointer group overflow-hidden hover:shadow-lg hover:border-primary/50 transition-all duration-200 flex flex-col h-full">
+                    <Card className="cursor-pointer group overflow-hidden hover:shadow-lg hover:border-primary/50 transition-all duration-200 flex flex-col h-full bg-transparent border-border/20">
                         <CardContent className="p-0 relative aspect-[4/3]">
                             {album.cover_file_id ? (
                                 <img 
@@ -140,13 +140,13 @@ export default function Albums() {
                                     data-ai-hint="album cover"
                                 />
                             ) : (
-                                <div className="w-full h-full bg-secondary flex items-center justify-center">
+                                <div className="w-full h-full bg-secondary/20 flex items-center justify-center">
                                     <Folder className="w-16 h-16 text-muted-foreground/50" />
                                 </div>
                             )}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                         </CardContent>
-                        <div className="p-4 flex-grow flex flex-col bg-background">
+                        <div className="p-4 flex-grow flex flex-col bg-background/50 backdrop-blur-sm">
                             <CardTitle className="truncate text-lg">{album.name}</CardTitle>
                             <CardDescription className="truncate mt-1 flex-grow">{album.description || "No description"}</CardDescription>
                             <p className="text-xs text-muted-foreground mt-2">
