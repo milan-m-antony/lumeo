@@ -3,16 +3,27 @@ import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CheckCircle, AlertCircle, UploadCloud, X as XIcon, ChevronDown, Folder, File as FileIcon } from "lucide-react";
+import { CheckCircle, AlertCircle, UploadCloud, X as XIcon, ChevronDown, Folder, File as FileIcon, PlusCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Separator } from "@/components/ui/separator";
 
 const FilePreview = ({ fileWithPreview, caption, onCaptionChange, onRemove }) => {
   const { file, preview } = fileWithPreview;
@@ -58,7 +69,13 @@ export default function Upload() {
   const [selectedAlbumIds, setSelectedAlbumIds] = useState(new Set());
   const { toast } = useToast();
 
-  useEffect(() => {
+  // State for the create album dialog
+  const [isCreateAlbumOpen, setIsCreateAlbumOpen] = useState(false);
+  const [newAlbumName, setNewAlbumName] = useState("");
+  const [newAlbumDescription, setNewAlbumDescription] = useState("");
+
+
+  const fetchAlbums = useCallback(() => {
     fetch('/api/albums')
       .then(res => res.json())
       .then(data => {
@@ -68,6 +85,10 @@ export default function Upload() {
       })
       .catch(err => console.error("Failed to fetch albums", err));
   }, []);
+
+  useEffect(() => {
+    fetchAlbums();
+  }, [fetchAlbums]);
   
     // cleanup function to revoke object URLs
   useEffect(() => {
@@ -129,6 +150,36 @@ export default function Upload() {
       setUploadProgress(0);
   }, []);
 
+  const handleCreateAlbum = async () => {
+    if (!newAlbumName.trim()) {
+      toast({ title: "Album name is required", variant: "destructive" });
+      return;
+    }
+    const res = await fetch('/api/albums', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newAlbumName, description: newAlbumDescription }),
+    });
+
+    const result = await res.json();
+    if (res.ok) {
+      // Add the new album to the list and auto-select it
+      const newAlbumWithDefaults = { ...result, files: [{ count: 0 }], cover_file_id: null };
+      setAllAlbums(prev => [newAlbumWithDefaults, ...prev]);
+      handleAlbumSelect(result.id);
+      
+      toast({ title: "Album Created!", description: `"${result.name}" has been created and selected.` });
+
+      // Reset and close dialog
+      setNewAlbumName("");
+      setNewAlbumDescription("");
+      setIsCreateAlbumOpen(false);
+    } else {
+      toast({ title: "Failed to Create Album", description: result.error, variant: "destructive" });
+    }
+  };
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (fileEntries.length === 0) {
@@ -164,7 +215,7 @@ export default function Upload() {
       setIsUploading(false);
       try {
         const response = JSON.parse(xhr.responseText);
-        if (xhr.status === 200 && response.success) {
+        if (xhr.status >= 200 && xhr.status < 300 && response.success) {
           toast({
               title: "Upload Complete!",
               description: response.message,
@@ -245,9 +296,40 @@ export default function Upload() {
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 glass-effect">
+                                        <Dialog open={isCreateAlbumOpen} onOpenChange={setIsCreateAlbumOpen}>
+                                            <DialogTrigger asChild>
+                                                <Button variant="ghost" className="w-full justify-start rounded-none border-b">
+                                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                                    Create New Album
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent>
+                                                <DialogHeader>
+                                                    <DialogTitle>Create New Album</DialogTitle>
+                                                    <DialogDescription>
+                                                        Give your new album a name and an optional description. It will be automatically selected.
+                                                    </DialogDescription>
+                                                </DialogHeader>
+                                                <div className="grid gap-4 py-4">
+                                                    <div className="grid grid-cols-4 items-center gap-4">
+                                                        <Label htmlFor="new-album-name" className="text-right">Name</Label>
+                                                        <Input id="new-album-name" value={newAlbumName} onChange={(e) => setNewAlbumName(e.target.value)} className="col-span-3" />
+                                                    </div>
+                                                    <div className="grid grid-cols-4 items-center gap-4">
+                                                        <Label htmlFor="new-album-description" className="text-right">Description</Label>
+                                                        <Textarea id="new-album-description" value={newAlbumDescription} onChange={(e) => setNewAlbumDescription(e.target.value)} className="col-span-3" />
+                                                    </div>
+                                                </div>
+                                                <DialogFooter>
+                                                    <Button variant="outline" onClick={() => setIsCreateAlbumOpen(false)}>Cancel</Button>
+                                                    <Button type="button" onClick={handleCreateAlbum}>Create Album</Button>
+                                                </DialogFooter>
+                                            </DialogContent>
+                                        </Dialog>
+
                                        <ScrollArea className="h-48">
                                           <div className="p-2 space-y-2">
-                                              {allAlbums.map(album => (
+                                              {allAlbums.length > 0 ? allAlbums.map(album => (
                                                   <div key={album.id} className="flex items-center space-x-2">
                                                       <Checkbox
                                                           id={`album-upload-${album.id}`}
@@ -256,7 +338,9 @@ export default function Upload() {
                                                       />
                                                       <Label htmlFor={`album-upload-${album.id}`} className="font-normal w-full truncate cursor-pointer">{album.name}</Label>
                                                   </div>
-                                              ))}
+                                              )) : (
+                                                <p className="text-xs text-muted-foreground p-2 text-center">No albums created yet.</p>
+                                              )}
                                           </div>
                                        </ScrollArea>
                                     </PopoverContent>
@@ -306,3 +390,5 @@ export default function Upload() {
   );
 }
  
+
+    
