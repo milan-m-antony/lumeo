@@ -14,23 +14,24 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 
-const FilePreview = ({ file, caption, onCaptionChange, onRemove }) => {
+const FilePreview = ({ fileWithPreview, caption, onCaptionChange, onRemove }) => {
+  const { file, preview } = fileWithPreview;
   const fileType = file.type.split('/')[0];
   const iconClass = "w-10 h-10 text-muted-foreground";
 
-  let preview;
+  let previewElement;
   if (fileType === 'image') {
-    preview = <img src={file.preview} alt={file.name} className="w-16 h-16 rounded-md object-cover" onLoad={() => URL.revokeObjectURL(file.preview)} />;
+    previewElement = <img src={preview} alt={file.name} className="w-16 h-16 rounded-md object-cover" onLoad={() => URL.revokeObjectURL(preview)} />;
   } else if (fileType === 'video') {
-    preview = <video className="w-16 h-16 rounded-md bg-black" src={file.preview} />;
+    previewElement = <video className="w-16 h-16 rounded-md bg-black" src={preview} />;
   } else {
-    preview = <div className="w-16 h-16 bg-secondary flex items-center justify-center rounded-md"><FileIcon className={iconClass} /></div>;
+    previewElement = <div className="w-16 h-16 bg-secondary flex items-center justify-center rounded-md"><FileIcon className={iconClass} /></div>;
   }
 
   return (
     <div className="flex items-center justify-between p-2 border rounded-lg bg-muted/50 gap-2">
       <div className="flex items-center gap-3 flex-shrink-0">
-        {preview}
+        {previewElement}
         <span className="text-sm font-medium truncate hidden sm:inline-block max-w-[150px]">{file.name}</span>
       </div>
       <Input 
@@ -76,9 +77,10 @@ export default function Upload() {
   const onDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
       const newFileEntries = acceptedFiles.map(file => ({
-        file: file,
+        file: Object.assign(file, {
+            preview: URL.createObjectURL(file)
+        }),
         caption: "",
-        preview: URL.createObjectURL(file)
       }));
       setFileEntries(prevEntries => [...prevEntries, ...newFileEntries]);
       setError(null);
@@ -96,6 +98,8 @@ export default function Upload() {
   });
 
   const removeFile = (fileToRemove) => {
+    // Revoke the object URL to prevent memory leaks
+    URL.revokeObjectURL(fileToRemove.preview);
     setFileEntries(prevEntries => prevEntries.filter(entry => entry.file !== fileToRemove));
   };
   
@@ -214,7 +218,7 @@ export default function Upload() {
                                 {fileEntries.map((entry, index) => (
                                   <FilePreview 
                                     key={`${entry.file.name}-${index}`} 
-                                    file={entry.file}
+                                    fileWithPreview={{ file: entry.file, preview: entry.file.preview }}
                                     caption={entry.caption}
                                     onCaptionChange={(e) => handleCaptionChange(index, e.target.value)}
                                     onRemove={removeFile} 
@@ -301,3 +305,4 @@ export default function Upload() {
     </div>
   );
 }
+ 
