@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CheckCircle, AlertCircle, UploadCloud, X as XIcon, ChevronDown, Folder } from "lucide-react";
+import { CheckCircle, AlertCircle, UploadCloud, X as XIcon, ChevronDown, Folder, File as FileIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
@@ -14,13 +14,39 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 
+const FilePreview = ({ file, onRemove }) => {
+  const fileType = file.type.split('/')[0];
+  const iconClass = "w-10 h-10 text-muted-foreground";
+
+  let preview;
+  if (fileType === 'image') {
+    preview = <img src={file.preview} alt={file.name} className="w-16 h-16 rounded-md object-cover" onLoad={() => URL.revokeObjectURL(file.preview)} />;
+  } else if (fileType === 'video') {
+    preview = <video className="w-16 h-16 rounded-md bg-black" src={file.preview} />;
+  } else {
+    preview = <div className="w-16 h-16 bg-secondary flex items-center justify-center rounded-md"><FileIcon className={iconClass} /></div>;
+  }
+
+  return (
+    <div className="flex items-center justify-between p-2 border rounded-lg bg-muted/50">
+      <div className="flex items-center gap-3">
+        {preview}
+        <span className="text-sm font-medium truncate max-w-xs">{file.name}</span>
+      </div>
+      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onRemove(file)}>
+        <XIcon className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+};
+
+
 export default function Upload() {
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [caption, setCaption] = useState("");
   const [error, setError] = useState(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadProgress, setUploadProgress] = useState({});
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadComplete, setUploadComplete] = useState(false);
   const [allAlbums, setAllAlbums] = useState([]);
   const [selectedAlbumIds, setSelectedAlbumIds] = useState(new Set());
   const { toast } = useToast();
@@ -38,18 +64,17 @@ export default function Upload() {
 
   const onDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
-      const selectedFile = acceptedFiles[0];
-      selectedFile.preview = URL.createObjectURL(selectedFile);
-      setFile(selectedFile);
+      const newFiles = acceptedFiles.map(file => Object.assign(file, {
+        preview: URL.createObjectURL(file)
+      }));
+      setFiles(prevFiles => [...prevFiles, ...newFiles]);
       setError(null);
-      setUploadComplete(false);
-      setUploadProgress(0);
     }
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    multiple: false,
+    multiple: true,
     accept: {
       'image/*': ['.jpeg', '.png', '.gif', '.webp'],
       'video/*': ['.mp4', '.webm', '.mov'],
@@ -57,6 +82,10 @@ export default function Upload() {
     }
   });
 
+  const removeFile = (fileToRemove) => {
+    setFiles(prevFiles => prevFiles.filter(file => file !== fileToRemove));
+  };
+  
   const handleAlbumSelect = (albumId) => {
     const newSelection = new Set(selectedAlbumIds);
     if (newSelection.has(albumId)) {
@@ -68,28 +97,29 @@ export default function Upload() {
   };
   
   const resetForm = useCallback(() => {
-      setFile(null);
+      setFiles([]);
       setCaption("");
       setSelectedAlbumIds(new Set());
       setIsUploading(false);
       setError(null);
-      setUploadComplete(true);
+      setUploadProgress({});
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file) {
-      setError("Please select a file to upload.");
+    if (files.length === 0) {
+      setError("Please select at least one file to upload.");
       return;
     }
     
     setIsUploading(true);
-    setUploadComplete(false);
-    setUploadProgress(0);
     setError(null);
-
+    setUploadProgress({});
+    
     const formData = new FormData();
-    formData.append("file", file);
+    files.forEach(file => {
+      formData.append("files", file);
+    });
     formData.append("caption", caption);
     selectedAlbumIds.forEach(id => {
         formData.append("albumIds", id);
@@ -98,10 +128,11 @@ export default function Upload() {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/upload", true);
 
+    let lastLoaded = 0;
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable) {
         const percentComplete = Math.round((event.loaded / event.total) * 100);
-        setUploadProgress(percentComplete);
+        setUploadProgress({ overall: percentComplete });
       }
     };
 
@@ -111,57 +142,34 @@ export default function Upload() {
         const response = JSON.parse(xhr.responseText);
         if (xhr.status === 200 && response.success) {
           toast({
-              title: "Upload Successful!",
-              description: `"${response.file.caption || file.name}" has been added.`,
+              title: "Upload Complete!",
+              description: response.message,
               variant: "default",
           });
           resetForm();
-          setUploadProgress(100);
-          setTimeout(() => {
-            setUploadComplete(false);
-            setUploadProgress(0);
-          }, 2000);
         } else {
-          setUploadProgress(0);
           setError(response.error || "An unknown error occurred during upload.");
         }
       } catch (e) {
-          setUploadProgress(0);
           setError("An unexpected error occurred parsing the server response.");
       }
     };
 
     xhr.onerror = () => {
       setIsUploading(false);
-      setUploadProgress(0);
       setError("Upload failed. Please check your network connection and try again.");
     };
 
     xhr.send(formData);
   };
   
-  const renderPreview = () => {
-    if (!file) return null;
-    const fileType = file.type.split('/')[0];
-    const iconClass = "w-16 h-16 text-muted-foreground";
-
-    if (fileType === 'image') {
-      return <img src={file.preview} alt="Preview" className="max-h-48 rounded-md object-contain" onLoad={() => URL.revokeObjectURL(file.preview)} />;
-    }
-    if (fileType === 'video') {
-       return <video className="max-h-48 rounded-md" src={file.preview} controls />;
-    }
-    return <Folder className={iconClass} />;
-  }
-  
   const selectedAlbums = allAlbums.filter(album => selectedAlbumIds.has(album.id));
-
 
   return (
     <div className="flex flex-col h-full w-full">
          <header className="flex-shrink-0 sticky top-0 z-10">
             <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 border-b glass-effect">
-                <h1 className="text-2xl font-bold text-foreground">Upload File</h1>
+                <h1 className="text-2xl font-bold text-foreground">Upload Files</h1>
             </div>
          </header>
          <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
@@ -171,28 +179,33 @@ export default function Upload() {
                     <CardContent className="p-6">
                         <div {...getRootProps()} className={`w-full border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}>
                             <input {...getInputProps()} />
-                            {file ? (
-                                <div className="flex flex-col items-center gap-2">
-                                    {renderPreview()}
-                                    <p className="font-medium truncate max-w-xs">{file.name}</p>
-                                    <Button variant="link" size="sm" onClick={(e) => { e.stopPropagation(); setFile(null); setUploadProgress(0); setUploadComplete(false); }}>Choose another file</Button>
-                                </div>
-                            ) : (
-                              <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                                <UploadCloud className="w-12 h-12"/>
-                                <p className="font-semibold">{isDragActive ? "Drop the file here..." : "Drag & drop file here, or click to select"}</p>
-                                <p className="text-xs">Supports images, videos, and documents.</p>
-                              </div>
-                            )}
+                            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                              <UploadCloud className="w-12 h-12"/>
+                              <p className="font-semibold">{isDragActive ? "Drop the files here..." : "Drag & drop files here, or click to select"}</p>
+                              <p className="text-xs">Supports multiple images, videos, and documents.</p>
+                            </div>
                         </div>
+                        
+                        {files.length > 0 && (
+                          <div className="mt-4">
+                            <Label>Selected Files ({files.length})</Label>
+                            <ScrollArea className="h-40 mt-2">
+                              <div className="space-y-2 pr-4">
+                                {files.map((file, index) => (
+                                  <FilePreview key={`${file.name}-${index}`} file={file} onRemove={removeFile} />
+                                ))}
+                              </div>
+                            </ScrollArea>
+                          </div>
+                        )}
 
                         <div className="grid w-full items-center gap-4 mt-6">
                             <div>
-                                <Label htmlFor="caption" className="font-medium">Caption</Label>
+                                <Label htmlFor="caption" className="font-medium">Caption (for all files)</Label>
                                 <Input id="caption" type="text" placeholder="Add an optional caption..." value={caption} onChange={(e) => setCaption(e.target.value)} className="mt-1"/>
                             </div>
                              <div>
-                                <Label className="font-medium">Albums (optional)</Label>
+                                <Label className="font-medium">Albums (optional, for all files)</Label>
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <Button variant="outline" className="w-full justify-start font-normal mt-1">
@@ -235,12 +248,12 @@ export default function Upload() {
                             </div>
                         </div>
                         
-                        {(isUploading || uploadProgress > 0 || uploadComplete) && (
+                        {isUploading && (
                             <div className="w-full mt-6">
-                                <Progress value={uploadProgress} />
+                                <Label>Overall Progress</Label>
+                                <Progress value={uploadProgress.overall || 0} className="mt-1" />
                                 <p className="text-sm text-center mt-2 text-muted-foreground">
-                                  {isUploading && `Uploading... ${uploadProgress}%`}
-                                  {uploadComplete && 'Upload complete!'}
+                                  {`Uploading ${files.length} files... ${uploadProgress.overall || 0}%`}
                                 </p>
                             </div>
                         )}
@@ -255,8 +268,8 @@ export default function Upload() {
 
                     </CardContent>
                     <CardFooter className="w-full p-6 pt-0">
-                        <Button type="submit" disabled={!file || isUploading} className="w-full">
-                            {isUploading ? 'Uploading...' : 'Upload File'}
+                        <Button type="submit" disabled={files.length === 0 || isUploading} className="w-full">
+                            {isUploading ? 'Uploading...' : `Upload ${files.length} File(s)`}
                         </Button>
                     </CardFooter>
                   </form>
@@ -266,5 +279,3 @@ export default function Upload() {
     </div>
   );
 }
-
-    
