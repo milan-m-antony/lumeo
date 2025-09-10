@@ -36,7 +36,7 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: "Form parse error" });
       }
       
-      const caption = Array.isArray(fields.caption) ? fields.caption[0] : fields.caption || "";
+      const captions = Array.isArray(fields.captions) ? fields.captions : [fields.captions || ""];
       let albumIds = fields.albumIds ? (Array.isArray(fields.albumIds) ? fields.albumIds : [fields.albumIds]) : [];
       albumIds = albumIds.filter(id => id && id !== 'none');
 
@@ -49,10 +49,11 @@ export default async function handler(req, res) {
       const results = [];
       const uploadedFileArray = Array.isArray(uploadedFiles) ? uploadedFiles : [uploadedFiles];
 
-      for (const fileInfo of uploadedFileArray) {
+      for (const [index, fileInfo] of uploadedFileArray.entries()) {
         let filePath = fileInfo.filepath;
         try {
           const fileType = fileInfo.mimetype || "";
+          const caption = captions[index] || "";
 
           const tgForm = new FormData();
           tgForm.append("chat_id", chatId);
@@ -83,7 +84,6 @@ export default async function handler(req, res) {
           
           if (!tgData.ok) {
               console.error(`Telegram upload failed for ${fileInfo.originalFilename}. Full response:`, JSON.stringify(tgData, null, 2));
-              // Skip this file and continue with the next
               results.push({
                   filename: fileInfo.originalFilename,
                   success: false,

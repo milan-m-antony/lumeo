@@ -14,7 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 
-const FilePreview = ({ file, onRemove }) => {
+const FilePreview = ({ file, caption, onCaptionChange, onRemove }) => {
   const fileType = file.type.split('/')[0];
   const iconClass = "w-10 h-10 text-muted-foreground";
 
@@ -28,12 +28,19 @@ const FilePreview = ({ file, onRemove }) => {
   }
 
   return (
-    <div className="flex items-center justify-between p-2 border rounded-lg bg-muted/50">
-      <div className="flex items-center gap-3">
+    <div className="flex items-center justify-between p-2 border rounded-lg bg-muted/50 gap-2">
+      <div className="flex items-center gap-3 flex-shrink-0">
         {preview}
-        <span className="text-sm font-medium truncate max-w-xs">{file.name}</span>
+        <span className="text-sm font-medium truncate hidden sm:inline-block max-w-[150px]">{file.name}</span>
       </div>
-      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onRemove(file)}>
+      <Input 
+        type="text" 
+        placeholder="Enter caption..." 
+        value={caption} 
+        onChange={onCaptionChange}
+        className="flex-grow"
+      />
+      <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={() => onRemove(file)}>
         <XIcon className="h-4 w-4" />
       </Button>
     </div>
@@ -42,10 +49,9 @@ const FilePreview = ({ file, onRemove }) => {
 
 
 export default function Upload() {
-  const [files, setFiles] = useState([]);
-  const [caption, setCaption] = useState("");
+  const [fileEntries, setFileEntries] = useState([]);
   const [error, setError] = useState(null);
-  const [uploadProgress, setUploadProgress] = useState({});
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [allAlbums, setAllAlbums] = useState([]);
   const [selectedAlbumIds, setSelectedAlbumIds] = useState(new Set());
@@ -61,13 +67,20 @@ export default function Upload() {
       })
       .catch(err => console.error("Failed to fetch albums", err));
   }, []);
+  
+    // cleanup function to revoke object URLs
+  useEffect(() => {
+    return () => fileEntries.forEach(entry => URL.revokeObjectURL(entry.file.preview));
+  }, [fileEntries]);
 
   const onDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
-      const newFiles = acceptedFiles.map(file => Object.assign(file, {
+      const newFileEntries = acceptedFiles.map(file => ({
+        file: file,
+        caption: "",
         preview: URL.createObjectURL(file)
       }));
-      setFiles(prevFiles => [...prevFiles, ...newFiles]);
+      setFileEntries(prevEntries => [...prevEntries, ...newFileEntries]);
       setError(null);
     }
   }, []);
@@ -83,7 +96,15 @@ export default function Upload() {
   });
 
   const removeFile = (fileToRemove) => {
-    setFiles(prevFiles => prevFiles.filter(file => file !== fileToRemove));
+    setFileEntries(prevEntries => prevEntries.filter(entry => entry.file !== fileToRemove));
+  };
+  
+  const handleCaptionChange = (index, newCaption) => {
+      setFileEntries(prevEntries => {
+          const updatedEntries = [...prevEntries];
+          updatedEntries[index].caption = newCaption;
+          return updatedEntries;
+      });
   };
   
   const handleAlbumSelect = (albumId) => {
@@ -97,30 +118,30 @@ export default function Upload() {
   };
   
   const resetForm = useCallback(() => {
-      setFiles([]);
-      setCaption("");
+      setFileEntries([]);
       setSelectedAlbumIds(new Set());
       setIsUploading(false);
       setError(null);
-      setUploadProgress({});
+      setUploadProgress(0);
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (files.length === 0) {
+    if (fileEntries.length === 0) {
       setError("Please select at least one file to upload.");
       return;
     }
     
     setIsUploading(true);
     setError(null);
-    setUploadProgress({});
+    setUploadProgress(0);
     
     const formData = new FormData();
-    files.forEach(file => {
-      formData.append("files", file);
+    fileEntries.forEach(entry => {
+      formData.append("files", entry.file);
+      formData.append("captions", entry.caption);
     });
-    formData.append("caption", caption);
+    
     selectedAlbumIds.forEach(id => {
         formData.append("albumIds", id);
     });
@@ -128,11 +149,10 @@ export default function Upload() {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/upload", true);
 
-    let lastLoaded = 0;
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable) {
         const percentComplete = Math.round((event.loaded / event.total) * 100);
-        setUploadProgress({ overall: percentComplete });
+        setUploadProgress(percentComplete);
       }
     };
 
@@ -186,13 +206,19 @@ export default function Upload() {
                             </div>
                         </div>
                         
-                        {files.length > 0 && (
+                        {fileEntries.length > 0 && (
                           <div className="mt-4">
-                            <Label>Selected Files ({files.length})</Label>
-                            <ScrollArea className="h-40 mt-2">
+                            <Label>Selected Files ({fileEntries.length})</Label>
+                            <ScrollArea className="h-48 mt-2">
                               <div className="space-y-2 pr-4">
-                                {files.map((file, index) => (
-                                  <FilePreview key={`${file.name}-${index}`} file={file} onRemove={removeFile} />
+                                {fileEntries.map((entry, index) => (
+                                  <FilePreview 
+                                    key={`${entry.file.name}-${index}`} 
+                                    file={entry.file}
+                                    caption={entry.caption}
+                                    onCaptionChange={(e) => handleCaptionChange(index, e.target.value)}
+                                    onRemove={removeFile} 
+                                  />
                                 ))}
                               </div>
                             </ScrollArea>
@@ -200,12 +226,8 @@ export default function Upload() {
                         )}
 
                         <div className="grid w-full items-center gap-4 mt-6">
-                            <div>
-                                <Label htmlFor="caption" className="font-medium">Caption (for all files)</Label>
-                                <Input id="caption" type="text" placeholder="Add an optional caption..." value={caption} onChange={(e) => setCaption(e.target.value)} className="mt-1"/>
-                            </div>
                              <div>
-                                <Label className="font-medium">Albums (optional, for all files)</Label>
+                                <Label className="font-medium">Add to Albums (optional, for all files)</Label>
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <Button variant="outline" className="w-full justify-start font-normal mt-1">
@@ -251,9 +273,9 @@ export default function Upload() {
                         {isUploading && (
                             <div className="w-full mt-6">
                                 <Label>Overall Progress</Label>
-                                <Progress value={uploadProgress.overall || 0} className="mt-1" />
+                                <Progress value={uploadProgress} className="mt-1" />
                                 <p className="text-sm text-center mt-2 text-muted-foreground">
-                                  {`Uploading ${files.length} files... ${uploadProgress.overall || 0}%`}
+                                  {`Uploading ${fileEntries.length} files... ${uploadProgress}%`}
                                 </p>
                             </div>
                         )}
@@ -268,8 +290,8 @@ export default function Upload() {
 
                     </CardContent>
                     <CardFooter className="w-full p-6 pt-0">
-                        <Button type="submit" disabled={files.length === 0 || isUploading} className="w-full">
-                            {isUploading ? 'Uploading...' : `Upload ${files.length} File(s)`}
+                        <Button type="submit" disabled={fileEntries.length === 0 || isUploading} className="w-full">
+                            {isUploading ? 'Uploading...' : `Upload ${fileEntries.length} File(s)`}
                         </Button>
                     </CardFooter>
                   </form>
