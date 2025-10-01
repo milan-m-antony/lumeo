@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import InfiniteGallery from '@/components/ui/3d-gallery-photography';
 import imageData from '@/app/lib/placeholder-images.json';
+import { Loader2 } from 'lucide-react';
 
 
 export default function HomePage() {
@@ -18,10 +19,20 @@ export default function HomePage() {
     }
   }, [user, loading, router]);
 
-  if (loading || user) {
+  if (loading) {
     return (
         <div className="flex items-center justify-center min-h-screen bg-background">
-            {/* Optional: Add a loader here */}
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+    );
+  }
+
+  // If user is logged in, redirecting will happen via useEffect.
+  // We can render null or a loader to avoid a flash of the landing page.
+  if(user) {
+    return (
+        <div className="flex items-center justify-center min-h-screen bg-background">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
     );
   }

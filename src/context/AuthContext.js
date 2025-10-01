@@ -25,10 +25,10 @@ export function AuthProvider({ children }) {
         setUser(session ? session.user : null);
         setLoading(false);
         if (event === 'SIGNED_OUT') {
-            router.push('/login');
+            if (router.isReady) router.push('/login');
         }
         if(event === 'SIGNED_IN') {
-            router.push('/gallery');
+            if (router.isReady) router.push('/gallery');
         }
       }
     );
@@ -80,7 +80,7 @@ export function withAuth(Component) {
     const router = useRouter();
 
     useEffect(() => {
-      if (!loading && !user) {
+      if (router.isReady && !loading && !user) {
         router.replace('/login');
       }
     }, [user, loading, router]);
