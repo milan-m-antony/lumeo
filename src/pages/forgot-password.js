@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useRouter } from 'next/router';
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from '@/lib/supabase'; // Using the public client
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState('');
@@ -24,14 +23,21 @@ export default function ForgotPasswordPage() {
         setSuccess(false);
         setLoading(true);
         try {
-            const { error: functionError } = await supabase.functions.invoke('password-reset', {
-                body: { email },
+            const functionUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/password-reset`;
+            const response = await fetch(functionUrl, {
+                method: 'POST',
                 headers: {
-                  'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json'
                 },
+                body: JSON.stringify({ email }),
             });
+            
+            const result = await response.json();
 
-            if (functionError) throw functionError;
+            if (!response.ok) {
+                 throw new Error(result.error || `Edge function returned status ${response.status}`);
+            }
 
             setSuccess(true);
             toast({

@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from '@/lib/supabase';
 
 export default function ResetPasswordPage() {
     const [email, setEmail] = useState('');
@@ -50,15 +49,21 @@ export default function ResetPasswordPage() {
         setSuccess(false);
         setLoading(true);
         try {
-            const { error: functionError } = await supabase.functions.invoke('password-reset', {
+            const functionUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/password-reset`;
+            const response = await fetch(functionUrl, {
                 method: 'PUT',
-                body: { email, token, password },
                 headers: {
-                  'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json'
                 },
+                body: JSON.stringify({ email, token, password }),
             });
 
-            if (functionError) throw functionError;
+            const result = await response.json();
+
+            if (!response.ok) {
+                 throw new Error(result.error || `Edge function returned status ${response.status}`);
+            }
             
             setSuccess(true);
             toast({
