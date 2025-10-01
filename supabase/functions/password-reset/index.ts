@@ -1,9 +1,14 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-control-Allow-Methods': 'POST, PUT, OPTIONS',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 // Create a new Supabase client with the service role key
 const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -23,14 +28,18 @@ async function hashToken(token: string) {
 }
 
 serve(async (req) => {
-  const { email, token, password } = await req.json();
-  const headers = { 'Content-Type': 'application/json' };
+  // Handle CORS preflight request
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
 
   try {
+    const { email, token, password } = await req.json();
+    
     // --- REQUEST A PASSWORD RESET ---
     if (req.method === 'POST') {
       if (!email) {
-        return new Response(JSON.stringify({ error: 'Email is required' }), { status: 400, headers });
+        return new Response(JSON.stringify({ error: 'Email is required' }), { status: 400, headers: corsHeaders });
       }
 
       // 1. Get the user by email
@@ -38,7 +47,7 @@ serve(async (req) => {
       if (userError || !user) {
         // Don't reveal if user exists or not for security reasons
         console.warn(`Password reset attempt for non-existent user: ${email}`);
-        return new Response(JSON.stringify({ message: 'If a user with this email exists, a reset code has been sent.' }), { status: 200, headers });
+        return new Response(JSON.stringify({ message: 'If a user with this email exists, a reset code has been sent.' }), { status: 200, headers: corsHeaders });
       }
 
       // 2. Generate and hash the OTP
@@ -54,11 +63,8 @@ serve(async (req) => {
       if (upsertError) throw upsertError;
 
       // 4. Send the OTP via email using Supabase's built-in mailer
-      const { error: mailerError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+       const { error: mailerError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
         data: {
-            // This is a workaround to use the mailer without actually inviting a user.
-            // We can customize the email template in the Supabase dashboard.
-            // The template should be the "Magic Link" template, customized to show the OTP.
             otp_code: otp
         }
       });
@@ -67,19 +73,19 @@ serve(async (req) => {
 
       if (mailerError) throw mailerError;
 
-      return new Response(JSON.stringify({ message: 'Password reset code sent.' }), { status: 200, headers });
+      return new Response(JSON.stringify({ message: 'Password reset code sent.' }), { status: 200, headers: corsHeaders });
     }
 
     // --- VERIFY TOKEN AND UPDATE PASSWORD ---
     if (req.method === 'PUT') {
       if (!email || !token || !password) {
-        return new Response(JSON.stringify({ error: 'Email, token, and new password are required' }), { status: 400, headers });
+        return new Response(JSON.stringify({ error: 'Email, token, and new password are required' }), { status: 400, headers: corsHeaders });
       }
 
       // 1. Get the user
       const { data: user, error: userError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
       if (userError || !user) {
-        return new Response(JSON.stringify({ error: 'Invalid email or token' }), { status: 400, headers });
+        return new Response(JSON.stringify({ error: 'Invalid email or token' }), { status: 400, headers: corsHeaders });
       }
 
       // 2. Find the stored token
@@ -90,16 +96,17 @@ serve(async (req) => {
         .single();
       
       if (tokenError || !storedToken) {
-        return new Response(JSON.stringify({ error: 'Invalid or expired reset code' }), { status: 400, headers });
+        return new Response(JSON.stringify({ error: 'Invalid or expired reset code' }), { status: 400, headers: corsHeaders });
       }
 
       // 3. Verify the token and check expiry
       const tokenHash = await hashToken(token);
       if (tokenHash !== storedToken.token_hash) {
-        return new Response(JSON.stringify({ error: 'Invalid or expired reset code' }), { status: 400, headers });
+        return new Response(JSON.stringify({ error: 'Invalid or expired reset code' }), { status: 400, headers: corsHeaders });
       }
       if (new Date(storedToken.expires_at) < new Date()) {
-        return new Response(JSON.stringify({ error: 'Reset code has expired' }), { status: 400, headers });
+        await supabaseAdmin.from('password_reset_tokens').delete().eq('user_id', user.user.id);
+        return new Response(JSON.stringify({ error: 'Reset code has expired' }), { status: 400, headers: corsHeaders });
       }
 
       // 4. Update the user's password
@@ -112,13 +119,13 @@ serve(async (req) => {
       // 5. Invalidate the token by deleting it
       await supabaseAdmin.from('password_reset_tokens').delete().eq('user_id', user.user.id);
 
-      return new Response(JSON.stringify({ message: 'Password updated successfully' }), { status: 200, headers });
+      return new Response(JSON.stringify({ message: 'Password updated successfully' }), { status: 200, headers: corsHeaders });
     }
 
-    return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers });
+    return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers: corsHeaders });
 
   } catch (error) {
     console.error('Edge Function Error:', error);
-    return new Response(JSON.stringify({ error: error.message || 'An internal server error occurred' }), { status: 500, headers });
+    return new Response(JSON.stringify({ error: error.message || 'An internal server error occurred' }), { status: 500, headers: corsHeaders });
   }
 });
