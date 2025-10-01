@@ -1,0 +1,16 @@
+{
+    "gallery": [
+        { "src": "https://picsum.photos/seed/1/800/600", "alt": "abstract building", "data-ai-hint": "abstract building" },
+        { "src": "https://picsum.photos/seed/2/600/800", "alt": "city street", "data-ai-hint": "city street" },
+        { "src": "https://picsum.photos/seed/3/800/600", "alt": "mountain landscape", "data-ai-hint": "mountain landscape" },
+        { "src": "https://picsum.photos/seed/4/600/800", "alt": "woman portrait", "data-ai-hint": "woman portrait" },
+        { "src": "https://picsum.photos/seed/5/800/600", "alt": "forest path", "data-ai-hint": "forest path" },
+        { "src": "https://picsum.photos/seed/6/600/800", "alt": "neon sign", "data-ai-hint": "neon sign" },
+        { "src": "https://picsum.photos/seed/7/800/600", "alt": "ocean wave", "data-ai-hint": "ocean wave" },
+        { "src": "https://picsum.photos/seed/8/600/800", "alt": "modern architecture", "data-ai-hint": "modern architecture" },
+        { "src": "https://picsum.photos/seed/9/800/600", "alt": "desert dunes", "data-ai-hint": "desert dunes" },
+        { "src": "https://picsum.photos/seed/10/600/800", "alt": "man hiking", "data-ai-hint": "man hiking" },
+        { "src": "https://picsum.photos/seed/11/800/600", "alt": "coffee shop", "data-ai-hint": "coffee shop" },
+        { "src": "https://picsum.photos/seed/12/600/800", "alt": "cat sitting", "data-ai-hint": "cat sitting" }
+    ]
+}
