@@ -15,19 +15,9 @@ export default function ResetPasswordPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
-    const { updatePassword, user } = useAuth();
+    const { updatePassword } = useAuth();
     const router = useRouter();
     
-    // This effect handles the case where a user lands on this page without being in the "recovery" state.
-    useEffect(() => {
-        if (!user) {
-            const hash = window.location.hash;
-            if (!hash.includes('access_token')) {
-                 router.replace('/login');
-            }
-        }
-    }, [user, router]);
-
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -46,7 +36,11 @@ export default function ResetPasswordPage() {
         try {
             await updatePassword(password);
             setSuccess(true);
-            setTimeout(() => router.push('/gallery'), 3000); // Redirect after a short delay
+            toast({
+                title: "Password Updated!",
+                description: "You can now log in with your new password.",
+            });
+            setTimeout(() => router.push('/login'), 3000); // Redirect after a short delay
         } catch (err) {
             setError(err.message || 'Failed to reset password.');
         } finally {
