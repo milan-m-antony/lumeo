@@ -79,9 +79,9 @@ export function AuthProvider({ children }) {
   };
   
   const sendPasswordResetEmail = async (email) => {
-    // We explicitly set the redirect URL to ensure it points to the correct port in local development.
-    const redirectTo = `http://localhost:9002/reset-password`;
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { 
+        redirectTo: `${window.location.origin}/reset-password` 
+    });
     if (error) throw error;
   };
 
