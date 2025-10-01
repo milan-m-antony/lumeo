@@ -79,16 +79,28 @@ export function AuthProvider({ children }) {
   };
   
   const sendPasswordResetEmail = async (email) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { 
-        redirectTo: 'http://localhost:3000/reset-password'
+    const { error } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+            shouldCreateUser: false, // Don't create a new user if they don't exist
+        },
     });
     if (error) throw error;
   };
 
-  const updatePassword = async (password) => {
-    const { error } = await supabase.auth.updateUser({ password });
-    if (error) throw error;
-  };
+  const resetPasswordWithToken = async (email, token, password) => {
+    const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email'
+    });
+
+    if (verifyError) throw verifyError;
+
+    // If verification is successful, the user is logged in. Now update the password.
+    const { error: updateError } = await supabase.auth.updateUser({ password });
+    if (updateError) throw updateError;
+  }
 
 
   const value = {
@@ -98,7 +110,7 @@ export function AuthProvider({ children }) {
     signup,
     logout,
     sendPasswordResetEmail,
-    updatePassword,
+    resetPasswordWithToken,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
