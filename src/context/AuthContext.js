@@ -67,7 +67,10 @@ export function AuthProvider({ children }) {
             throw error;
         }
     } catch (error) {
-        console.error("Error during sign out:", error);
+        // This case is for when the session is already expired, which is fine.
+        if (error.name !== 'AuthSessionMissingError') {
+          console.error("Error during sign out:", error);
+        }
     } finally {
         setUser(null);
         toast({ title: "You have been logged out." });
@@ -76,9 +79,9 @@ export function AuthProvider({ children }) {
   };
   
   const sendPasswordResetEmail = async (email) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
+    // We explicitly set the redirect URL to ensure it points to the correct port in local development.
+    const redirectTo = `http://localhost:9002/reset-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
     if (error) throw error;
   };
 
