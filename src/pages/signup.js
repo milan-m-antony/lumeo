@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2, X } from 'lucide-react';
 import Link from 'next/link';
 import InfiniteGallery from '@/components/ui/3d-gallery-photography';
 import imageData from '@/app/lib/placeholder-images.json';
@@ -76,13 +77,18 @@ export default function SignUp() {
         <div className="absolute inset-0 bg-background/50 backdrop-blur-sm"></div>
 
         <div className="relative flex items-center justify-center min-h-screen p-4">
-            <Card className="w-full max-w-sm glass-effect">
+            <Card className="w-full max-w-sm glass-effect relative">
                 <CardHeader>
-                <CardTitle className="text-2xl">Sign Up</CardTitle>
-                <CardDescription>
-                    {registrationAllowed ? 'Enter your information to create the primary account.' : 'Registration is currently closed.'}
-                </CardDescription>
+                    <CardTitle className="text-2xl">Sign Up</CardTitle>
+                    <CardDescription>
+                        {registrationAllowed ? 'Enter your information to create the primary account.' : 'Registration is currently closed.'}
+                    </CardDescription>
                 </CardHeader>
+                <Link href="/" passHref>
+                    <Button asChild variant="ghost" size="icon" className="absolute top-4 right-4 h-6 w-6">
+                        <a><X className="h-4 w-4" /></a>
+                    </Button>
+                </Link>
                 {registrationAllowed ? (
                 <form onSubmit={handleSubmit}>
                     <CardContent className="grid gap-4">

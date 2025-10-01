@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/router';
@@ -6,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, X } from 'lucide-react';
 import Link from 'next/link';
 import InfiniteGallery from '@/components/ui/3d-gallery-photography';
 import imageData from '@/app/lib/placeholder-images.json';
@@ -46,11 +47,16 @@ export default function Login() {
          <div className="absolute inset-0 bg-background/50 backdrop-blur-sm"></div>
 
         <div className="relative flex items-center justify-center min-h-screen p-4">
-            <Card className="w-full max-w-sm glass-effect">
+            <Card className="w-full max-w-sm glass-effect relative">
                 <CardHeader>
-                <CardTitle className="text-2xl">Log In</CardTitle>
-                <CardDescription>Enter your email below to log in to your account.</CardDescription>
+                    <CardTitle className="text-2xl">Log In</CardTitle>
+                    <CardDescription>Enter your email below to log in to your account.</CardDescription>
                 </CardHeader>
+                <Link href="/" passHref>
+                    <Button asChild variant="ghost" size="icon" className="absolute top-4 right-4 h-6 w-6">
+                        <a><X className="h-4 w-4" /></a>
+                    </Button>
+                </Link>
                 <form onSubmit={handleSubmit}>
                     <CardContent className="grid gap-4">
                     {error && (
