@@ -25,11 +25,8 @@ export function AuthProvider({ children }) {
       (event, session) => {
         setUser(session ? session.user : null);
         setLoading(false);
-        if (event === 'SIGNED_OUT') {
-            toast({ title: "You have been logged out." });
-            if (router.isReady) router.push('/');
-        }
-        if(event === 'SIGNED_IN') {
+        
+        if (event === 'SIGNED_IN') {
             if (router.isReady) router.push('/gallery');
         }
       }
@@ -47,13 +44,24 @@ export function AuthProvider({ children }) {
 
   const signup = async (email, password) => {
     const { error } = await supabase.auth.signUp({ email, password });
-    if (error) throw error;
-    // You might want to send a confirmation email or handle this differently
+    if (error) {
+        throw error;
+    }
+    // After signup, Supabase sends a confirmation email. 
+    // The user will be logged in after they confirm.
+    toast({
+        title: "Registration Successful!",
+        description: "Please check your email to confirm your account, then log in.",
+    });
+    router.push('/login');
   };
 
   const logout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+    setUser(null);
+    toast({ title: "You have been logged out." });
+    router.push('/');
   };
 
   const value = {
