@@ -1,9 +1,8 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from 'next/router';
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -14,6 +13,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import Link from "next/link";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { withAuth, fetchWithAuth } from "@/context/AuthContext";
+import { useInView } from "react-intersection-observer";
+import { GalleryItem } from "@/components/GalleryItem";
+
 
 function AlbumDetailPage() {
   const router = useRouter();
@@ -23,6 +25,7 @@ function AlbumDetailPage() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editingCaption, setEditingCaption] = useState("");
   const [error, setError] = useState(null);
@@ -30,26 +33,48 @@ function AlbumDetailPage() {
   const [allAlbums, setAllAlbums] = useState([]); 
   const { toast } = useToast();
 
-  const fetchFiles = useCallback(async () => {
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const isInitialLoad = useRef(true);
+
+  const { ref: loadMoreRef, inView } = useInView({
+    threshold: 0,
+    triggerOnce: false,
+  });
+
+  const fetchFiles = useCallback(async (isNewSearch = false) => {
     if (!albumId) return;
-    setLoading(true);
+    if (isNewSearch) {
+      setLoading(true);
+      setFiles([]);
+      setPage(1);
+      setHasMore(true);
+    } else {
+      setLoadingMore(true);
+    }
+    
+    const currentPage = isNewSearch ? 1 : page;
     try {
-        const res = await fetchWithAuth(`/api/files-in-album?albumId=${albumId}&caption=${search}&type=${typeFilter}`);
+        const res = await fetchWithAuth(`/api/files-in-album?albumId=${albumId}&caption=${search}&type=${typeFilter}&page=${currentPage}`);
         if (!res.ok) throw new Error("Network response was not ok");
         const data = await res.json();
-        if (Array.isArray(data)) {
-            setFiles(data);
+        if (data.files && Array.isArray(data.files)) {
+            setFiles(prevFiles => isNewSearch ? data.files : [...prevFiles, ...data.files]);
+            setHasMore(data.hasMore);
+            if (!isNewSearch) setPage(prevPage => prevPage + 1);
             setError(null);
         } else {
             throw new Error(data.error || "Failed to load files.");
         }
     } catch (err) {
-        setFiles([]);
         setError(err.message || "An unexpected error occurred.");
     } finally {
-        setLoading(false);
+      if (isNewSearch) setLoading(false);
+      setLoadingMore(false);
+      isInitialLoad.current = false;
     }
-  }, [albumId, search, typeFilter]);
+  }, [albumId, search, typeFilter, page]);
+
 
   const fetchAlbumDetails = useCallback(async () => {
     if (!albumId) return;
@@ -79,10 +104,25 @@ function AlbumDetailPage() {
   }, []);
 
   useEffect(() => {
-    fetchFiles();
-    fetchAlbumDetails();
-    fetchAllAlbums();
-  }, [fetchFiles, fetchAlbumDetails, fetchAllAlbums]);
+    const handler = setTimeout(() => {
+        fetchFiles(true);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [search, typeFilter, albumId]);
+  
+  useEffect(() => {
+    if (inView && hasMore && !loading && !loadingMore && !isInitialLoad.current) {
+        fetchFiles(false);
+    }
+  }, [inView, hasMore, loading, loadingMore, fetchFiles]);
+
+
+  useEffect(() => {
+    if(albumId) {
+        fetchAlbumDetails();
+        fetchAllAlbums();
+    }
+  }, [albumId, fetchAlbumDetails, fetchAllAlbums]);
 
   const handleEditClick = (file) => {
     setEditingId(file.id);
@@ -206,34 +246,30 @@ function AlbumDetailPage() {
   };
 
   const renderFilePreview = (file) => {
-    const iconClass = "w-16 h-16 text-muted-foreground";
-    switch (file.type) {
-      case 'photo':
-        return <img src={getFileUrl(file.file_id)} alt={file.caption} className="w-full h-auto block" data-ai-hint="gallery photo" onError={(e) => {e.target.onerror = null; e.target.src='https://placehold.co/400x600.png';}} />;
-      case 'video':
-        if (file.thumbnail_file_id) {
-          return (
-            <div className="relative w-full h-auto group">
-              <img src={getFileUrl(file.thumbnail_file_id)} alt={`${file.caption} thumbnail`} className="w-full h-auto block" onError={(e) => {e.target.onerror = null; e.target.src='https://placehold.co/400x600.png';}}/>
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <PlayCircle className="w-12 h-12 text-white/80" />
+    if (selectedFile && selectedFile.id === file.id) {
+       switch (file.type) {
+        case 'photo': return <img src={getFileUrl(file.file_id)} alt={file.caption} className="max-w-full max-h-full object-contain" />;
+        case 'video': return <video src={getFileUrl(file.file_id)} controls autoPlay className="max-w-full max-h-full object-contain" />;
+        case 'document': return (
+             <div className="flex flex-col items-center justify-center h-64 bg-secondary rounded-md p-8">
+                <FileText className="w-24 h-24 text-muted-foreground" />
+                <p className="mt-4 text-lg text-center">This is a document preview.</p>
+                <a href={getFileUrl(file.file_id)} download={getDownloadFilename(file)} target="_blank" rel="noreferrer">
+                    <Button className="mt-4">Download Document</Button>
+                </a>
               </div>
-            </div>
-          );
-        }
-        return <div className="w-full aspect-video bg-secondary flex items-center justify-center"><Video className={iconClass} /></div>;
-      case 'document':
-        return <div className="w-full aspect-video bg-secondary flex items-center justify-center"><FileText className={iconClass} /></div>;
-      default:
-        return <div className="w-full aspect-video bg-secondary flex items-center justify-center"><ImageIcon className={iconClass} /></div>;
+        );
+        default: return <p>Unsupported file type</p>
+      }
     }
-  };
+    return null;
+  }
 
   if (!album && loading) {
     return <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   }
 
-  if (error) {
+  if (error && !loading) {
     return <div className="flex flex-col gap-4 justify-center items-center h-full text-destructive">
         <p>Error: {error}</p>
         <Button asChild><Link href="/albums"><ArrowLeft className="mr-2 h-4 w-4"/> Back to Albums</Link></Button>
@@ -293,14 +329,16 @@ function AlbumDetailPage() {
         )}
         
         <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6 gap-4 space-y-4">
-          {files.map((f) => (
-            <Card key={f.id} className="break-inside-avoid overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 group bg-transparent border-border/20">
-              <CardContent className="p-0 cursor-pointer" onClick={() => setSelectedFile(f)}>
-                {renderFilePreview(f)}
-              </CardContent>
-            </Card>
+          {files.map((file) => (
+             <GalleryItem key={file.id} file={file} onSelectFile={setSelectedFile} />
           ))}
         </div>
+
+        {(hasMore || loadingMore) && (
+            <div ref={loadMoreRef} className="flex justify-center items-center py-8">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+        )}
       </main>
 
       <Dialog open={!!selectedFile} onOpenChange={(isOpen) => !isOpen && setSelectedFile(null)}>
@@ -318,17 +356,7 @@ function AlbumDetailPage() {
                 </DialogHeader>
                 <div className="flex-grow p-4 flex items-center justify-center bg-black/50 min-h-0">
                     <div className="relative w-full h-full flex items-center justify-center">
-                      {selectedFile.type === 'photo' && <img src={getFileUrl(selectedFile.file_id)} alt={selectedFile.caption} className="max-w-full max-h-full object-contain" />}
-                      {selectedFile.type === 'video' && <video src={getFileUrl(selectedFile.file_id)} controls autoPlay className="max-w-full max-h-full object-contain" />}
-                      {selectedFile.type === 'document' && (
-                          <div className="flex flex-col items-center justify-center h-64 bg-secondary rounded-md p-8">
-                            <FileText className="w-24 h-24 text-muted-foreground" />
-                            <p className="mt-4 text-lg text-center">This is a document preview.</p>
-                            <a href={getFileUrl(selectedFile.file_id)} download={getDownloadFilename(selectedFile)} target="_blank" rel="noreferrer">
-                                <Button className="mt-4">Download Document</Button>
-                            </a>
-                          </div>
-                      )}
+                      {renderFilePreview(selectedFile)}
                     </div>
                 </div>
                 <CardFooter className="p-4 bg-background/80 border-t flex justify-end items-center gap-2 flex-shrink-0">

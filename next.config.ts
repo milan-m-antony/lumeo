@@ -8,6 +8,14 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  images: {
+    remotePatterns: [
+        {
+            protocol: 'https',
+            hostname: 'api.telegram.org',
+        },
+    ],
+  },
 };
 
 export default nextConfig;

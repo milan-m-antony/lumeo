@@ -1,6 +1,8 @@
 import { getSupabaseWithAuth } from "../../lib/supabase";
 import { validateToken } from "../../lib/auth";
 
+const PAGE_LIMIT = 50;
+
 export default async function handler(req, res) {
   const { error: tokenError } = await validateToken(req);
   if (tokenError) {
@@ -10,11 +12,15 @@ export default async function handler(req, res) {
   const token = req.headers.authorization.split(' ')[1];
   const supabase = getSupabaseWithAuth(token);
 
-  const { albumId, caption, type } = req.query;
+  const { albumId, caption, type, page = 1 } = req.query;
 
   if (!albumId) {
     return res.status(400).json({ error: "Album ID is required" });
   }
+
+  const pageNum = parseInt(page, 10);
+  const startRange = (pageNum - 1) * PAGE_LIMIT;
+  const endRange = startRange + PAGE_LIMIT - 1;
 
   // First, get all file_ids for the given album_id from the junction table
   const { data: links, error: linkError } = await supabase
@@ -30,16 +36,16 @@ export default async function handler(req, res) {
   const fileIds = links.map(link => link.file_id);
 
   if (fileIds.length === 0) {
-    return res.json([]); // No files in this album
+    return res.json({ files: [], total: 0, hasMore: false });
   }
 
-  // Now, fetch the actual files using the retrieved file_ids
   let query = supabase
     .from("files")
-    .select("*, file_album_links!inner(album_id)")
+    .select("*, file_album_links!inner(album_id)", { count: 'exact' })
     .in('id', fileIds)
     .is('deleted_at', null)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .range(startRange, endRange);
 
   if (caption) {
     query = query.ilike("caption", `%${caption}%`);
@@ -49,13 +55,16 @@ export default async function handler(req, res) {
     query = query.eq("type", type);
   }
 
-  const { data, error } = await query;
+  const { data, error, count } = await query;
+  
   if (error) {
     console.error("Supabase file fetch error:", error);
     return res.status(500).json({ error: error.message });
   }
-  
-  // The result will contain file details along with the album links.
-  // We can simplify it if needed, but returning it as is gives more context.
-  res.json(data);
+
+  res.json({
+    files: data,
+    total: count,
+    hasMore: endRange < count - 1
+  });
 }
