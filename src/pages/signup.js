@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { AuthForm } from '@/components/ui/AuthForm';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2, LogIn, X } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export default function SignUp() {
   const [error, setError] = useState(null);
@@ -73,12 +75,23 @@ export default function SignUp() {
                 transition={{ duration: 0.8 }}
                 className="w-full max-w-sm relative z-10 text-center"
             >
-                <Alert variant="destructive" className="bg-destructive/10">
+                <Alert variant="destructive" className="bg-destructive/10 relative">
+                    <Link href="/login" passHref>
+                        <button className="absolute top-2 right-2 p-1 rounded-md text-destructive/80 hover:text-destructive hover:bg-destructive/20 transition-colors">
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Close</span>
+                        </button>
+                    </Link>
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Registration Closed</AlertTitle>
                     <AlertDescription>
                         An administrator account already exists. New user registration is not allowed.
                     </AlertDescription>
+                    <div className="mt-4">
+                        <Button asChild variant="link" className="text-destructive/80">
+                           <Link href="/login"><LogIn className="mr-2 h-4 w-4"/> Go to Sign In</Link>
+                        </Button>
+                    </div>
                 </Alert>
             </motion.div>
         </div>
