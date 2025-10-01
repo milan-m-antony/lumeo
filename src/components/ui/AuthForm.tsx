@@ -84,8 +84,6 @@ export function AuthForm({ mode, onSubmit, isLoading, error }: AuthFormProps) {
         >
           <div 
             className="relative group"
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
            >
             {/* Card glow effect */}
             <motion.div 
@@ -104,6 +102,8 @@ export function AuthForm({ mode, onSubmit, isLoading, error }: AuthFormProps) {
                 ease: "easeInOut", 
                 repeatType: "mirror" 
               }}
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
             />
 
               {/* Traveling light beam effect */}
@@ -265,17 +265,17 @@ export function AuthForm({ mode, onSubmit, isLoading, error }: AuthFormProps) {
                     </motion.div>
                   </motion.div>
                   
-                  <div className="mt-5 space-y-4">
-                    <div className="text-right text-xs">
-                        {isLogin && (
+                  <div className="mt-5 space-y-2">
+                     {isLogin && (
+                        <div className="text-right text-xs relative z-10">
                             <Link 
                                 href="/forgot-password"
                                 className="text-white/60 hover:text-white transition-colors duration-300"
                             >
                                 Forgot Password?
                             </Link>
-                        )}
-                    </div>
+                        </div>
+                    )}
 
                     {/* Sign in button */}
                     <motion.button
