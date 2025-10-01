@@ -16,6 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import Prism from '@/components/ui/Prism';
 
 
 export default function HomePage() {
@@ -38,10 +39,19 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen h-full w-full bg-background relative">
-       <div className="absolute inset-0 z-0" style={{
-         backgroundImage: 'radial-gradient(circle at top left, hsl(var(--primary) / 0.5) 0%, hsl(var(--background)) 30%)',
-         backgroundAttachment: 'fixed'
-      }}/>
+        <div className="absolute inset-0 z-0">
+         <Prism
+            animationType="rotate"
+            timeScale={0.5}
+            height={3.5}
+            baseWidth={5.5}
+            scale={3.6}
+            hueShift={0}
+            colorFrequency={1}
+            noise={0.5}
+            glow={1}
+        />
+       </div>
        <div className="absolute inset-0 bg-black/40 z-0"/>
 
 
