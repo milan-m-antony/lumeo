@@ -1,3 +1,4 @@
+
 import type React from 'react';
 import { useRef, useMemo, useCallback, useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
@@ -119,7 +120,10 @@ const createClothMaterial = () => {
       varying vec3 vNormal;
       
       void main() {
-        vec4 color = texture2D(map, vUv);
+        vec4 color = vec4(0.0);
+        if (map != null) {
+          color = texture2D(map, vUv);
+        }
         
         // Simple blur approximation
         if (blurAmount > 0.0) {
@@ -135,7 +139,9 @@ const createClothMaterial = () => {
               total += weight;
             }
           }
-          color = blurred / total;
+          if (total > 0.0) {
+             color = blurred / total;
+          }
         }
         
         // Add subtle lighting effect based on curving
@@ -154,7 +160,7 @@ function ImagePlane({
 	scale,
 	material,
 }: {
-	texture: THREE.Texture;
+	texture: THREE.Texture | null;
 	position: [number, number, number];
 	scale: [number, number, number];
 	material: THREE.ShaderMaterial;
@@ -173,6 +179,8 @@ function ImagePlane({
 			material.uniforms.isHovered.value = isHovered ? 1.0 : 0.0;
 		}
 	}, [material, isHovered]);
+
+	if (!texture) return null;
 
 	return (
 		<mesh
@@ -208,13 +216,16 @@ function GalleryScene({
 
 	const normalizedImages = useMemo(
 		() =>
-			images.map((img) =>
+			(images || []).map((img) =>
 				typeof img === 'string' ? { src: img, alt: '' } : img
 			),
 		[images]
 	);
-
-	const textures = useTexture(normalizedImages.map((img) => img.src));
+    
+    const textureUrls = useMemo(() => normalizedImages.map((img) => img.src), [normalizedImages]);
+    
+    // Using a suspense boundary for textures would be ideal, but for now we'll handle it manually.
+    const textures = useTexture(textureUrls);
 
 	// Create materials pool
 	const materials = useMemo(
@@ -451,7 +462,7 @@ function GalleryScene({
 		});
 	});
 
-	if (normalizedImages.length === 0) return null;
+	if (normalizedImages.length === 0 || textures.some(t => !t)) return null;
 
 	return (
 		<>
@@ -488,7 +499,7 @@ function GalleryScene({
 function FallbackGallery({ images }: { images: ImageItem[] }) {
 	const normalizedImages = useMemo(
 		() =>
-			images.map((img) =>
+			(images || []).map((img) =>
 				typeof img === 'string' ? { src: img, alt: '' } : img
 			),
 		[images]
@@ -557,11 +568,13 @@ export default function InfiniteGallery({
 				camera={{ position: [0, 0, 0], fov: 55 }}
 				gl={{ antialias: true, alpha: true }}
 			>
-				<GalleryScene
-					images={images}
-					fadeSettings={fadeSettings}
-					blurSettings={blurSettings}
-				/>
+                <React.Suspense fallback={null}>
+				    <GalleryScene
+					    images={images}
+					    fadeSettings={fadeSettings}
+					    blurSettings={blurSettings}
+				    />
+                </React.Suspense>
 			</Canvas>
 		</div>
 	);
