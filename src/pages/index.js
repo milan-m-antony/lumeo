@@ -54,15 +54,15 @@ export default function HomePage() {
        </div>
 
        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center p-4">
-          <div className="glass-effect p-8 rounded-xl shadow-2xl max-w-2xl text-center">
+          <div className="flex flex-col items-center justify-center text-center">
               <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-foreground/90">
                   Welcome to Lumeo
               </h1>
-              <p className="mt-4 text-lg leading-8 text-foreground/70">
+              <p className="mt-4 text-lg leading-8 text-foreground/70 max-w-xl">
                   Your personal, secure media gallery. Ready to be set up.
               </p>
-              <div className="mt-8 flex items-center justify-center gap-x-6">
-                 <Button asChild>
+              <div className="mt-8 flex items-center justify-center gap-x-4">
+                 <Button asChild size="lg">
                     <Link href="/login">
                       <LogIn className="mr-2 h-4 w-4" />
                       Sign In
@@ -70,7 +70,7 @@ export default function HomePage() {
                  </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="secondary">
+                    <Button variant="outline" size="lg">
                       <UserPlus className="mr-2 h-4 w-4" />
                       Sign Up
                     </Button>
