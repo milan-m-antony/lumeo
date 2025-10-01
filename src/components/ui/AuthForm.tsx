@@ -80,11 +80,13 @@ export function AuthForm({ mode, onSubmit, isLoading, error }: AuthFormProps) {
         <motion.div
           className="relative"
           style={{ rotateX, rotateY }}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
           whileHover={{ z: 10 }}
         >
-          <div className="relative group">
+          <div 
+            className="relative group"
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+           >
             {/* Card glow effect */}
             <motion.div 
               className="absolute -inset-[1px] rounded-2xl opacity-0 group-hover:opacity-70 transition-opacity duration-700"
@@ -264,16 +266,16 @@ export function AuthForm({ mode, onSubmit, isLoading, error }: AuthFormProps) {
                   </motion.div>
                   
                   <div className="mt-5 space-y-4">
-                    {isLogin && (
-                        <div className="text-right">
-                        <Link 
-                            href="/forgot-password"
-                            className="text-xs text-white/60 hover:text-white transition-colors duration-300"
-                        >
-                            Forgot Password?
-                        </Link>
-                        </div>
-                    )}
+                    <div className="text-right text-xs">
+                        {isLogin && (
+                            <Link 
+                                href="/forgot-password"
+                                className="text-white/60 hover:text-white transition-colors duration-300"
+                            >
+                                Forgot Password?
+                            </Link>
+                        )}
+                    </div>
 
                     {/* Sign in button */}
                     <motion.button
