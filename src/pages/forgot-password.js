@@ -28,9 +28,9 @@ export default function ForgotPasswordPage() {
             setSuccess(true);
             toast({
                 title: "Email Sent!",
-                description: "Check your inbox for a password reset token.",
+                description: "Check your inbox for a password reset link.",
             });
-            router.push(`/reset-password?email=${encodeURIComponent(email)}`);
+            // Don't redirect automatically, let the user click the link.
         } catch (err) {
             setError(err.message || 'Failed to send reset email.');
         } finally {
@@ -55,7 +55,7 @@ export default function ForgotPasswordPage() {
                 <div className="relative bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-white/[0.05] shadow-2xl overflow-hidden">
                     <div className="text-center space-y-2 mb-6">
                         <h1 className="text-xl font-bold text-white">Forgot Password</h1>
-                        <p className="text-white/60 text-xs">Enter your email to receive a password reset token.</p>
+                        <p className="text-white/60 text-xs">Enter your email to receive a password reset link.</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -71,7 +71,7 @@ export default function ForgotPasswordPage() {
                                 <CheckCircle className="h-4 w-4 text-green-400" />
                                 <AlertTitle className="text-green-400">Email Sent!</AlertTitle>
                                 <AlertDescription className="text-white/80">
-                                    Redirecting you to enter the token from your email.
+                                    Please check your email and click the reset link.
                                 </AlertDescription>
                             </Alert>
                         )}
@@ -87,7 +87,7 @@ export default function ForgotPasswordPage() {
                             />
                         </div>
                         <Button type="submit" disabled={loading || success} className="w-full">
-                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Send className="mr-2 h-4 w-4" /><span>Send Reset Token</span></>}
+                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Send className="mr-2 h-4 w-4" /><span>Send Reset Link</span></>}
                         </Button>
                     </form>
 

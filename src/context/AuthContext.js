@@ -79,27 +79,35 @@ export function AuthProvider({ children }) {
   };
   
   const sendPasswordResetEmail = async (email) => {
-    const { error } = await supabase.auth.signInWithOtp({
-        email: email,
-        options: {
-            shouldCreateUser: false, // Don't create a new user if they don't exist
-        },
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
     });
     if (error) throw error;
   };
-
-  const resetPasswordWithToken = async (email, token, password) => {
-    const { data, error: verifyError } = await supabase.auth.verifyOtp({
-        email,
-        token,
-        type: 'email'
+  
+  const updatePasswordWithToken = async (token, newPassword) => {
+    // We need to set the session for the updateUser call to work
+    const { data: { session }, error: sessionError } = await supabase.auth.setSession({
+        access_token: token,
+        refresh_token: token, // Using access token as refresh token as it is not available here
     });
 
-    if (verifyError) throw verifyError;
+    if (sessionError) {
+        // A better approach is to not require a session at all for password updates.
+        // We will try to update the user without a session first.
+        console.warn("Session error, attempting password update without session:", sessionError);
+    }
+    
+    // The user is now temporarily authenticated with the token. We can update their password.
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
 
-    // If verification is successful, the user is logged in. Now update the password.
-    const { error: updateError } = await supabase.auth.updateUser({ password });
-    if (updateError) throw updateError;
+    if (error) throw error;
+
+    // After a successful password update, it's good practice to sign the user out.
+    await supabase.auth.signOut();
+    return data;
   }
 
 
@@ -110,7 +118,7 @@ export function AuthProvider({ children }) {
     signup,
     logout,
     sendPasswordResetEmail,
-    resetPasswordWithToken,
+    updatePasswordWithToken,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
