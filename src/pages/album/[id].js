@@ -107,6 +107,7 @@ function AlbumDetailPage() {
             setSelectedFile(updatedFile);
         }
         handleCancelEdit();
+        toast({ title: "Caption Saved" });
     } else {
         toast({
             title: "Update Failed",
@@ -151,6 +152,7 @@ function AlbumDetailPage() {
                    }
                    setSelectedFile({...selectedFile, file_album_links: newLinks});
                 }
+                toast({ title: "Album link updated." });
             }
       } else {
           toast({

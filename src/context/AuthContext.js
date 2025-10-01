@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/router';
+import { toast } from '@/hooks/use-toast';
 
 const AuthContext = createContext();
 
@@ -25,6 +26,7 @@ export function AuthProvider({ children }) {
         setUser(session ? session.user : null);
         setLoading(false);
         if (event === 'SIGNED_OUT') {
+            toast({ title: "You have been logged out." });
             if (router.isReady) router.push('/');
         }
         if(event === 'SIGNED_IN') {
