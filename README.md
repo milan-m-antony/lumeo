@@ -16,11 +16,33 @@ Lumeo is a Next.js application that acts as a personal media gallery, using Tele
 
 To get a local copy up and running, follow these simple steps.
 
-### 1. Environment Setup
+### 1. Install Dependencies
 
-First, create a new file named `.env.local` in the root of your project. Copy the contents of the example below into this new file. You will fill in the values in the next steps.
+First, install the necessary packages, including the Supabase CLI.
 
-**Important:** For the password reset feature to work, you will also need a `SUPABASE_SERVICE_ROLE_KEY`. You can find this in your Supabase project under **Project Settings > API > Project API keys**. It should be kept secret and only used on the server.
+```bash
+npm install
+```
+
+### 2. Supabase Project Setup
+
+Supabase will be used to store the metadata for your files, such as captions, file IDs, and timestamps.
+
+**A. Create a Supabase Project:**
+
+1.  Go to [supabase.com](https://supabase.com) and sign in or create a new account.
+2.  Click on "**New project**" and give it a name.
+3.  Save the **Database Password** that you create. You will need it in the next step.
+4.  Wait for your project to be provisioned.
+
+**B. Create `.env.local` File:**
+
+Create a new file named `.env.local` in the root of your project. Copy the contents of the example below into this new file and fill in the values from your Supabase project.
+
+-   `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in **Project Settings > API > Project API keys**.
+-   `SUPABASE_SERVICE_ROLE_KEY` is also in **Project Settings > API** but you must click "Show" and enter your password to reveal it. This key must be kept secret.
+-   `SUPABASE_DB_PASSWORD` is the database password you saved during project creation.
+-   `TELEGRAM_...` keys need to be filled in with your own Telegram bot credentials.
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=
@@ -31,60 +53,49 @@ TELEGRAM_BOT_TOKEN=
 TELEGRAM_CHANNEL_ID=
 ```
 
-### 2. Supabase Setup
+### 3. Link Supabase and Push Schema
 
-Supabase will be used to store the metadata for your files, such as captions, file IDs, and timestamps.
+Now, we will connect your local project to your Supabase project in the cloud and set up the database.
 
-**A. Create a Supabase Project:**
+**A. Log in to Supabase:**
 
-1.  Go to [supabase.com](https://supabase.com) and sign in or create a new account.
-2.  Click on "**New project**" and give it a name.
-3.  Save the **Database Password** that you create. You will need it for your `.env.local` file.
-4.  Wait for your project to be provisioned.
+Run this command. It will open a browser window asking you to authorize the application.
 
-**B. Get Supabase Credentials:**
+```bash
+npm run supabase:login
+```
 
-1.  Once your project is ready, navigate to the **Project Settings** (the gear icon in the left sidebar).
-2.  Click on the **API** tab.
-3.  Under **Project API keys**, you will find the **Project URL**, the `anon` `public` key, and the `service_role` secret key.
-4.  Copy the **URL** and paste it as the value for `NEXT_PUBLIC_SUPABASE_URL`.
-5.  Copy the **anon key** and paste it as the value for `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-6.  Copy the **service_role key** and paste it as the value for `SUPABASE_SERVICE_ROLE_KEY`.
-7.  Paste the **Database Password** you saved during project creation as the value for `SUPABASE_DB_PASSWORD`.
+**B. Link your Project:**
 
-**C. Install Supabase CLI and Apply Migrations:**
+Run the following command. It will ask you to select your Supabase organization and project. You will also be asked for your database password.
 
-To set up your database tables and functions, we'll use the Supabase CLI.
+```bash
+npm run supabase:link
+```
 
-1.  **Install the Supabase CLI:** Follow the official instructions for your operating system: [Install the Supabase CLI](https://supabase.com/docs/guides/cli/getting-started).
+**C. Push the Database Migrations:**
 
-2.  **Log in to the CLI:**
-    ```bash
-    supabase login
-    ```
+This command will read the migration files in this repository and apply them to your live Supabase database, creating all the necessary tables and security policies.
 
-3.  **Link your Project:** Navigate to your project's root directory in the terminal and run the following command. You can find your `[project-id]` in your Supabase project's URL (e.g., `https://app.supabase.com/project/[project-id]`).
-    ```bash
-    supabase link --project-ref [project-id]
-    ```
+```bash
+npm run supabase:db push
+```
 
-4.  **Push the Database Migrations:** This command will read the migration files in this repository and apply them to your live Supabase database.
-    ```bash
-    supabase db push
-    ```
+### 4. Deploy the Edge Function
 
-**D. Deploy the Edge Function for Password Resets:**
+This project uses a Supabase Edge Function for the password reset flow.
 
-This project uses a Supabase Edge Function for the password reset flow. You must deploy it for that feature to work.
+**A. Set the Function Secrets:**
 
-1. **Set the Function Secrets:** The function needs access to your project URL and service key to perform admin actions. Run this command in your terminal, replacing the placeholders with your actual credentials from your `.env.local` file.
+The function needs access to your project URL and service key to perform admin actions. Run this command, replacing the placeholders with your actual credentials from your `.env.local` file.
 
-   ```bash
-   supabase secrets set SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=...
-   ```
-   *Note: These secrets are only for the deployed function. For local testing, create a `.env` file inside `supabase/functions/password-reset` with the same content.*
+```bash
+npm run supabase:secrets:set -- SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=...
+```
 
-2. **Customize the Password Reset Email:** Supabase will send an email with the OTP. You need to edit the email template to show it.
+**B. Customize the Password Reset Email:**
+
+Supabase will send an email with the OTP. You need to edit the email template to show it.
    - Go to **Authentication > Templates** in your Supabase dashboard.
    - Edit the **Invite user** template.
    - Change the content to include the OTP. For example:
@@ -94,28 +105,25 @@ This project uses a Supabase Edge Function for the password reset flow. You must
      <p>This code will expire in 10 minutes.</p>
      ```
 
-3. **Deploy the Function:** Now, run the deployment command from your terminal:
-    ```bash
-    supabase functions deploy password-reset
-    ```
-   After a moment, you should see "Deployed function 'password-reset' to project". You can verify this by going to the **Edge Functions** section in your Supabase dashboard.
+**C. Deploy the Function:**
 
-### 4. Running the Application
+Now, run the deployment command from your terminal:
+```bash
+npm run supabase:functions:deploy -- password-reset
+```
+After a moment, you should see "Deployed function 'password-reset' to project". You can verify this by going to the **Edge Functions** section in your Supabase dashboard.
+
+### 5. Running the Application
 
 Now that your environment is configured, you can run the app.
 
-1.  **Install Dependencies:**
-    ```bash
-    npm install
-    ```
-2.  **Run the Development Server:**
-    ```bash
-    npm run dev
-    ```
+```bash
+npm run dev
+```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. You can start by creating an account and then uploading files via the "Upload" link in the sidebar.
 
-### 5. Building and Deploying
+### 6. Building and Deploying for Production
 
 The `deploy` script combines deploying the function and building the Next.js app.
 
