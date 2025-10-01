@@ -242,8 +242,8 @@ function AlbumDetailPage() {
 
   return (
     <div className="flex flex-col h-full w-full">
-      <header className="flex-shrink-0 sticky top-0 z-10">
-        <div className="px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 h-auto sm:h-16 border-b py-4 sm:py-0 glass-effect">
+      <header className="flex-shrink-0 sticky top-0 z-10 md:relative">
+        <div className="px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 h-auto sm:h-16 border-b py-4 sm:py-0 glass-effect md:glass-effect-none md:bg-transparent md:border-0 md:shadow-none md:backdrop-blur-none">
             <div className="flex items-center gap-2">
                 <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
                     <Link href="/albums" title="Back to Albums">
