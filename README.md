@@ -73,19 +73,18 @@ To set up your database tables and functions, we'll use the Supabase CLI.
     supabase db push
     ```
 
-**D. Deploy the Edge Function:**
+**D. Deploy the Edge Function for Password Resets:**
 
-This project uses a Supabase Edge Function for the password reset flow.
+This project uses a Supabase Edge Function for the password reset flow. You must deploy it for that feature to work.
 
-1. Set the required secrets for the function. The `service_role` key is needed to perform admin-level actions.
-    ```bash
-    supabase secrets set SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=...
-    ```
-   (Replace `...` with the actual values from your `.env.local` file).
-   
-   **Note:** These secrets are only available to the *deployed* function. For local testing with `supabase functions serve`, you may need to create a `.env` file inside the `supabase/functions/password-reset` directory with the same key-value pairs.
+1. **Set the Function Secrets:** The function needs access to your project URL and service key to perform admin actions. Run this command in your terminal, replacing the placeholders with your actual credentials from your `.env.local` file.
 
-2. Customize the password reset email template in Supabase.
+   ```bash
+   supabase secrets set SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=...
+   ```
+   *Note: These secrets are only for the deployed function. For local testing, create a `.env` file inside `supabase/functions/password-reset` with the same content.*
+
+2. **Customize the Password Reset Email:** Supabase will send an email with the OTP. You need to edit the email template to show it.
    - Go to **Authentication > Templates** in your Supabase dashboard.
    - Edit the **Invite user** template.
    - Change the content to include the OTP. For example:
@@ -94,6 +93,12 @@ This project uses a Supabase Edge Function for the password reset flow.
      <p>Your password reset code is: <strong>{{ .Data.otp_code }}</strong></p>
      <p>This code will expire in 10 minutes.</p>
      ```
+
+3. **Deploy the Function:** Now, run the deployment command from your terminal:
+    ```bash
+    supabase functions deploy password-reset
+    ```
+   After a moment, you should see "Deployed function 'password-reset' to project". You can verify this by going to the **Edge Functions** section in your Supabase dashboard.
 
 ### 4. Running the Application
 
@@ -112,10 +117,10 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ### 5. Building and Deploying
 
-When you are ready to build your application for production, you can deploy the Edge Function and build the Next.js app with a single command.
+The `deploy` script combines deploying the function and building the Next.js app.
 
 ```bash
 npm run deploy
 ```
 
-This will first deploy the `password-reset` function to Supabase and then create an optimized production build of your Next.js application in the `.next` folder.
+This will first deploy any changes to the `password-reset` function and then create an optimized production build of your Next.js application in the `.next` folder.

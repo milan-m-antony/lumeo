@@ -1,9 +1,11 @@
+// @ts-ignore
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
+// @ts-ignore
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-control-Allow-Methods': 'POST, PUT, OPTIONS',
+  'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
@@ -21,19 +23,18 @@ async function hashToken(token: string) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-serve(async (req) => {
-  // Handle CORS preflight request
+serve(async (req: Request) => {
+  // This is needed to handle CORS preflight requests.
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    // Moved client initialization and secret checks inside the handler
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      throw new Error('Missing Supabase credentials. Ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set.');
+      throw new Error('Missing Supabase credentials. Ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set for the function.');
     }
 
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -47,7 +48,7 @@ serve(async (req) => {
       }
 
       // 1. Get the user by email
-      const { data: user, error: userError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
+      const { data: { user }, error: userError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
       if (userError || !user) {
         console.warn(`Password reset attempt for non-existent user: ${email}`);
         return new Response(JSON.stringify({ message: 'If a user with this email exists, a reset code has been sent.' }), { status: 200, headers: corsHeaders });
@@ -61,7 +62,7 @@ serve(async (req) => {
       // 3. Upsert the token into the database
       const { error: upsertError } = await supabaseAdmin
         .from('password_reset_tokens')
-        .upsert({ user_id: user.user.id, token_hash: tokenHash, expires_at: expiresAt.toISOString() }, { onConflict: 'user_id' });
+        .upsert({ user_id: user.id, token_hash: tokenHash, expires_at: expiresAt.toISOString() }, { onConflict: 'user_id' });
 
       if (upsertError) throw upsertError;
 
@@ -86,7 +87,7 @@ serve(async (req) => {
       }
 
       // 1. Get the user
-      const { data: user, error: userError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
+      const { data: { user }, error: userError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
       if (userError || !user) {
         return new Response(JSON.stringify({ error: 'Invalid email or token' }), { status: 400, headers: corsHeaders });
       }
@@ -95,7 +96,7 @@ serve(async (req) => {
       const { data: storedToken, error: tokenError } = await supabaseAdmin
         .from('password_reset_tokens')
         .select('token_hash, expires_at')
-        .eq('user_id', user.user.id)
+        .eq('user_id', user.id)
         .single();
       
       if (tokenError || !storedToken) {
@@ -108,19 +109,19 @@ serve(async (req) => {
         return new Response(JSON.stringify({ error: 'Invalid or expired reset code' }), { status: 400, headers: corsHeaders });
       }
       if (new Date(storedToken.expires_at) < new Date()) {
-        await supabaseAdmin.from('password_reset_tokens').delete().eq('user_id', user.user.id);
+        await supabaseAdmin.from('password_reset_tokens').delete().eq('user_id', user.id);
         return new Response(JSON.stringify({ error: 'Reset code has expired' }), { status: 400, headers: corsHeaders });
       }
 
       // 4. Update the user's password
       const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-        user.user.id,
+        user.id,
         { password: password }
       );
       if (updateError) throw updateError;
       
       // 5. Invalidate the token by deleting it
-      await supabaseAdmin.from('password_reset_tokens').delete().eq('user_id', user.user.id);
+      await supabaseAdmin.from('password_reset_tokens').delete().eq('user_id', user.id);
 
       return new Response(JSON.stringify({ message: 'Password updated successfully' }), { status: 200, headers: corsHeaders });
     }
@@ -128,7 +129,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers: corsHeaders });
 
   } catch (error) {
-    console.error('Edge Function Error:', error);
+    console.error('Edge Function Error:', error.message);
     return new Response(JSON.stringify({ error: error.message || 'An internal server error occurred' }), { status: 500, headers: corsHeaders });
   }
 });
