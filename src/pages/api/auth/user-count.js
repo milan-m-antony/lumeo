@@ -34,16 +34,3 @@ export default async function handler(req, res) {
     res.status(500).json({ count: 1, error: 'Could not verify user status.' });
   }
 }
-
-// In your Supabase SQL Editor, run this to create the function:
-/*
-create or replace function get_users_count()
-returns integer as $$
-declare
-  user_count integer;
-begin
-  select count(*) into user_count from auth.users;
-  return user_count;
-end;
-$$ language plpgsql security definer;
-*/

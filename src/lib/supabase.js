@@ -30,13 +30,3 @@ export async function supabaseAdminRpc(functionName, args) {
     }
     return data;
 }
-
-// SQL function to get DB size. You need to add this in the Supabase SQL Editor.
-/*
-CREATE OR REPLACE FUNCTION get_database_size()
-RETURNS BIGINT AS $$
-  SELECT sum(pg_total_relation_size(quote_ident(schemaname) || '.' || quote_ident(tablename)))::BIGINT 
-  FROM pg_tables 
-  WHERE schemaname = 'public';
-$$ LANGUAGE SQL;
-*/

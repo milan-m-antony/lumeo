@@ -45,12 +45,12 @@ Supabase will be used to store the metadata for your files, such as captions, fi
 4.  Copy the **URL** and paste it as the value for `NEXT_PUBLIC_SUPABASE_URL` in your `.env.local` file.
 5.  Copy the **anon key** and paste it as the value for `NEXT_PUBLIC_SUPABASE_ANON_KEY` in your `.env.local` file.
 
-**C. Create Tables and Policies:**
+**C. Create Tables and Functions:**
 
 1.  Go to the **SQL Editor** (the database icon in the left sidebar).
 2.  Click "**New query**".
-3.  Copy the entire SQL script below and paste it into the editor. This script will drop any old tables first to ensure a fresh start.
-4.  Click the "**Run**" button. This will create the `files`, `albums`, and `file_album_links` tables and enable the necessary access policies.
+3.  Copy the entire SQL script below and paste it into the editor. This single script will set up all necessary tables, policies, and database functions.
+4.  Click the "**Run**" button.
 
 ```sql
 -- Drop existing tables in reverse order of creation due to dependencies
@@ -86,78 +86,50 @@ CREATE TABLE public.file_album_links (
     PRIMARY KEY (file_id, album_id)
 );
 
-
 -- Enable Row Level Security for albums
 ALTER TABLE public.albums ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for public access on albums
-CREATE POLICY "Allow public read access for albums"
-ON public.albums FOR SELECT
-USING (true);
-
-CREATE POLICY "Allow public insert access for albums"
-ON public.albums FOR INSERT
-WITH CHECK (true);
-
-CREATE POLICY "Allow public update access for albums"
-ON public.albums FOR UPDATE
-USING (true);
-
-CREATE POLICY "Allow public delete access for albums"
-ON public.albums FOR DELETE
-USING (true);
+CREATE POLICY "Allow public read access for albums" ON public.albums FOR SELECT USING (true);
+CREATE POLICY "Allow public insert access for albums" ON public.albums FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update access for albums" ON public.albums FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete access for albums" ON public.albums FOR DELETE USING (true);
 
 -- Enable Row Level Security for files
 ALTER TABLE public.files ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for public access on files
-CREATE POLICY "Allow public read access for files"
-ON public.files FOR SELECT
-USING (true);
-
-CREATE POLICY "Allow public insert access for files"
-ON public.files FOR INSERT
-WITH CHECK (true);
-
-CREATE POLICY "Allow public update access for files"
-ON public.files FOR UPDATE
-USING (true);
-
-CREATE POLICY "Allow public delete access for files"
-ON public.files FOR DELETE
-USING (true);
+CREATE POLICY "Allow public read access for files" ON public.files FOR SELECT USING (true);
+CREATE POLICY "Allow public insert access for files" ON public.files FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update access for files" ON public.files FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete access for files" ON public.files FOR DELETE USING (true);
 
 -- Enable Row Level Security for the link table
 ALTER TABLE public.file_album_links ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for public access on the link table
-CREATE POLICY "Allow public read for file_album_links"
-ON public.file_album_links FOR SELECT
-USING (true);
+CREATE POLICY "Allow public read for file_album_links" ON public.file_album_links FOR SELECT USING (true);
+CREATE POLICY "Allow public insert for file_album_links" ON public.file_album_links FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public delete for file_album_links" ON public.file_album_links FOR DELETE USING (true);
 
-CREATE POLICY "Allow public insert for file_album_links"
-ON public.file_album_links FOR INSERT
-WITH CHECK (true);
-
-CREATE POLICY "Allow public delete for file_album_links"
-ON public.file_album_links FOR DELETE
-USING (true);
-
-```
-
-**D. Create Database Function for Storage Calculation:**
-
-1.  In the Supabase **SQL Editor**, click "**New query**" again.
-2.  Paste the following SQL to create a function that calculates the total size of your database.
-3.  Click the "**Run**" button.
-
-```sql
+-- Create function to get database size
 CREATE OR REPLACE FUNCTION get_database_size()
 RETURNS BIGINT AS $$
   SELECT sum(pg_total_relation_size(quote_ident(schemaname) || '.' || quote_ident(tablename)))::BIGINT 
   FROM pg_tables 
   WHERE schemaname = 'public';
 $$ LANGUAGE SQL;
+
+-- Create function to get user count for single-user check
+create or replace function get_users_count()
+returns integer as $$
+declare
+  user_count integer;
+begin
+  select count(*) into user_count from auth.users;
+  return user_count;
+end;
+$$ language plpgsql security definer;
 ```
 
 ### 3. Telegram Setup
@@ -173,7 +145,7 @@ Telegram will be used as the actual file storage backend.
 
 **B. Create a Public Channel:**
 
-1.  In Telegram, create a new **public channel** (not a private one). The channel's public link will be used to find its ID.
+1.  In Telegram, create a new **public channel** (not a private one). The channel's public link is used to find its ID.
 2.  Add your newly created bot to this channel as an **Administrator**. This is crucial, as the bot needs permissions to post and delete messages.
 
 **C. Get the Channel ID:**
@@ -194,4 +166,4 @@ Now that your environment is configured, you can run the app.
     npm run dev
     ```
 
-Open [http://localhost:9002](http://localhost:9002) with your browser to see the result. You can start by uploading files via the "Upload" link in the sidebar.
+Open [http://localhost:9002](http://localhost:9002) with your browser to see the result. You can start by creating an account and then uploading files via the "Upload" link in the sidebar.
