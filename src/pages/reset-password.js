@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -52,6 +53,9 @@ export default function ResetPasswordPage() {
             const { error: functionError } = await supabase.functions.invoke('password-reset', {
                 method: 'PUT',
                 body: { email, token, password },
+                headers: {
+                  'Content-Type': 'application/json',
+                },
             });
 
             if (functionError) throw functionError;

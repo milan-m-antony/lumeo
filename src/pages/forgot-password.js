@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -25,6 +26,9 @@ export default function ForgotPasswordPage() {
         try {
             const { error: functionError } = await supabase.functions.invoke('password-reset', {
                 body: { email },
+                headers: {
+                  'Content-Type': 'application/json',
+                },
             });
 
             if (functionError) throw functionError;
