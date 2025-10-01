@@ -5,7 +5,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-control-allow-methods': 'POST, PUT, OPTIONS',
+  'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
@@ -34,6 +34,7 @@ serve(async (req: Request) => {
       }
 
       // Send a password reset OTP. Supabase handles the token generation and sending.
+      // This is the correct method.
       const { error: otpError } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
         redirectTo: '/reset-password-callback' // This is a placeholder, we are using a custom token flow.
       });
@@ -64,7 +65,7 @@ serve(async (req: Request) => {
          return new Response(JSON.stringify({ error: 'Invalid or expired reset code' }), { status: 400, headers: corsHeaders });
       }
 
-      // 2. Update the user's password
+      // 2. Update the user's password using the admin client.
       const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
         session.user.id,
         { password: password }

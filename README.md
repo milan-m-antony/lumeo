@@ -97,11 +97,11 @@ npm run supabase:secrets:set -- SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=...
 
 Supabase will send an email with the OTP. You need to edit the email template to show it.
    - Go to **Authentication > Templates** in your Supabase dashboard.
-   - Edit the **Invite user** template.
+   - Edit the **Reset password** template (previously Invite user).
    - Change the content to include the OTP. For example:
      ```html
      <h2>Reset your password</h2>
-     <p>Your password reset code is: <strong>{{ .Data.otp_code }}</strong></p>
+     <p>Your password reset code is: <strong>{{ .Token }}</strong></p>
      <p>This code will expire in 10 minutes.</p>
      ```
 
