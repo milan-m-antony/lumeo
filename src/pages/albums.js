@@ -11,11 +11,28 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Loader2, Folder, PlusCircle } from "lucide-react";
+import { Loader2, Folder, PlusCircle, MoreVertical, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { withAuth, fetchWithAuth } from "@/context/AuthContext";
 
@@ -73,6 +90,18 @@ function AlbumsPage() {
         toast({ title: "Failed to Create Album", description: result.error, variant: "destructive" });
     }
   }
+  
+  const handleDeleteAlbum = async (albumId) => {
+    const res = await fetchWithAuth(`/api/albums/${albumId}`, { method: 'DELETE' });
+    const result = await res.json();
+
+    if (res.ok) {
+        setAlbums(albums.filter(a => a.id !== albumId));
+        toast({ title: "Album Deleted", description: "The album has been deleted." });
+    } else {
+        toast({ title: "Deletion Failed", description: result.error, variant: "destructive" });
+    }
+  };
 
   const getFileUrl = (fileId) => `/api/download?file_id=${fileId}`;
 
@@ -127,32 +156,65 @@ function AlbumsPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {albums.map(album => (
-                <Link href={`/album/${album.id}`} key={album.id} passHref>
-                    <Card className="cursor-pointer group overflow-hidden hover:shadow-lg hover:border-primary/50 transition-all duration-200 flex flex-col h-full bg-transparent border-border/20">
-                        <CardContent className="p-0 relative aspect-[4/3]">
-                            {album.cover_file_id ? (
-                                <img 
-                                    src={getFileUrl(album.cover_thumbnail_file_id || album.cover_file_id)} 
-                                    alt={`${album.name} cover photo`}
-                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                    data-ai-hint="album cover"
-                                />
-                            ) : (
-                                <div className="w-full h-full bg-secondary/20 flex items-center justify-center">
-                                    <Folder className="w-16 h-16 text-muted-foreground/50" />
-                                </div>
-                            )}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                        </CardContent>
-                        <div className="p-4 flex-grow flex flex-col bg-background/50 backdrop-blur-sm">
-                            <CardTitle className="truncate text-lg">{album.name}</CardTitle>
-                            <CardDescription className="truncate mt-1 flex-grow">{album.description || "No description"}</CardDescription>
-                            <p className="text-xs text-muted-foreground mt-2">
-                                {album.files[0]?.count || 0} items
-                            </p>
-                        </div>
-                    </Card>
-                </Link>
+                <Card key={album.id} className="group overflow-hidden hover:shadow-lg transition-all duration-200 flex flex-col bg-transparent border-border/20">
+                    <Link href={`/album/${album.id}`} passHref className="flex flex-col h-full">
+                      <CardContent className="p-0 relative aspect-[4/3]">
+                          {album.cover_file_id ? (
+                              <img 
+                                  src={getFileUrl(album.cover_thumbnail_file_id || album.cover_file_id)} 
+                                  alt={`${album.name} cover photo`}
+                                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                  data-ai-hint="album cover"
+                              />
+                          ) : (
+                              <div className="w-full h-full bg-secondary/20 flex items-center justify-center">
+                                  <Folder className="w-16 h-16 text-muted-foreground/50" />
+                              </div>
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                      </CardContent>
+                      <div className="p-4 flex-grow flex flex-col bg-background/50 backdrop-blur-sm">
+                          <CardTitle className="truncate text-lg">{album.name}</CardTitle>
+                          <CardDescription className="truncate mt-1 flex-grow">{album.description || "No description"}</CardDescription>
+                          <p className="text-xs text-muted-foreground mt-2">
+                              {album.files[0]?.count || 0} items
+                          </p>
+                      </div>
+                    </Link>
+                    <div className="absolute top-2 right-2">
+                        <AlertDialog>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 bg-black/30 hover:bg-black/50 text-white hover:text-white" onClick={(e) => e.stopPropagation()}>
+                                        <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem className="text-destructive focus:text-destructive">
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Delete Album
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you sure you want to delete this album?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently delete the album "{album.name}", but the files within it will remain in your gallery.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteAlbum(album.id)}>
+                                        Delete
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+                </Card>
             ))}
         </div>
       </main>
