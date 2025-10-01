@@ -83,11 +83,6 @@ This project uses a Supabase Edge Function for the password reset flow.
     ```
    (Replace `...` with the actual values from your `.env.local` file).
 
-2. Deploy the function.
-    ```bash
-    supabase functions deploy password-reset
-    ```
-
 Your database and serverless functions are now set up!
 
 ### 3. Telegram Setup
@@ -125,3 +120,13 @@ Now that your environment is configured, you can run the app.
     ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. You can start by creating an account and then uploading files via the "Upload" link in the sidebar.
+
+### 5. Building and Deploying
+
+When you are ready to build your application for production, you can deploy the Edge Function and build the Next.js app with a single command.
+
+```bash
+npm run deploy
+```
+
+This will first deploy the `password-reset` function to Supabase and then create an optimized production build of your Next.js application in the `.next` folder.
