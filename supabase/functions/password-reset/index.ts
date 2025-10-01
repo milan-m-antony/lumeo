@@ -1,17 +1,11 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-control-Allow-Methods': 'POST, PUT, OPTIONS',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-// Create a new Supabase client with the service role key
-const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 // Helper to generate a random 6-digit code
 function generateOTP() {
@@ -34,6 +28,16 @@ serve(async (req) => {
   }
 
   try {
+    // Moved client initialization and secret checks inside the handler
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error('Missing Supabase credentials. Ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set.');
+    }
+
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
     const { email, token, password } = await req.json();
     
     // --- REQUEST A PASSWORD RESET ---
@@ -45,7 +49,6 @@ serve(async (req) => {
       // 1. Get the user by email
       const { data: user, error: userError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
       if (userError || !user) {
-        // Don't reveal if user exists or not for security reasons
         console.warn(`Password reset attempt for non-existent user: ${email}`);
         return new Response(JSON.stringify({ message: 'If a user with this email exists, a reset code has been sent.' }), { status: 200, headers: corsHeaders });
       }
@@ -68,7 +71,7 @@ serve(async (req) => {
             otp_code: otp
         }
       });
-      // NOTE: For this to work, you need to customize your "Magic Link" email template in Supabase
+      // NOTE: For this to work, you need to customize your "Invite user" email template in Supabase
       // to display the `{{ .Data.otp_code }}` variable.
 
       if (mailerError) throw mailerError;

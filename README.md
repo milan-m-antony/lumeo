@@ -82,29 +82,18 @@ This project uses a Supabase Edge Function for the password reset flow.
     supabase secrets set SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=...
     ```
    (Replace `...` with the actual values from your `.env.local` file).
+   
+   **Note:** These secrets are only available to the *deployed* function. For local testing with `supabase functions serve`, you may need to create a `.env` file inside the `supabase/functions/password-reset` directory with the same key-value pairs.
 
-Your database and serverless functions are now set up!
-
-### 3. Telegram Setup
-
-Telegram will be used as the actual file storage backend.
-
-**A. Create a Telegram Bot:**
-
-1.  Open Telegram and search for the **BotFather** (the official bot for managing other bots).
-2.  Start a chat and send the `/newbot` command.
-3.  Follow the instructions to choose a name and a username for your bot. The username must end in "bot" (e.g., `LumeoGalleryBot`).
-4.  BotFather will provide you with a **bot token**. Copy this token and paste it as the value for `TELEGRAM_BOT_TOKEN` in your `.env.local` file.
-
-**B. Create a Public Channel:**
-
-1.  In Telegram, create a new **public channel** (not a private one). The channel's public link is used to find its ID.
-2.  Add your newly created bot to this channel as an **Administrator**. This is crucial, as the bot needs permissions to post and delete messages.
-
-**C. Get the Channel ID:**
-
-1.  The channel ID is its username, prefixed with `@`. For example, if your public channel's link is `t.me/my_lumeo_gallery`, your channel ID is `@my_lumeo_gallery`.
-2.  Paste this ID as the value for `TELEGRAM_CHANNEL_ID` in your `.env.local` file.
+2. Customize the password reset email template in Supabase.
+   - Go to **Authentication > Templates** in your Supabase dashboard.
+   - Edit the **Invite user** template.
+   - Change the content to include the OTP. For example:
+     ```html
+     <h2>Reset your password</h2>
+     <p>Your password reset code is: <strong>{{ .Data.otp_code }}</strong></p>
+     <p>This code will expire in 10 minutes.</p>
+     ```
 
 ### 4. Running the Application
 
