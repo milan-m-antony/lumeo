@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useRouter } from 'next/router';
+import { useToast } from "@/hooks/use-toast";
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState('');
@@ -15,6 +16,7 @@ export default function ForgotPasswordPage() {
     const [success, setSuccess] = useState(false);
     const { sendPasswordResetEmail } = useAuth();
     const router = useRouter();
+    const { toast } = useToast();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
