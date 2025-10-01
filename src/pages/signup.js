@@ -10,33 +10,14 @@ export default function SignUp() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [registrationAllowed, setRegistrationAllowed] = useState(false);
-  const [checkingStatus, setCheckingStatus] = useState(true);
+  const [registrationAllowed, setRegistrationAllowed] = useState(true);
   const { signup } = useAuth();
 
-  useEffect(() => {
-    const checkUserCount = async () => {
-      setCheckingStatus(true);
-      try {
-        const res = await fetch('/api/auth/user-count');
-        const data = await res.json();
-        if (data.count === 0) {
-          setRegistrationAllowed(true);
-        } else {
-          setRegistrationAllowed(false);
-        }
-      } catch (err) {
-        setError("Could not verify registration status. Please try again later.");
-        setRegistrationAllowed(false);
-      } finally {
-        setCheckingStatus(false);
-      }
-    };
-    checkUserCount();
-  }, []);
-
   const handleSubmit = async (email, password) => {
-    if (!registrationAllowed) return;
+    if (!registrationAllowed) {
+        setError("An account already exists for this application. No new sign-ups are allowed.");
+        return;
+    }
 
     setError(null);
     setSuccess(false);
@@ -45,27 +26,24 @@ export default function SignUp() {
       await signup(email, password);
       setSuccess(true);
     } catch (err) {
-      setError(err.message || 'An unexpected error occurred.');
+        if (err.message && err.message.includes('User already registered')) {
+            setRegistrationAllowed(false);
+            setError("An account already exists for this application. No new sign-ups are allowed.");
+        } else {
+            setError(err.message || 'An unexpected error occurred.');
+        }
     } finally {
       setLoading(false);
     }
   };
-
-  if (checkingStatus) {
-    return (
-      <div className="flex items-center justify-center min-h-screen p-4 bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
   
   if (success) {
       return (
          <div className="min-h-screen w-screen bg-background relative overflow-hidden flex items-center justify-center p-4">
-             <div className="absolute inset-0 z-0" style={{
-                 backgroundImage: 'radial-gradient(circle at top left, hsl(var(--primary) / 0.5) 0%, hsl(var(--background)) 30%)',
-                 backgroundAttachment: 'fixed'
-             }}/>
+            <div className="absolute inset-0 z-0" style={{
+                backgroundImage: 'radial-gradient(circle at top left, hsl(var(--primary) / 0.5) 0%, hsl(var(--background)) 30%)',
+                backgroundAttachment: 'fixed'
+            }}/>
             <div className="absolute inset-0 bg-black/40 z-0"/>
             <motion.div initial={{opacity: 0, y: 20}} animate={{opacity:1, y:0}} className="relative z-10 w-full max-w-sm">
                 <div className="relative bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-white/[0.05] shadow-2xl overflow-hidden">
@@ -78,29 +56,6 @@ export default function SignUp() {
             </motion.div>
          </div>
       );
-  }
-
-  if (!registrationAllowed) {
-      return (
-        <div className="min-h-screen w-screen bg-background relative overflow-hidden flex items-center justify-center p-4">
-             <div className="absolute inset-0 z-0" style={{
-                 backgroundImage: 'radial-gradient(circle at top left, hsl(var(--primary) / 0.5) 0%, hsl(var(--background)) 30%)',
-                 backgroundAttachment: 'fixed'
-             }}/>
-            <div className="absolute inset-0 bg-black/40 z-0"/>
-            <motion.div initial={{opacity: 0, y: 20}} animate={{opacity:1, y:0}} className="relative z-10 w-full max-w-sm">
-                <div className="relative bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-white/[0.05] shadow-2xl overflow-hidden">
-                   <Alert>
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>Registration Closed</AlertTitle>
-                        <AlertDescription>
-                            An account already exists for this application. No new sign-ups are allowed.
-                        </AlertDescription>
-                    </Alert>
-                </div>
-            </motion.div>
-         </div>
-      )
   }
 
   return (
