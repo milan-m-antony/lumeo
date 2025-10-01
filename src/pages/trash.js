@@ -5,33 +5,32 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Image as ImageIcon, Video, FileText, Loader2, Trash2, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from 'date-fns';
+import { withAuth, fetchWithAuth } from "@/context/AuthContext";
 
-export default function Trash() {
+function TrashPage() {
   const [trashedFiles, setTrashedFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { toast } = useToast();
 
-  const fetchData = useCallback(() => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
-    fetch('/api/trashed-files')
-      .then((res) => {
+    try {
+        const res = await fetchWithAuth('/api/trashed-files');
         if (!res.ok) throw new Error("Network response was not ok");
-        return res.json();
-      })
-      .then(data => {
+        const data = await res.json();
         if (Array.isArray(data)) {
           setTrashedFiles(data);
           setError(null);
         } else {
           throw new Error(data.error || "Failed to load trashed files.");
         }
-      })
-      .catch((err) => {
+    } catch(err) {
         setTrashedFiles([]);
         setError(err.message || "An unexpected error occurred.");
-      })
-      .finally(() => setLoading(false));
+    } finally {
+        setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -41,9 +40,8 @@ export default function Trash() {
   const handleRestoreFile = async (fileToRestore) => {
     if (!fileToRestore) return;
 
-    const res = await fetch('/api/restore', {
+    const res = await fetchWithAuth('/api/restore', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: fileToRestore.id }),
     });
     const result = await res.json();
@@ -66,9 +64,8 @@ export default function Trash() {
   const handlePermanentDelete = async (fileToDelete) => {
     if (!fileToDelete) return;
 
-    const res = await fetch('/api/permanent-delete', {
+    const res = await fetchWithAuth('/api/permanent-delete', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: fileToDelete.id, tg_message_id: fileToDelete.tg_message_id }),
     });
     const result = await res.json();
@@ -173,3 +170,5 @@ export default function Trash() {
     </div>
   );
 }
+
+export default withAuth(TrashPage);

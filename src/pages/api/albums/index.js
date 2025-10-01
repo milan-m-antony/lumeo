@@ -1,9 +1,16 @@
-
-import { supabase } from "../../../lib/supabase";
+import { getSupabaseWithAuth } from "../../../lib/supabase";
+import { validateToken } from "../../../lib/auth";
 
 export default async function handler(req, res) {
+  const { error: tokenError } = await validateToken(req);
+  if (tokenError) {
+    return res.status(401).json({ error: tokenError.message });
+  }
+
+  const token = req.headers.authorization.split(' ')[1];
+  const supabase = getSupabaseWithAuth(token);
+
   if (req.method === 'GET') {
-    // Fetch all albums and their file count
     const { data: albums, error: albumsError } = await supabase
       .from('albums')
       .select('*, file_album_links(count)')
@@ -13,14 +20,12 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: albumsError.message });
     }
 
-    // For each album, fetch the most recent image to use as a cover
     const albumsWithCovers = await Promise.all(albums.map(async (album) => {
-        // Get the file_ids for the current album
         const { data: links, error: linkError } = await supabase
             .from('file_album_links')
             .select('file_id')
             .eq('album_id', album.id)
-            .limit(100); // Limit to avoid fetching too many links
+            .limit(100); 
 
         if (linkError || !links || links.length === 0) {
             return { ...album, cover_file_id: null, cover_thumbnail_file_id: null };
@@ -28,7 +33,6 @@ export default async function handler(req, res) {
 
         const fileIds = links.map(l => l.file_id);
         
-        // Find the most recent photo/video among those files
         const { data: coverFile, error: coverError } = await supabase
             .from('files')
             .select('file_id, thumbnail_file_id')
@@ -46,7 +50,6 @@ export default async function handler(req, res) {
       };
     }));
     
-    // Rename file_album_links to files to match frontend expectations for count
     const finalData = albumsWithCovers.map(a => {
         const { file_album_links, ...rest } = a;
         return {
@@ -55,11 +58,9 @@ export default async function handler(req, res) {
         };
     });
 
-
     return res.status(200).json(finalData);
 
   } else if (req.method === 'POST') {
-    // Create a new album
     const { name, description } = req.body;
 
     if (!name) {

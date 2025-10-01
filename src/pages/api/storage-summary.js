@@ -1,4 +1,5 @@
-import { supabase } from "../../lib/supabase";
+import { getSupabaseWithAuth } from "../../lib/supabase";
+import { validateToken } from "../../lib/auth";
 
 function formatBytes(bytes, decimals = 2) {
     if (bytes === 0) return '0 Bytes';
@@ -16,6 +17,14 @@ export default async function handler(req, res) {
         return res.status(405).end(`Method ${req.method} Not Allowed`);
     }
 
+    const { error: tokenError } = await validateToken(req);
+    if (tokenError) {
+        return res.status(401).json({ error: tokenError.message });
+    }
+
+    const token = req.headers.authorization.split(' ')[1];
+    const supabase = getSupabaseWithAuth(token);
+
     try {
         // 1. Calculate Telegram Storage from our DB
         const { data: tgData, error: tgError } = await supabase
@@ -30,15 +39,11 @@ export default async function handler(req, res) {
         const totalTgSize = tgData.reduce((acc, file) => acc + (file.file_size || 0), 0);
 
         // 2. Get Supabase DB size
-        // This query requires the `pg_stat_scan_tables` role. 
-        // You might need to grant it: `grant pg_stat_scan_tables to postgres;`
-        // However, Supabase hosted projects should have this permission by default for the postgres user.
         const { data: dbData, error: dbError } = await supabase
             .rpc('get_database_size');
 
         if (dbError) {
             console.error("Error fetching database size:", dbError);
-            // Fallback for permissions issues
             if (dbError.code === '42501') { 
                  return res.status(200).json({
                     telegram: {

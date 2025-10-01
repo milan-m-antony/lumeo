@@ -16,8 +16,8 @@ import {
   SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { GalleryHorizontal, UploadCloud, Home, Menu, Trash2, LayoutGrid, Database, Send } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { GalleryHorizontal, UploadCloud, Home, Menu, Trash2, LayoutGrid, Database, LogIn, UserPlus, LogOut } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 
 const MobileHeader = () => {
@@ -39,44 +39,59 @@ const MobileHeader = () => {
 const AppMenu = () => {
     const router = useRouter();
     const { isMobile, setOpenMobile } = useSidebar();
+    const { user, logout } = useAuth();
 
-    const menuItems = [
-        { href: '/', label: 'Gallery', icon: GalleryHorizontal },
+    const menuItems = user ? [
+        { href: '/gallery', label: 'Gallery', icon: GalleryHorizontal },
         { href: '/albums', label: 'Albums', icon: LayoutGrid },
         { href: '/upload', label: 'Upload', icon: UploadCloud },
         { href: '/trash', label: 'Trash', icon: Trash2 },
         { href: '/storage', label: 'Storage', icon: Database },
+    ] : [
+        { href: '/', label: 'Home', icon: Home },
+        { href: '/login', label: 'Login', icon: LogIn },
+        { href: '/signup', label: 'Sign Up', icon: UserPlus },
     ];
 
-    const handleLinkClick = () => {
+    const handleLinkClick = (e, href) => {
         if (isMobile) {
             setOpenMobile(false);
+        }
+        if (href) {
+            router.push(href);
         }
     };
 
     const isPathActive = (path) => {
         if (path === '/') return router.pathname === '/';
+        if (path === '/gallery' && router.pathname === '/') return true; // Treat index as gallery for active state
         return router.pathname.startsWith(path);
     }
 
     return (
         <SidebarMenu>
             {menuItems.map((item) => (
-                 <SidebarMenuItem key={item.href} onClick={handleLinkClick}>
-                    <Link href={item.href} passHref legacyBehavior>
-                        <SidebarMenuButton
-                             asChild
-                             isActive={isPathActive(item.href)}
-                             tooltip={{children: item.label}}
-                        >
-                            <a>
-                                <item.icon />
-                                <span>{item.label}</span>
-                            </a>
-                        </SidebarMenuButton>
-                    </Link>
+                 <SidebarMenuItem key={item.href} onClick={(e) => handleLinkClick(e, item.href)}>
+                    <SidebarMenuButton
+                         asChild
+                         isActive={isPathActive(item.href)}
+                         tooltip={{children: item.label}}
+                    >
+                        <a>
+                            <item.icon />
+                            <span>{item.label}</span>
+                        </a>
+                    </SidebarMenuButton>
                  </SidebarMenuItem>
             ))}
+            {user && (
+                <SidebarMenuItem onClick={logout}>
+                     <SidebarMenuButton tooltip={{children: "Logout"}}>
+                        <LogOut />
+                        <span>Logout</span>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            )}
          </SidebarMenu>
     );
 };

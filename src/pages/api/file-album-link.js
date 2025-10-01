@@ -1,11 +1,19 @@
-'use server';
-import { supabase } from "../../lib/supabase";
+import { getSupabaseWithAuth } from "../../lib/supabase";
+import { validateToken } from "../../lib/auth";
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         res.setHeader('Allow', ['POST']);
         return res.status(405).end(`Method ${req.method} Not Allowed`);
     }
+
+    const { error: tokenError } = await validateToken(req);
+    if (tokenError) {
+        return res.status(401).json({ error: tokenError.message });
+    }
+
+    const token = req.headers.authorization.split(' ')[1];
+    const supabase = getSupabaseWithAuth(token);
 
     const { fileId, albumId, isChecked } = req.body;
 

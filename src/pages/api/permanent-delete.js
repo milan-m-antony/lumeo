@@ -1,4 +1,5 @@
-import { supabase } from "../../lib/supabase";
+import { getSupabaseWithAuth } from "../../lib/supabase";
+import { validateToken } from "../../lib/auth";
 import fetch from "node-fetch";
 
 export default async function handler(req, res) {
@@ -6,6 +7,14 @@ export default async function handler(req, res) {
     res.setHeader('Allow', ['POST']);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
+  
+  const { error: tokenError } = await validateToken(req);
+  if (tokenError) {
+    return res.status(401).json({ error: tokenError.message });
+  }
+
+  const token = req.headers.authorization.split(' ')[1];
+  const supabase = getSupabaseWithAuth(token);
 
   const { id, tg_message_id } = req.body;
 
@@ -13,10 +22,10 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'File ID and Telegram Message ID are required' });
   }
 
-  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const tgBotToken = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHANNEL_ID;
 
-  if (!token || !chatId) {
+  if (!tgBotToken || !chatId) {
     return res.status(500).json({ error: "Server configuration error." });
   }
 
@@ -33,7 +42,7 @@ export default async function handler(req, res) {
     }
 
     // Step 2: Delete from Telegram
-    const telegramUrl = `https://api.telegram.org/bot${token}/deleteMessage?chat_id=${chatId}&message_id=${tg_message_id}`;
+    const telegramUrl = `https://api.telegram.org/bot${tgBotToken}/deleteMessage?chat_id=${chatId}&message_id=${tg_message_id}`;
     const tgRes = await fetch(telegramUrl);
     const tgData = await tgRes.json();
 

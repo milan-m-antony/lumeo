@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
@@ -24,6 +23,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator";
+import { withAuth, fetchWithAuth } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 const FilePreview = ({ fileWithPreview, caption, onCaptionChange, onRemove }) => {
   const { file, preview } = fileWithPreview;
@@ -60,7 +61,7 @@ const FilePreview = ({ fileWithPreview, caption, onCaptionChange, onRemove }) =>
 };
 
 
-export default function Upload() {
+function UploadPage() {
   const [fileEntries, setFileEntries] = useState([]);
   const [error, setError] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -69,28 +70,27 @@ export default function Upload() {
   const [selectedAlbumIds, setSelectedAlbumIds] = useState(new Set());
   const { toast } = useToast();
 
-  // State for the create album dialog
   const [isCreateAlbumOpen, setIsCreateAlbumOpen] = useState(false);
   const [newAlbumName, setNewAlbumName] = useState("");
   const [newAlbumDescription, setNewAlbumDescription] = useState("");
 
 
-  const fetchAlbums = useCallback(() => {
-    fetch('/api/albums')
-      .then(res => res.json())
-      .then(data => {
+  const fetchAlbums = useCallback(async () => {
+    try {
+        const res = await fetchWithAuth('/api/albums');
+        const data = await res.json();
         if (Array.isArray(data)) {
           setAllAlbums(data);
         }
-      })
-      .catch(err => console.error("Failed to fetch albums", err));
+    } catch(err) {
+        console.error("Failed to fetch albums", err)
+    }
   }, []);
 
   useEffect(() => {
     fetchAlbums();
   }, [fetchAlbums]);
   
-    // cleanup function to revoke object URLs
   useEffect(() => {
     return () => fileEntries.forEach(entry => URL.revokeObjectURL(entry.file.preview));
   }, [fileEntries]);
@@ -119,7 +119,6 @@ export default function Upload() {
   });
 
   const removeFile = (fileToRemove) => {
-    // Revoke the object URL to prevent memory leaks
     URL.revokeObjectURL(fileToRemove.preview);
     setFileEntries(prevEntries => prevEntries.filter(entry => entry.file !== fileToRemove));
   };
@@ -155,22 +154,19 @@ export default function Upload() {
       toast({ title: "Album name is required", variant: "destructive" });
       return;
     }
-    const res = await fetch('/api/albums', {
+    const res = await fetchWithAuth('/api/albums', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: newAlbumName, description: newAlbumDescription }),
     });
 
     const result = await res.json();
     if (res.ok) {
-      // Add the new album to the list and auto-select it
       const newAlbumWithDefaults = { ...result, files: [{ count: 0 }], cover_file_id: null };
       setAllAlbums(prev => [newAlbumWithDefaults, ...prev]);
       handleAlbumSelect(result.id);
       
       toast({ title: "Album Created!", description: `"${result.name}" has been created and selected.` });
 
-      // Reset and close dialog
       setNewAlbumName("");
       setNewAlbumDescription("");
       setIsCreateAlbumOpen(false);
@@ -190,6 +186,15 @@ export default function Upload() {
     setIsUploading(true);
     setError(null);
     setUploadProgress(0);
+
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+
+    if (!token) {
+        setError("Authentication token not found. Please log in again.");
+        setIsUploading(false);
+        return;
+    }
     
     const formData = new FormData();
     fileEntries.forEach(entry => {
@@ -203,6 +208,7 @@ export default function Upload() {
 
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/upload", true);
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
 
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable) {
@@ -389,6 +395,5 @@ export default function Upload() {
     </div>
   );
 }
- 
 
-    
+export default withAuth(UploadPage);

@@ -1,9 +1,9 @@
-
 import formidable from "formidable";
 import fs from "fs";
 import FormData from "form-data";
 import fetch from "node-fetch";
-import { supabase } from "../../lib/supabase";
+import { getSupabaseWithAuth } from "../../lib/supabase";
+import { validateToken } from "../../lib/auth";
 
 export const config = {
   api: {
@@ -16,11 +16,20 @@ export default async function handler(req, res) {
     res.setHeader("Allow", ["POST"]);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
+  
+  const { error: tokenError } = await validateToken(req);
+  if (tokenError) {
+    return res.status(401).json({ error: tokenError.message });
+  }
 
-  const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
+  const token = req.headers.authorization.split(' ')[1];
+  const supabase = getSupabaseWithAuth(token);
+
+
+  const tgBotToken = process.env.TELEGRAM_BOT_TOKEN?.trim();
   const chatId = process.env.TELEGRAM_CHANNEL_ID?.trim();
 
-  if (!token || !chatId) {
+  if (!tgBotToken || !chatId) {
     console.error("Missing Telegram environment variables.");
     return res.status(500).json({
       error: "Server configuration error: Telegram Bot Token or Channel ID is not set.",
@@ -64,15 +73,15 @@ export default async function handler(req, res) {
           let dbFileType;
 
           if (fileType.startsWith("image/")) {
-            telegramUrl = `https://api.telegram.org/bot${token}/sendPhoto`;
+            telegramUrl = `https://api.telegram.org/bot${tgBotToken}/sendPhoto`;
             fileKey = "photo";
             dbFileType = 'photo';
           } else if (fileType.startsWith("video/")) {
-            telegramUrl = `https://api.telegram.org/bot${token}/sendVideo`;
+            telegramUrl = `https://api.telegram.org/bot${tgBotToken}/sendVideo`;
             fileKey = "video";
             dbFileType = 'video';
           } else {
-            telegramUrl = `https://api.telegram.org/bot${token}/sendDocument`;
+            telegramUrl = `https://api.telegram.org/bot${tgBotToken}/sendDocument`;
             fileKey = "document";
             dbFileType = 'document';
           }
@@ -135,7 +144,7 @@ export default async function handler(req, res) {
 
           if (error) {
               console.error("Supabase insert error:", error);
-              await fetch(`https://api.telegram.org/bot${token}/deleteMessage?chat_id=${chatId}&message_id=${messageId}`);
+              await fetch(`https://api.telegram.org/bot${tgBotToken}/deleteMessage?chat_id=${chatId}&message_id=${messageId}`);
               results.push({
                   filename: fileInfo.originalFilename,
                   success: false,

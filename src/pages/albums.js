@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback } from "react";
 import Link from 'next/link';
 import { useRouter } from "next/router";
@@ -18,8 +17,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Loader2, Folder, PlusCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { withAuth, fetchWithAuth } from "@/context/AuthContext";
 
-export default function Albums() {
+function AlbumsPage() {
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -29,22 +29,22 @@ export default function Albums() {
   const { toast } = useToast();
   const router = useRouter();
 
-  const fetchAlbums = useCallback(() => {
+  const fetchAlbums = useCallback(async () => {
     setLoading(true);
-    fetch('/api/albums')
-      .then(res => {
+    try {
+        const res = await fetchWithAuth('/api/albums');
         if (!res.ok) throw new Error("Failed to fetch albums");
-        return res.json();
-      })
-      .then(data => {
+        const data = await res.json();
         if (Array.isArray(data)) {
           setAlbums(data);
         } else {
             throw new Error(data.error || "Could not load albums.");
         }
-      })
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false));
+    } catch(err) {
+        setError(err.message)
+    } finally {
+        setLoading(false)
+    }
   }, []);
 
   useEffect(() => {
@@ -56,15 +56,13 @@ export default function Albums() {
         toast({ title: "Album name is required", variant: "destructive" });
         return;
     }
-    const res = await fetch('/api/albums', {
+    const res = await fetchWithAuth('/api/albums', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newAlbumName, description: newAlbumDescription }),
     });
 
     const result = await res.json();
     if (res.ok) {
-        // Since the new album won't have a cover or file count yet, we can add a placeholder
         const newAlbumWithDefaults = { ...result, files: [{count: 0}], cover_file_id: null };
         setAlbums([newAlbumWithDefaults, ...albums]);
         toast({ title: "Album Created!", description: `"${result.name}" has been created.` });
@@ -161,3 +159,5 @@ export default function Albums() {
     </div>
   );
 }
+
+export default withAuth(AlbumsPage);

@@ -1,4 +1,7 @@
 import fetch from 'node-fetch';
+import { validateToken } from '../../lib/auth';
+import { getSupabaseWithAuth } from '../../lib/supabase';
+
 
 export default async function handler(req, res) {
     const { file_id } = req.query;
@@ -6,6 +9,25 @@ export default async function handler(req, res) {
     if (!file_id) {
         return res.status(400).json({ error: 'File ID is required' });
     }
+    
+    // We don't strictly need to validate a token here, because Telegram URLs are ephemeral and secure.
+    // However, if we wanted to lock down downloads completely, we could uncomment this section.
+    /*
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        // Allow access if the request is from an <img src...>, which won't have headers.
+        // This is a tradeoff for convenience. For strict security, all media should be served via a proxy that requires tokens.
+        if (req.headers.accept && !req.headers.accept.includes('image')) {
+             return res.status(401).json({ error: 'Authorization token required' });
+        }
+    } else {
+        const { error: tokenError } = await validateToken(req);
+        if (tokenError) {
+             return res.status(401).json({ error: tokenError.message });
+        }
+    }
+    */
+
 
     try {
         const token = process.env.TELEGRAM_BOT_TOKEN;

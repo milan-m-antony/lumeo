@@ -1,6 +1,15 @@
-import { supabase } from "../../lib/supabase";
+import { getSupabaseWithAuth } from "../../lib/supabase";
+import { validateToken } from "../../lib/auth";
 
 export default async function handler(req, res) {
+
+  const { error: tokenError } = await validateToken(req);
+  if (tokenError) {
+    return res.status(401).json({ error: tokenError.message });
+  }
+
+  const token = req.headers.authorization.split(' ')[1];
+  const supabase = getSupabaseWithAuth(token);
 
   let query = supabase
     .from("files")

@@ -1,24 +1,19 @@
 import { useEffect, useState, useCallback } from "react";
-import { useRouter } from 'next/router';
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Edit, Download, Save, X, Image as ImageIcon, Video, FileText, Search, PlayCircle, Loader2, Trash2, FolderUp, ArrowLeft } from "lucide-react";
+import { Edit, Download, Save, X, Image as ImageIcon, Video, FileText, Search, PlayCircle, Loader2, Trash2, FolderUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import Link from "next/link";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { withAuth, fetchWithAuth } from "@/context/AuthContext";
 
-function AlbumDetailPage() {
-  const router = useRouter();
-  const { id: albumId } = router.query;
-  const [album, setAlbum] = useState(null);
+function GalleryPage() {
   const [files, setFiles] = useState([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -27,62 +22,45 @@ function AlbumDetailPage() {
   const [editingCaption, setEditingCaption] = useState("");
   const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [allAlbums, setAllAlbums] = useState([]); 
+  const [albums, setAlbums] = useState([]);
   const { toast } = useToast();
 
   const fetchFiles = useCallback(async () => {
-    if (!albumId) return;
     setLoading(true);
     try {
-        const res = await fetchWithAuth(`/api/files-in-album?albumId=${albumId}&caption=${search}&type=${typeFilter}`);
-        if (!res.ok) throw new Error("Network response was not ok");
-        const data = await res.json();
-        if (Array.isArray(data)) {
-            setFiles(data);
-            setError(null);
-        } else {
-            throw new Error(data.error || "Failed to load files.");
-        }
+      const res = await fetchWithAuth(`/api/files?caption=${search}&type=${typeFilter}`);
+      if (!res.ok) throw new Error("Network response was not ok");
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setFiles(data);
+        setError(null);
+      } else {
+        throw new Error(data.error || "Failed to load files.");
+      }
     } catch (err) {
-        setFiles([]);
-        setError(err.message || "An unexpected error occurred.");
+      setFiles([]);
+      setError(err.message || "An unexpected error occurred.");
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-  }, [albumId, search, typeFilter]);
+  }, [search, typeFilter]);
 
-  const fetchAlbumDetails = useCallback(async () => {
-    if (!albumId) return;
-    try {
-        const res = await fetchWithAuth(`/api/albums/${albumId}`);
-        const data = await res.json();
-        if (data && !data.error) {
-            setAlbum(data);
-        } else {
-            setError(data.error || "Could not load album details");
-        }
-    } catch (err) {
-        setError(err.message);
-    }
-  }, [albumId]);
-  
-  const fetchAllAlbums = useCallback(async () => {
+  const fetchAlbums = useCallback(async () => {
     try {
         const res = await fetchWithAuth('/api/albums');
         const data = await res.json();
         if (Array.isArray(data)) {
-          setAllAlbums(data);
+          setAlbums(data);
         }
     } catch (err) {
-        console.error("Failed to fetch all albums", err)
+        console.error("Failed to fetch albums", err)
     }
   }, []);
 
   useEffect(() => {
     fetchFiles();
-    fetchAlbumDetails();
-    fetchAllAlbums();
-  }, [fetchFiles, fetchAlbumDetails, fetchAllAlbums]);
+    fetchAlbums();
+  }, [fetchFiles, fetchAlbums]);
 
   const handleEditClick = (file) => {
     setEditingId(file.id);
@@ -114,44 +92,37 @@ function AlbumDetailPage() {
             variant: "destructive"
         });
     }
-  };
-
-  const handleAlbumLinkChange = async (fileId, targetAlbumId, isChecked) => {
+  }
+  
+  const handleAlbumLinkChange = async (fileId, albumId, isChecked) => {
       const res = await fetchWithAuth('/api/file-album-link', {
           method: 'POST',
-          body: JSON.stringify({ fileId: fileId, albumId: targetAlbumId, isChecked }),
+          body: JSON.stringify({ fileId, albumId, isChecked }),
       });
       const result = await res.json();
       if (result.success) {
-            if (String(targetAlbumId) === String(albumId) && !isChecked) {
-                setFiles(files.filter(f => f.id !== fileId));
-                setSelectedFile(null); 
-                toast({ title: "File removed from this album." });
-            } else {
-                const updatedFiles = files.map(file => {
-                    if (file.id === fileId) {
-                        let newLinks = [...file.file_album_links];
-                        if (isChecked) {
-                            newLinks.push({ album_id: targetAlbumId });
-                        } else {
-                            newLinks = newLinks.filter(link => link.album_id !== targetAlbumId);
-                        }
-                        return { ...file, file_album_links: newLinks };
-                    }
-                    return file;
-                });
-                setFiles(updatedFiles);
-
-                if (selectedFile && selectedFile.id === fileId) {
-                   let newLinks = [...selectedFile.file_album_links];
-                   if (isChecked) {
-                       newLinks.push({ album_id: targetAlbumId });
-                   } else {
-                       newLinks = newLinks.filter(link => link.album_id !== targetAlbumId);
-                   }
-                   setSelectedFile({...selectedFile, file_album_links: newLinks});
-                }
-            }
+          const updatedFiles = files.map(file => {
+              if (file.id === fileId) {
+                  let newLinks = [...file.file_album_links];
+                  if (isChecked) {
+                      newLinks.push({ album_id: albumId });
+                  } else {
+                      newLinks = newLinks.filter(link => link.album_id !== albumId);
+                  }
+                  return { ...file, file_album_links: newLinks };
+              }
+              return file;
+          });
+          setFiles(updatedFiles);
+          if (selectedFile && selectedFile.id === fileId) {
+             let newLinks = [...selectedFile.file_album_links];
+             if (isChecked) {
+                 newLinks.push({ album_id: albumId });
+             } else {
+                 newLinks = newLinks.filter(link => link.album_id !== albumId);
+             }
+             setSelectedFile({...selectedFile, file_album_links: newLinks});
+          }
       } else {
           toast({
               title: "Update Failed",
@@ -173,7 +144,7 @@ function AlbumDetailPage() {
 
     if (result.success) {
       setFiles(files.filter(f => f.id !== fileToTrash.id));
-      setSelectedFile(null);
+      setSelectedFile(null); // Close the modal
       toast({
         title: "Moved to Trash",
         description: "The file has been moved to the trash bin.",
@@ -227,32 +198,11 @@ function AlbumDetailPage() {
     }
   };
 
-  if (!album && loading) {
-    return <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
-  }
-
-  if (error) {
-    return <div className="flex flex-col gap-4 justify-center items-center h-full text-destructive">
-        <p>Error: {error}</p>
-        <Button asChild><Link href="/albums"><ArrowLeft className="mr-2 h-4 w-4"/> Back to Albums</Link></Button>
-    </div>
-  }
-
   return (
     <div className="flex flex-col h-full w-full">
       <header className="flex-shrink-0 sticky top-0 z-10">
         <div className="px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 h-auto sm:h-16 border-b py-4 sm:py-0 glass-effect">
-            <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                    <Link href="/albums" title="Back to Albums">
-                        <ArrowLeft />
-                    </Link>
-                </Button>
-                <div>
-                  <h1 className="text-2xl font-bold text-foreground truncate" title={album?.name}>{album?.name}</h1>
-                  <p className="text-sm text-muted-foreground">{album?.files[0]?.count || 0} items</p>
-                </div>
-            </div>
+            <h1 className="text-2xl font-bold text-foreground">Gallery</h1>
              <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                 <div className="relative w-full sm:max-w-xs">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -282,11 +232,13 @@ function AlbumDetailPage() {
       <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
         {loading && <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
         
+        {error && <p className="text-center text-destructive">Error: {error}</p>}
+        
         {!loading && !error && files.length === 0 && (
            <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground">
             <ImageIcon className="w-24 h-24 mx-auto text-muted-foreground/50" strokeWidth={1} />
-            <h2 className="text-2xl mt-4 font-semibold">This Album is Empty</h2>
-            <p className="mt-2">Use the sidebar to upload new files to this album.</p>
+            <h2 className="text-2xl mt-4 font-semibold">Your Gallery is Empty</h2>
+            <p className="mt-2">Use the sidebar to upload your first file.</p>
           </div>
         )}
         
@@ -348,16 +300,16 @@ function AlbumDetailPage() {
                                 </div>
                                 <ScrollArea className="h-48">
                                   <div className="p-2 space-y-2">
-                                      {allAlbums.length > 0 ? allAlbums.map(a => {
-                                          const isChecked = selectedFile.file_album_links.some(link => link.album_id === a.id);
+                                      {albums.length > 0 ? albums.map(album => {
+                                          const isChecked = selectedFile.file_album_links.some(link => link.album_id === album.id);
                                           return (
-                                            <div key={a.id} className="flex items-center space-x-2">
+                                            <div key={album.id} className="flex items-center space-x-2">
                                               <Checkbox
-                                                  id={`album-detail-${a.id}`}
+                                                  id={`album-${album.id}`}
                                                   checked={isChecked}
-                                                  onCheckedChange={(checked) => handleAlbumLinkChange(selectedFile.id, a.id, checked)}
+                                                  onCheckedChange={(checked) => handleAlbumLinkChange(selectedFile.id, album.id, checked)}
                                               />
-                                              <Label htmlFor={`album-detail-${a.id}`} className="font-normal w-full truncate cursor-pointer">{a.name}</Label>
+                                              <Label htmlFor={`album-${album.id}`} className="font-normal w-full truncate cursor-pointer">{album.name}</Label>
                                             </div>
                                           );
                                       }) : <p className="text-xs text-muted-foreground p-2">No albums yet.</p>}
@@ -396,4 +348,4 @@ function AlbumDetailPage() {
   );
 }
 
-export default withAuth(AlbumDetailPage);
+export default withAuth(GalleryPage);

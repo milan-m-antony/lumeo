@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Database, Send } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { withAuth, fetchWithAuth } from '@/context/AuthContext';
 
 const StorageSkeleton = () => (
     <Card className="bg-transparent border-border/20">
@@ -16,33 +17,31 @@ const StorageSkeleton = () => (
     </Card>
 );
 
-
-export default function Storage() {
+function StoragePage() {
     const [storage, setStorage] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        setLoading(true);
-        fetch('/api/storage-summary')
-            .then(res => {
+        const getStorage = async () => {
+            setLoading(true);
+            try {
+                const res = await fetchWithAuth('/api/storage-summary');
                 if (!res.ok) {
                     throw new Error('Failed to fetch storage data');
                 }
-                return res.json();
-            })
-            .then(data => {
+                const data = await res.json();
                 if (data.error) {
                     throw new Error(data.error);
                 }
                 setStorage(data);
-            })
-            .catch(err => {
+            } catch (err) {
                 setError(err.message);
-            })
-            .finally(() => {
+            } finally {
                 setLoading(false);
-            });
+            }
+        };
+        getStorage();
     }, []);
 
     return (
@@ -98,3 +97,5 @@ export default function Storage() {
         </div>
     );
 }
+
+export default withAuth(StoragePage);
