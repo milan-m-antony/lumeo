@@ -209,6 +209,7 @@ function GalleryScene({
 		maxBlur: 3.0,
 	},
 }: Omit<InfiniteGalleryProps, 'className' | 'style'>) {
+	const { camera, mouse } = useThree();
 	const [scrollVelocity, setScrollVelocity] = useState(0);
 	const [autoPlay, setAutoPlay] = useState(true);
 	const lastInteraction = useRef(Date.now());
@@ -335,6 +336,11 @@ function GalleryScene({
 	}, []);
 
 	useFrame((state, delta) => {
+		// Update camera position based on mouse for parallax effect
+		camera.position.x += (mouse.x * 0.5 - camera.position.x) * 0.05;
+    camera.position.y += (-mouse.y * 0.5 - camera.position.y) * 0.05;
+    camera.lookAt(0, 0, 0);
+
 		// Apply auto-play
 		if (autoPlay) {
 			setScrollVelocity((prev) => prev + 0.3 * delta);
