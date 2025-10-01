@@ -5,7 +5,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS',
+  'Access-control-allow-methods': 'POST, PUT, OPTIONS',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
@@ -38,7 +38,7 @@ serve(async (req: Request) => {
     }
 
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
+    
     const { email, token, password } = await req.json();
     
     // --- REQUEST A PASSWORD RESET ---
@@ -47,37 +47,18 @@ serve(async (req: Request) => {
         return new Response(JSON.stringify({ error: 'Email is required' }), { status: 400, headers: corsHeaders });
       }
 
-      // 1. Get the user by email
-      const { data: { user }, error: userError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
-      if (userError || !user) {
-        console.warn(`Password reset attempt for non-existent user: ${email}`);
-        return new Response(JSON.stringify({ message: 'If a user with this email exists, a reset code has been sent.' }), { status: 200, headers: corsHeaders });
+      // Send a password reset OTP. Supabase handles the token generation and sending.
+      const { error: otpError } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
+        redirectTo: '/reset-password-callback' // This is a placeholder, we are using a custom token flow.
+      });
+
+      if (otpError) {
+        // Don't reveal if a user doesn't exist.
+        console.warn(`Password reset attempt for ${email} resulted in error: ${otpError.message}`);
       }
 
-      // 2. Generate and hash the OTP
-      const otp = generateOTP();
-      const tokenHash = await hashToken(otp);
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
-
-      // 3. Upsert the token into the database
-      const { error: upsertError } = await supabaseAdmin
-        .from('password_reset_tokens')
-        .upsert({ user_id: user.id, token_hash: tokenHash, expires_at: expiresAt.toISOString() }, { onConflict: 'user_id' });
-
-      if (upsertError) throw upsertError;
-
-      // 4. Send the OTP via email using Supabase's built-in mailer
-       const { error: mailerError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-        data: {
-            otp_code: otp
-        }
-      });
-      // NOTE: For this to work, you need to customize your "Invite user" email template in Supabase
-      // to display the `{{ .Data.otp_code }}` variable.
-
-      if (mailerError) throw mailerError;
-
-      return new Response(JSON.stringify({ message: 'Password reset code sent.' }), { status: 200, headers: corsHeaders });
+      // Always return a generic success message to prevent user enumeration.
+      return new Response(JSON.stringify({ message: 'If a user with this email exists, a reset code has been sent.' }), { status: 200, headers: corsHeaders });
     }
 
     // --- VERIFY TOKEN AND UPDATE PASSWORD ---
@@ -86,43 +67,24 @@ serve(async (req: Request) => {
         return new Response(JSON.stringify({ error: 'Email, token, and new password are required' }), { status: 400, headers: corsHeaders });
       }
 
-      // 1. Get the user
-      const { data: { user }, error: userError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
-      if (userError || !user) {
-        return new Response(JSON.stringify({ error: 'Invalid email or token' }), { status: 400, headers: corsHeaders });
-      }
-
-      // 2. Find the stored token
-      const { data: storedToken, error: tokenError } = await supabaseAdmin
-        .from('password_reset_tokens')
-        .select('token_hash, expires_at')
-        .eq('user_id', user.id)
-        .single();
+      // 1. Verify the OTP
+      const { data: { session }, error: verifyError } = await supabaseAdmin.auth.verifyOtp({
+        email,
+        token,
+        type: 'recovery',
+      });
       
-      if (tokenError || !storedToken) {
-        return new Response(JSON.stringify({ error: 'Invalid or expired reset code' }), { status: 400, headers: corsHeaders });
+      if (verifyError || !session || !session.user) {
+         return new Response(JSON.stringify({ error: 'Invalid or expired reset code' }), { status: 400, headers: corsHeaders });
       }
 
-      // 3. Verify the token and check expiry
-      const tokenHash = await hashToken(token);
-      if (tokenHash !== storedToken.token_hash) {
-        return new Response(JSON.stringify({ error: 'Invalid or expired reset code' }), { status: 400, headers: corsHeaders });
-      }
-      if (new Date(storedToken.expires_at) < new Date()) {
-        await supabaseAdmin.from('password_reset_tokens').delete().eq('user_id', user.id);
-        return new Response(JSON.stringify({ error: 'Reset code has expired' }), { status: 400, headers: corsHeaders });
-      }
-
-      // 4. Update the user's password
+      // 2. Update the user's password
       const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-        user.id,
+        session.user.id,
         { password: password }
       );
       if (updateError) throw updateError;
       
-      // 5. Invalidate the token by deleting it
-      await supabaseAdmin.from('password_reset_tokens').delete().eq('user_id', user.id);
-
       return new Response(JSON.stringify({ message: 'Password updated successfully' }), { status: 200, headers: corsHeaders });
     }
 
