@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
 import { motion } from 'framer-motion';
 import { Mail, ArrowLeft, Send, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -8,13 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useRouter } from 'next/router';
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from '@/lib/supabase'; // Using the public client
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
-    const { sendPasswordResetEmail } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
 
@@ -24,13 +23,20 @@ export default function ForgotPasswordPage() {
         setSuccess(false);
         setLoading(true);
         try {
-            await sendPasswordResetEmail(email);
+            const { error: functionError } = await supabase.functions.invoke('password-reset', {
+                body: { email },
+            });
+
+            if (functionError) throw functionError;
+
             setSuccess(true);
             toast({
                 title: "Email Sent!",
-                description: "Check your inbox for a password reset link.",
+                description: "Check your inbox for a password reset code.",
             });
-            // Don't redirect automatically, let the user click the link.
+            // Redirect to the reset page, passing the email along
+            router.push(`/reset-password?email=${encodeURIComponent(email)}`);
+
         } catch (err) {
             setError(err.message || 'Failed to send reset email.');
         } finally {
@@ -55,7 +61,7 @@ export default function ForgotPasswordPage() {
                 <div className="relative bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-white/[0.05] shadow-2xl overflow-hidden">
                     <div className="text-center space-y-2 mb-6">
                         <h1 className="text-xl font-bold text-white">Forgot Password</h1>
-                        <p className="text-white/60 text-xs">Enter your email to receive a password reset link.</p>
+                        <p className="text-white/60 text-xs">Enter your email to receive a password reset code.</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -71,7 +77,7 @@ export default function ForgotPasswordPage() {
                                 <CheckCircle className="h-4 w-4 text-green-400" />
                                 <AlertTitle className="text-green-400">Email Sent!</AlertTitle>
                                 <AlertDescription className="text-white/80">
-                                    Please check your email and click the reset link.
+                                    Redirecting you to enter the reset code...
                                 </AlertDescription>
                             </Alert>
                         )}
@@ -84,10 +90,11 @@ export default function ForgotPasswordPage() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="w-full bg-white/5 border-transparent focus:border-white/20 text-white placeholder:text-white/30 h-10 transition-all duration-300 pl-10 pr-3 focus:bg-white/10"
+                                disabled={loading || success}
                             />
                         </div>
                         <Button type="submit" disabled={loading || success} className="w-full">
-                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Send className="mr-2 h-4 w-4" /><span>Send Reset Link</span></>}
+                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Send className="mr-2 h-4 w-4" /><span>Send Reset Code</span></>}
                         </Button>
                     </form>
 

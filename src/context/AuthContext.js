@@ -30,9 +30,6 @@ export function AuthProvider({ children }) {
         if (event === 'SIGNED_IN') {
             if (router.isReady) router.push('/gallery');
         }
-        if (event === 'PASSWORD_RECOVERY') {
-            router.push('/reset-password');
-        }
         if (event === 'SIGNED_OUT') {
             // The redirect is handled in the logout function to be more explicit.
         }
@@ -79,51 +76,12 @@ export function AuthProvider({ children }) {
     }
   };
   
-  const sendPasswordResetEmail = async (email) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'http://localhost:3000/reset-password',
-    });
-    if (error) throw error;
-  };
-  
-  const updatePasswordWithToken = async (token, newPassword) => {
-    // This is a temporary hack because Supabase JS client v2 has trouble
-    // with updateUser when there isn't an active session. By setting a fake
-    // session with the recovery token, we can make the updateUser call work.
-    const { data: { session }, error: sessionError } = await supabase.auth.setSession({
-        access_token: token,
-        refresh_token: token, // Just use the same token
-    });
-
-    if (sessionError) {
-        console.warn("Session error during password update, but attempting anyway:", sessionError);
-    }
-    
-    // The user is now temporarily authenticated. We can update their password.
-    const { data, error } = await supabase.auth.updateUser({
-      password: newPassword
-    });
-
-    if (error) {
-       // Clean up the potentially bad session
-       await supabase.auth.signOut();
-       throw error;
-    }
-
-    // After a successful password update, sign the user out completely.
-    await supabase.auth.signOut();
-    return data;
-  }
-
-
   const value = {
     user,
     loading,
     login,
     signup,
     logout,
-    sendPasswordResetEmail,
-    updatePasswordWithToken,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

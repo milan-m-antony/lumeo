@@ -1,53 +1,33 @@
-
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
-import { Lock, Eye, EyeOff, ArrowLeft, Save, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Lock, Eye, EyeOff, ArrowLeft, Save, CheckCircle, AlertCircle, Loader2, KeyRound } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { Textarea } from '@/components/ui/textarea';
-
+import { supabase } from '@/lib/supabase';
 
 export default function ResetPasswordPage() {
+    const [email, setEmail] = useState('');
     const [token, setToken] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
-    const { updatePasswordWithToken } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
-    
+
     useEffect(() => {
-        // This effect runs on the client side after the page loads.
-        // It automatically extracts the access_token from the URL fragment.
         if (router.isReady) {
-            const hash = window.location.hash;
-            const params = new URLSearchParams(hash.substring(1)); // remove the '#'
-            const accessToken = params.get('access_token');
-            
-            if (accessToken) {
-                setToken(accessToken);
-                toast({
-                    title: "Token Detected",
-                    description: "Your authentication token has been captured. Please set a new password."
-                });
-                // Clean the URL for security, so the token isn't left in the address bar.
-                window.history.replaceState({}, document.title, window.location.pathname);
-            } else {
-                 toast({
-                    title: "Token Not Found",
-                    description: "Could not find the access token in the URL. Please click the link in your email again.",
-                    variant: "destructive"
-                });
+            const queryEmail = router.query.email;
+            if (queryEmail) {
+                setEmail(queryEmail);
             }
         }
-    }, [router.isReady, toast]);
+    }, [router.isReady, router.query.email]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -56,15 +36,26 @@ export default function ResetPasswordPage() {
             return;
         }
         if (!token) {
-            setError("The access token is missing. It should be automatically detected from the URL.");
+            setError("The reset code is required.");
             return;
         }
+        if (!email) {
+            setError("Email address is missing. Please start over.");
+            return;
+        }
+
 
         setError(null);
         setSuccess(false);
         setLoading(true);
         try {
-            await updatePasswordWithToken(token, password);
+            const { error: functionError } = await supabase.functions.invoke('password-reset', {
+                method: 'PUT',
+                body: { email, token, password },
+            });
+
+            if (functionError) throw functionError;
+            
             setSuccess(true);
             toast({
                 title: "Password Updated!",
@@ -72,7 +63,7 @@ export default function ResetPasswordPage() {
             });
             setTimeout(() => router.push('/login'), 3000);
         } catch (err) {
-            setError(err.message || 'Failed to reset password. The token may be invalid or expired.');
+            setError(err.message || 'Failed to reset password. The code may be invalid or expired.');
         } finally {
             setLoading(false);
         }
@@ -95,7 +86,7 @@ export default function ResetPasswordPage() {
                 <div className="relative bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-white/[0.05] shadow-2xl overflow-hidden">
                     <div className="text-center space-y-2 mb-6">
                         <h1 className="text-xl font-bold text-white">Reset Your Password</h1>
-                        <p className="text-white/60 text-xs">Your auth token has been detected. Enter a new password below.</p>
+                        <p className="text-white/60 text-xs">Enter the code from your email and a new password.</p>
                     </div>
 
                     {success ? (
@@ -117,6 +108,18 @@ export default function ResetPasswordPage() {
                             )}
                             
                             <div className="relative flex items-center">
+                                <KeyRound className="absolute left-3 w-4 h-4 text-white/40" />
+                                <Input
+                                    type="text"
+                                    placeholder="Reset Code from Email"
+                                    required
+                                    value={token}
+                                    onChange={(e) => setToken(e.target.value)}
+                                    className="w-full bg-white/5 border-transparent focus:border-white/20 text-white placeholder:text-white/30 h-10 transition-all duration-300 pl-10 focus:bg-white/10"
+                                />
+                            </div>
+
+                            <div className="relative flex items-center">
                                 <Lock className="absolute left-3 w-4 h-4 text-white/40" />
                                 <Input
                                     type={showPassword ? "text" : "password"}
@@ -130,7 +133,7 @@ export default function ResetPasswordPage() {
                                   {showPassword ? <Eye className="w-4 h-4 text-white/40 hover:text-white" /> : <EyeOff className="w-4 h-4 text-white/40 hover:text-white" />}
                                 </div>
                             </div>
-                            <Button type="submit" disabled={loading || !token} className="w-full">
+                            <Button type="submit" disabled={loading} className="w-full">
                                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="mr-2 h-4 w-4" /><span>Update Password</span></>}
                             </Button>
                         </form>

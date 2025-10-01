@@ -20,9 +20,12 @@ To get a local copy up and running, follow these simple steps.
 
 First, create a new file named `.env.local` in the root of your project. Copy the contents of the example below into this new file. You will fill in the values in the next steps.
 
+**Important:** For the password reset feature to work, you will also need a `SUPABASE_SERVICE_ROLE_KEY`. You can find this in your Supabase project under **Project Settings > API > Project API keys**. It should be kept secret and only used on the server.
+
 ```
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
 SUPABASE_DB_PASSWORD=
 TELEGRAM_BOT_TOKEN=
 TELEGRAM_CHANNEL_ID=
@@ -43,14 +46,15 @@ Supabase will be used to store the metadata for your files, such as captions, fi
 
 1.  Once your project is ready, navigate to the **Project Settings** (the gear icon in the left sidebar).
 2.  Click on the **API** tab.
-3.  Under **Project API keys**, you will find the **Project URL** and the `anon` `public` key.
-4.  Copy the **URL** and paste it as the value for `NEXT_PUBLIC_SUPABASE_URL` in your `.env.local` file.
-5.  Copy the **anon key** and paste it as the value for `NEXT_PUBLIC_SUPABASE_ANON_KEY` in your `.env.local` file.
-6.  Paste the **Database Password** you saved during project creation as the value for `SUPABASE_DB_PASSWORD`.
+3.  Under **Project API keys**, you will find the **Project URL**, the `anon` `public` key, and the `service_role` secret key.
+4.  Copy the **URL** and paste it as the value for `NEXT_PUBLIC_SUPABASE_URL`.
+5.  Copy the **anon key** and paste it as the value for `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+6.  Copy the **service_role key** and paste it as the value for `SUPABASE_SERVICE_ROLE_KEY`.
+7.  Paste the **Database Password** you saved during project creation as the value for `SUPABASE_DB_PASSWORD`.
 
 **C. Install Supabase CLI and Apply Migrations:**
 
-To set up your database tables and functions, we'll use the Supabase CLI. It's a more reliable method than running SQL manually.
+To set up your database tables and functions, we'll use the Supabase CLI.
 
 1.  **Install the Supabase CLI:** Follow the official instructions for your operating system: [Install the Supabase CLI](https://supabase.com/docs/guides/cli/getting-started).
 
@@ -64,12 +68,27 @@ To set up your database tables and functions, we'll use the Supabase CLI. It's a
     supabase link --project-ref [project-id]
     ```
 
-4.  **Push the Database Migrations:** This command will read the migration file in this repository and apply it to your live Supabase database.
+4.  **Push the Database Migrations:** This command will read the migration files in this repository and apply them to your live Supabase database.
     ```bash
     supabase db push
     ```
 
-Your database is now set up!
+**D. Deploy the Edge Function:**
+
+This project uses a Supabase Edge Function for the password reset flow.
+
+1. Set the required secrets for the function. The `service_role` key is needed to perform admin-level actions.
+    ```bash
+    supabase secrets set SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=...
+    ```
+   (Replace `...` with the actual values from your `.env.local` file).
+
+2. Deploy the function.
+    ```bash
+    supabase functions deploy password-reset
+    ```
+
+Your database and serverless functions are now set up!
 
 ### 3. Telegram Setup
 
