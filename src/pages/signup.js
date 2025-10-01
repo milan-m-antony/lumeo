@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import InfiniteGallery from '@/components/ui/3d-gallery-photography';
+import imageData from '@/app/lib/placeholder-images.json';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
@@ -55,88 +57,100 @@ export default function SignUp() {
 
   if (checkingStatus) {
     return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-theme(spacing.16))] p-4">
+      <div className="flex items-center justify-center min-h-screen p-4 bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-theme(spacing.16))] p-4">
-      <Card className="w-full max-w-sm glass-effect">
-        <CardHeader>
-          <CardTitle className="text-2xl">Sign Up</CardTitle>
-          <CardDescription>
-            {registrationAllowed ? 'Enter your information to create the primary account.' : 'Registration is currently closed.'}
-          </CardDescription>
-        </CardHeader>
-        {registrationAllowed ? (
-          <form onSubmit={handleSubmit}>
-            <CardContent className="grid gap-4">
-              {error && (
-                  <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Sign Up Failed</AlertTitle>
-                      <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-              )}
-              {success && (
-                   <Alert>
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Success!</AlertTitle>
-                      <AlertDescription>Please check your email to confirm your account.</AlertDescription>
-                  </Alert>
-              )}
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={success}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="password">Password</Label>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  required 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={success}
-                  />
-              </div>
-            </CardContent>
-            <CardFooter className="flex flex-col gap-4">
-              <Button className="w-full" type="submit" disabled={loading || success}>
-                {loading ? 'Creating account...' : 'Create Account'}
-              </Button>
-            </CardFooter>
-          </form>
-        ) : (
-             <CardContent>
-                <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Registration Closed</AlertTitle>
-                    <AlertDescription>
-                        An account already exists for this application. No new sign-ups are allowed.
-                    </AlertDescription>
-                </Alert>
-            </CardContent>
-        )}
-         <CardFooter>
-            <div className="text-center text-sm text-muted-foreground w-full">
-                Already have an account?{' '}
-                <Link href="/login" className="underline hover:text-primary">
-                    Log in
-                </Link>
-            </div>
-         </CardFooter>
-      </Card>
+    <div className="relative min-h-screen w-full">
+        <InfiniteGallery
+            images={imageData.gallery}
+            speed={1.2}
+            zSpacing={3}
+            visibleCount={12}
+            falloff={{ near: 0.8, far: 14 }}
+            className="h-screen w-full absolute inset-0"
+        />
+        <div className="absolute inset-0 bg-background/50 backdrop-blur-sm"></div>
+
+        <div className="relative flex items-center justify-center min-h-screen p-4">
+            <Card className="w-full max-w-sm glass-effect">
+                <CardHeader>
+                <CardTitle className="text-2xl">Sign Up</CardTitle>
+                <CardDescription>
+                    {registrationAllowed ? 'Enter your information to create the primary account.' : 'Registration is currently closed.'}
+                </CardDescription>
+                </CardHeader>
+                {registrationAllowed ? (
+                <form onSubmit={handleSubmit}>
+                    <CardContent className="grid gap-4">
+                    {error && (
+                        <Alert variant="destructive">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Sign Up Failed</AlertTitle>
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                    )}
+                    {success && (
+                        <Alert>
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Success!</AlertTitle>
+                            <AlertDescription>Please check your email to confirm your account. You may now log in.</AlertDescription>
+                        </Alert>
+                    )}
+                    <div className="grid gap-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                        id="email"
+                        type="email"
+                        placeholder="m@example.com"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        disabled={success}
+                        />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="password">Password</Label>
+                        <Input 
+                        id="password" 
+                        type="password" 
+                        required 
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        disabled={success}
+                        />
+                    </div>
+                    </CardContent>
+                    <CardFooter className="flex flex-col gap-4">
+                    <Button className="w-full" type="submit" disabled={loading || success}>
+                        {loading ? 'Creating account...' : 'Create Account'}
+                    </Button>
+                    </CardFooter>
+                </form>
+                ) : (
+                    <CardContent>
+                        <Alert>
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Registration Closed</AlertTitle>
+                            <AlertDescription>
+                                An account already exists for this application. No new sign-ups are allowed.
+                            </AlertDescription>
+                        </Alert>
+                    </CardContent>
+                )}
+                <CardFooter>
+                    <div className="text-center text-sm text-muted-foreground w-full">
+                        Already have an account?{' '}
+                        <Link href="/login" className="underline hover:text-primary">
+                            Log in
+                        </Link>
+                    </div>
+                </CardFooter>
+            </Card>
+        </div>
     </div>
   );
 }

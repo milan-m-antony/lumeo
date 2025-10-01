@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, LogIn } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
@@ -48,10 +48,16 @@ export default function HomePage() {
 				falloff={{ near: 0.8, far: 14 }}
 				className="h-screen w-full rounded-lg overflow-hidden"
 			/>
-      <div className="absolute top-6 right-6 z-20">
+      <div className="absolute top-6 right-6 z-20 flex gap-2">
+          <Button asChild>
+            <Link href="/login">
+              <LogIn className="mr-2 h-4 w-4" />
+              Login
+            </Link>
+          </Button>
           <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button>
+                <Button variant="secondary">
                   <UserPlus className="mr-2 h-4 w-4" />
                   Sign Up
                 </Button>
