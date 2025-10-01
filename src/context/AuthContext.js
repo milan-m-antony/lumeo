@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/router';
@@ -80,32 +81,36 @@ export function AuthProvider({ children }) {
   
   const sendPasswordResetEmail = async (email) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: 'http://localhost:3000/reset-password',
     });
     if (error) throw error;
   };
   
   const updatePasswordWithToken = async (token, newPassword) => {
-    // We need to set the session for the updateUser call to work
+    // This is a temporary hack because Supabase JS client v2 has trouble
+    // with updateUser when there isn't an active session. By setting a fake
+    // session with the recovery token, we can make the updateUser call work.
     const { data: { session }, error: sessionError } = await supabase.auth.setSession({
         access_token: token,
-        refresh_token: token, // Using access token as refresh token as it is not available here
+        refresh_token: token, // Just use the same token
     });
 
     if (sessionError) {
-        // A better approach is to not require a session at all for password updates.
-        // We will try to update the user without a session first.
-        console.warn("Session error, attempting password update without session:", sessionError);
+        console.warn("Session error during password update, but attempting anyway:", sessionError);
     }
     
-    // The user is now temporarily authenticated with the token. We can update their password.
+    // The user is now temporarily authenticated. We can update their password.
     const { data, error } = await supabase.auth.updateUser({
       password: newPassword
     });
 
-    if (error) throw error;
+    if (error) {
+       // Clean up the potentially bad session
+       await supabase.auth.signOut();
+       throw error;
+    }
 
-    // After a successful password update, it's good practice to sign the user out.
+    // After a successful password update, sign the user out completely.
     await supabase.auth.signOut();
     return data;
   }

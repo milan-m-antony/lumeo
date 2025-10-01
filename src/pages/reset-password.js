@@ -1,12 +1,13 @@
+
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
-import { Lock, Eye, EyeOff, ArrowLeft, Save, CheckCircle, AlertCircle, Loader2, Hash } from 'lucide-react';
+import { Lock, Eye, EyeOff, ArrowLeft, Save, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from '@/components/ui/textarea';
 
@@ -23,17 +24,27 @@ export default function ResetPasswordPage() {
     const { toast } = useToast();
     
     useEffect(() => {
+        // This effect runs on the client side after the page loads.
+        // It automatically extracts the access_token from the URL fragment.
         if (router.isReady) {
             const hash = window.location.hash;
-            const accessToken = new URLSearchParams(hash.substring(1)).get('access_token');
+            const params = new URLSearchParams(hash.substring(1)); // remove the '#'
+            const accessToken = params.get('access_token');
+            
             if (accessToken) {
                 setToken(accessToken);
                 toast({
                     title: "Token Detected",
-                    description: "Your access token has been automatically filled in. Please set a new password."
+                    description: "Your authentication token has been captured. Please set a new password."
                 });
-                // Clean the URL
+                // Clean the URL for security, so the token isn't left in the address bar.
                 window.history.replaceState({}, document.title, window.location.pathname);
+            } else {
+                 toast({
+                    title: "Token Not Found",
+                    description: "Could not find the access token in the URL. Please click the link in your email again.",
+                    variant: "destructive"
+                });
             }
         }
     }, [router.isReady, toast]);
@@ -45,7 +56,7 @@ export default function ResetPasswordPage() {
             return;
         }
         if (!token) {
-            setError("The access token is missing. Please copy it from the email link URL.");
+            setError("The access token is missing. It should be automatically detected from the URL.");
             return;
         }
 
@@ -84,7 +95,7 @@ export default function ResetPasswordPage() {
                 <div className="relative bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-white/[0.05] shadow-2xl overflow-hidden">
                     <div className="text-center space-y-2 mb-6">
                         <h1 className="text-xl font-bold text-white">Reset Your Password</h1>
-                        <p className="text-white/60 text-xs">Copy the token from your email's reset link and set a new password.</p>
+                        <p className="text-white/60 text-xs">Your auth token has been detected. Enter a new password below.</p>
                     </div>
 
                     {success ? (
@@ -104,16 +115,7 @@ export default function ResetPasswordPage() {
                                     <AlertDescription>{error}</AlertDescription>
                                 </Alert>
                             )}
-                            <div className="relative flex items-center">
-                                <Hash className="absolute left-3 top-3 w-4 h-4 text-white/40" />
-                                <Textarea
-                                    placeholder="Paste access token here..."
-                                    required
-                                    value={token}
-                                    onChange={(e) => setToken(e.target.value)}
-                                    className="w-full bg-white/5 border-transparent focus:border-white/20 text-white placeholder:text-white/30 h-24 transition-all duration-300 pl-10 pr-3 focus:bg-white/10"
-                                />
-                            </div>
+                            
                             <div className="relative flex items-center">
                                 <Lock className="absolute left-3 w-4 h-4 text-white/40" />
                                 <Input
@@ -128,7 +130,7 @@ export default function ResetPasswordPage() {
                                   {showPassword ? <Eye className="w-4 h-4 text-white/40 hover:text-white" /> : <EyeOff className="w-4 h-4 text-white/40 hover:text-white" />}
                                 </div>
                             </div>
-                            <Button type="submit" disabled={loading} className="w-full">
+                            <Button type="submit" disabled={loading || !token} className="w-full">
                                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="mr-2 h-4 w-4" /><span>Update Password</span></>}
                             </Button>
                         </form>
