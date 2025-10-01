@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
         setUser(session ? session.user : null);
         setLoading(false);
         if (event === 'SIGNED_OUT') {
-            if (router.isReady) router.push('/login');
+            if (router.isReady) router.push('/');
         }
         if(event === 'SIGNED_IN') {
             if (router.isReady) router.push('/gallery');
