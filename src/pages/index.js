@@ -16,6 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import Prism from '@/components/ui/Prism';
 
 
 export default function HomePage() {
@@ -38,6 +39,20 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen h-full w-full bg-background relative">
+       <div className="absolute inset-0 z-0">
+         <Prism
+            animationType="rotate"
+            timeScale={0.5}
+            height={3.5}
+            baseWidth={5.5}
+            scale={3.6}
+            hueShift={0}
+            colorFrequency={1}
+            noise={0.5}
+            glow={1}
+          />
+       </div>
+
       <div className="absolute top-6 right-6 z-20">
           <AlertDialog>
               <AlertDialogTrigger asChild>

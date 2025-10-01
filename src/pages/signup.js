@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Loader2, X } from 'lucide-react';
 import Link from 'next/link';
+import Prism from '@/components/ui/Prism';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
@@ -64,7 +65,19 @@ export default function SignUp() {
 
   return (
     <div className="relative flex items-center justify-center min-h-screen p-4">
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm"></div>
+        <div className="absolute inset-0 z-0">
+          <Prism
+              animationType="rotate"
+              timeScale={0.5}
+              height={3.5}
+              baseWidth={5.5}
+              scale={3.6}
+              hueShift={0}
+              colorFrequency={1}
+              noise={0.5}
+              glow={1}
+            />
+        </div>
         <Card className="w-full max-w-sm glass-effect relative z-10">
             <CardHeader>
                 <CardTitle className="text-2xl">Sign Up</CardTitle>
