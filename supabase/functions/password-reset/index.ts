@@ -33,14 +33,14 @@ serve(async (req: Request) => {
         return new Response(JSON.stringify({ error: 'Email is required' }), { status: 400, headers: corsHeaders });
       }
 
-      // Send a password reset OTP. Supabase handles the token generation and sending.
-      // This is the correct method.
+      // This is the correct method. It sends an email with a reset token/link.
+      // Make sure your "Reset password" email template in Supabase is configured.
       const { error: otpError } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
-        redirectTo: '/reset-password-callback' // This is a placeholder, we are using a custom token flow.
+        redirectTo: '/reset-password-callback' // This is a placeholder and not used in our OTP flow.
       });
 
       if (otpError) {
-        // Don't reveal if a user doesn't exist.
+        // Do not reveal if a user doesn't exist.
         console.warn(`Password reset attempt for ${email} resulted in error: ${otpError.message}`);
       }
 
@@ -54,7 +54,7 @@ serve(async (req: Request) => {
         return new Response(JSON.stringify({ error: 'Email, token, and new password are required' }), { status: 400, headers: corsHeaders });
       }
 
-      // 1. Verify the OTP
+      // 1. Verify the OTP sent to the user's email.
       const { data: { session }, error: verifyError } = await supabaseAdmin.auth.verifyOtp({
         email,
         token,
@@ -65,7 +65,7 @@ serve(async (req: Request) => {
          return new Response(JSON.stringify({ error: 'Invalid or expired reset code' }), { status: 400, headers: corsHeaders });
       }
 
-      // 2. Update the user's password using the admin client.
+      // 2. Use the admin client to update the user's password. This requires the user's ID.
       const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
         session.user.id,
         { password: password }
