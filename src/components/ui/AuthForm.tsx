@@ -263,62 +263,63 @@ export function AuthForm({ mode, onSubmit, isLoading, error }: AuthFormProps) {
                     </motion.div>
                   </motion.div>
                   
-                  {isLogin && (
-                    <div className="text-right">
-                      <Link 
-                        href="/forgot-password"
-                        className="text-xs text-white/60 hover:text-white transition-colors duration-300"
-                      >
-                        Forgot Password?
-                      </Link>
-                    </div>
-                  )}
+                  <div className="mt-5 space-y-4">
+                    {isLogin && (
+                        <div className="text-right">
+                        <Link 
+                            href="/forgot-password"
+                            className="text-xs text-white/60 hover:text-white transition-colors duration-300"
+                        >
+                            Forgot Password?
+                        </Link>
+                        </div>
+                    )}
 
-
-                  {/* Sign in button */}
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full relative group/button mt-5"
-                  >
-                    <div className="absolute inset-0 bg-primary/80 rounded-lg blur-lg opacity-0 group-hover/button:opacity-70 transition-opacity duration-300" />
-                    
-                    <div className="relative overflow-hidden bg-primary text-primary-foreground font-medium h-10 rounded-lg transition-all duration-300 flex items-center justify-center">
-                      <motion.div 
-                        className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0"
-                        animate={{ x: ['-100%', '100%'],}}
-                        transition={{ duration: 1.5, ease: "easeInOut", repeat: Infinity, repeatDelay: 1 }}
-                        style={{ opacity: isLoading ? 1 : 0, transition: 'opacity 0.3s ease' }}
-                      />
-                      
-                      <AnimatePresence mode="wait">
-                        {isLoading ? (
-                          <motion.div
-                            key="loading"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="flex items-center justify-center"
-                          >
-                            <div className="w-4 h-4 border-2 border-primary-foreground/70 border-t-transparent rounded-full animate-spin" />
-                          </motion.div>
-                        ) : (
-                          <motion.span
-                            key="button-text"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="flex items-center justify-center gap-1 text-sm font-medium"
-                          >
-                            {isLogin ? 'Sign In' : 'Sign Up'}
-                            <ArrowRight className="w-3 h-3 group-hover/button:translate-x-1 transition-transform duration-300" />
-                          </motion.span>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </motion.button>
+                    {/* Sign in button */}
+                    <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full relative group/button"
+                    >
+                        <div className="absolute inset-0 bg-primary/80 rounded-lg blur-lg opacity-0 group-hover/button:opacity-70 transition-opacity duration-300" />
+                        
+                        <div className="relative overflow-hidden bg-primary text-primary-foreground font-medium h-10 rounded-lg transition-all duration-300 flex items-center justify-center">
+                        <motion.div 
+                            className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0"
+                            animate={{ x: ['-100%', '100%'],}}
+                            transition={{ duration: 1.5, ease: "easeInOut", repeat: Infinity, repeatDelay: 1 }}
+                            style={{ opacity: isLoading ? 1 : 0, transition: 'opacity 0.3s ease' }}
+                        />
+                        
+                        <AnimatePresence mode="wait">
+                            {isLoading ? (
+                            <motion.div
+                                key="loading"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="flex items-center justify-center"
+                            >
+                                <div className="w-4 h-4 border-2 border-primary-foreground/70 border-t-transparent rounded-full animate-spin" />
+                            </motion.div>
+                            ) : (
+                            <motion.span
+                                key="button-text"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="flex items-center justify-center gap-1 text-sm font-medium"
+                            >
+                                {isLogin ? 'Sign In' : 'Sign Up'}
+                                <ArrowRight className="w-3 h-3 group-hover/button:translate-x-1 transition-transform duration-300" />
+                            </motion.span>
+                            )}
+                        </AnimatePresence>
+                        </div>
+                    </motion.button>
+                  </div>
                 
                 {/* Sign up/in link */}
                 <motion.p 
