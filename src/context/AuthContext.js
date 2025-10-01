@@ -29,9 +29,11 @@ export function AuthProvider({ children }) {
         if (event === 'SIGNED_IN') {
             if (router.isReady) router.push('/gallery');
         }
+        if (event === 'PASSWORD_RECOVERY') {
+            router.push('/reset-password');
+        }
         if (event === 'SIGNED_OUT') {
-            // The redirect is now handled in the logout function to be more explicit.
-            // router.push('/');
+            // The redirect is handled in the logout function to be more explicit.
         }
       }
     );
@@ -72,6 +74,19 @@ export function AuthProvider({ children }) {
         router.push('/');
     }
   };
+  
+  const sendPasswordResetEmail = async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) throw error;
+  };
+
+  const updatePassword = async (password) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) throw error;
+  };
+
 
   const value = {
     user,
@@ -79,6 +94,8 @@ export function AuthProvider({ children }) {
     login,
     signup,
     logout,
+    sendPasswordResetEmail,
+    updatePassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

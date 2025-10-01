@@ -11,7 +11,7 @@ function AppContent({ Component, pageProps }) {
   const router = useRouter();
   const { user, loading } = useAuth();
   
-  const isAuthPage = router.pathname === '/login' || router.pathname === '/signup';
+  const isAuthPage = ['/login', '/signup', '/forgot-password', '/reset-password'].includes(router.pathname);
   const isHomePage = router.pathname === '/';
 
   // While checking auth state, show a loader
@@ -33,7 +33,6 @@ function AppContent({ Component, pageProps }) {
   }
   
   // If not logged in, and on a public page, show the page without the main layout.
-  // The AuthForm for login/signup has its own background.
   if (isHomePage || isAuthPage) {
      return <Component {...pageProps} />;
   }

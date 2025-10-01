@@ -262,6 +262,18 @@ export function AuthForm({ mode, onSubmit, isLoading, error }: AuthFormProps) {
                       </div>
                     </motion.div>
                   </motion.div>
+                  
+                  {isLogin && (
+                    <div className="text-right">
+                      <Link 
+                        href="/forgot-password"
+                        className="text-xs text-white/60 hover:text-white transition-colors duration-300"
+                      >
+                        Forgot Password?
+                      </Link>
+                    </div>
+                  )}
+
 
                   {/* Sign in button */}
                   <motion.button
