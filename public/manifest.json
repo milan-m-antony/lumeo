@@ -1,0 +1,21 @@
+{
+  "name": "Lumeo Personal Gallery",
+  "short_name": "Lumeo",
+  "description": "A personal media gallery using Telegram and Supabase.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05030e",
+  "theme_color": "#4a29a0",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import "@/app/globals.css";
 import { useRouter } from "next/router";
 import { useAuth } from "@/context/AuthContext";
 import { Loader2 } from "lucide-react";
+import Head from 'next/head';
 
 function AppContent({ Component, pageProps }) {
   const router = useRouter();
@@ -54,9 +55,16 @@ function AppContent({ Component, pageProps }) {
 
 function MyApp({ Component, pageProps }) {
   return (
-    <AuthProvider>
-      <AppContent Component={Component} pageProps={pageProps} />
-    </AuthProvider>
+    <>
+      <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#4a29a0" />
+      </Head>
+      <AuthProvider>
+        <AppContent Component={Component} pageProps={pageProps} />
+      </AuthProvider>
+    </>
   );
 }
 
