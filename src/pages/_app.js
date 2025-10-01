@@ -23,28 +23,23 @@ function AppContent({ Component, pageProps }) {
     );
   }
   
-  // If user is logged in, show them the main app with layout
+  // If user is logged in, wrap the component with the main layout
   if (user) {
      return (
         <Layout>
           <Component {...pageProps} />
-          <Toaster />
         </Layout>
      );
   }
   
-  // If not logged in, and on a public page, show the page without layout
+  // If not logged in, and on a public page, show the page without the main layout.
+  // The AuthForm for login/signup has its own background.
   if (isHomePage || isAuthPage) {
-     return (
-        <>
-            <Component {...pageProps} />
-            <Toaster />
-        </>
-     );
+     return <Component {...pageProps} />;
   }
 
-  // If not logged in and trying to access a protected page, AuthProvider will handle redirect
-  // but we can show a loader as a fallback.
+  // If not logged in and trying to access a protected page, AuthProvider will handle redirect.
+  // We show a loader as a fallback while the redirect is happening.
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -63,6 +58,7 @@ function MyApp({ Component, pageProps }) {
       </Head>
       <AuthProvider>
         <AppContent Component={Component} pageProps={pageProps} />
+        <Toaster />
       </AuthProvider>
     </>
   );
