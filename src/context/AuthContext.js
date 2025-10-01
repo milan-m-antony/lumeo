@@ -29,6 +29,9 @@ export function AuthProvider({ children }) {
         if (event === 'SIGNED_IN') {
             if (router.isReady) router.push('/gallery');
         }
+        if (event === 'SIGNED_OUT') {
+            router.push('/');
+        }
       }
     );
 
@@ -47,8 +50,6 @@ export function AuthProvider({ children }) {
     if (error) {
         throw error;
     }
-    // After signup, Supabase sends a confirmation email. 
-    // The user will be logged in after they confirm.
     toast({
         title: "Registration Successful!",
         description: "Please check your email to confirm your account, then log in.",
@@ -57,11 +58,23 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    setUser(null);
-    toast({ title: "You have been logged out." });
-    router.push('/');
+    try {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+            // This specific error can be ignored as it means the session is already invalid.
+            if (error.name === 'AuthSessionMissingError') {
+                console.warn('Logout attempted with an already invalid session.');
+            } else {
+                throw error;
+            }
+        }
+    } catch (error) {
+        console.error("Error during sign out:", error);
+    } finally {
+        setUser(null);
+        toast({ title: "You have been logged out." });
+        router.push('/');
+    }
   };
 
   const value = {
