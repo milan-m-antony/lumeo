@@ -1,6 +1,5 @@
 
-import type React from 'react';
-import { useRef, useMemo, useCallback, useState, useEffect } from 'react';
+import React, { useRef, useMemo, useCallback, useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
