@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { UserPlus, LogIn } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import {
   AlertDialog,
@@ -22,6 +22,25 @@ import Prism from '@/components/ui/Prism';
 export default function HomePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [userExists, setUserExists] = useState(true); // Default to true to be safe
+  const [checkingUser, setCheckingUser] = useState(true);
+
+  useEffect(() => {
+    async function checkUser() {
+      try {
+        const response = await fetch('/api/auth/user-count');
+        const data = await response.json();
+        setUserExists(data.count > 0);
+      } catch (error) {
+        console.error("Failed to check for existing users:", error);
+        // Fail securely by assuming a user exists
+        setUserExists(true);
+      } finally {
+        setCheckingUser(false);
+      }
+    }
+    checkUser();
+  }, []);
 
   useEffect(() => {
     if (!loading && user) {
@@ -29,7 +48,7 @@ export default function HomePage() {
     }
   }, [user, loading, router]);
 
-  if (loading || (!loading && user)) {
+  if (loading || (!loading && user) || checkingUser) {
     return (
         <div className="flex items-center justify-center min-h-screen bg-background">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -70,28 +89,30 @@ export default function HomePage() {
                       Sign In
                     </Link>
                  </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="lg">
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      Sign Up
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>One-Time Registration</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This application is designed for a single administrator. By proceeding, you will create the one and only user account. After this, registration will be permanently closed.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction asChild>
-                        <Link href="/signup">Continue to Sign Up</Link>
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                {!userExists && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="lg">
+                          <UserPlus className="mr-2 h-4 w-4" />
+                          Sign Up
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>One-Time Registration</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This application is designed for a single administrator. By proceeding, you will create the one and only user account. After this, registration will be permanently closed.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction asChild>
+                            <Link href="/signup">Continue to Sign Up</Link>
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                )}
               </div>
           </div>
       </div>

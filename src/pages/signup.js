@@ -8,9 +8,33 @@ import { motion } from 'framer-motion';
 export default function SignUp() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [registrationClosed, setRegistrationClosed] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(true);
   const { signup } = useAuth();
 
+  useEffect(() => {
+    async function checkUser() {
+      try {
+        const response = await fetch('/api/auth/user-count');
+        const data = await response.json();
+        if (data.count > 0) {
+          setRegistrationClosed(true);
+        }
+      } catch (error) {
+        console.error("Failed to check for existing users:", error);
+        setError("Could not verify registration status. Please try again later.");
+      } finally {
+        setCheckingStatus(false);
+      }
+    }
+    checkUser();
+  }, []);
+
   const handleSubmit = async (email, password) => {
+    if (registrationClosed) {
+      setError("Registration is closed.");
+      return;
+    }
     setError(null);
     setLoading(true);
     try {
@@ -26,6 +50,40 @@ export default function SignUp() {
       setLoading(false);
     }
   };
+
+  if (checkingStatus) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (registrationClosed) {
+      return (
+        <div className="min-h-screen w-screen bg-background relative overflow-hidden flex items-center justify-center p-4">
+            <div className="absolute inset-0 z-0" style={{
+                backgroundImage: 'radial-gradient(circle at top left, hsl(var(--primary) / 0.5) 0%, hsl(var(--background)) 30%)',
+                backgroundAttachment: 'fixed'
+            }} />
+            <div className="absolute inset-0 bg-black/40 z-0"/>
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="w-full max-w-sm relative z-10 text-center"
+            >
+                <Alert variant="destructive" className="bg-destructive/10">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Registration Closed</AlertTitle>
+                    <AlertDescription>
+                        An administrator account already exists. New user registration is not allowed.
+                    </AlertDescription>
+                </Alert>
+            </motion.div>
+        </div>
+      );
+  }
 
   return (
     <AuthForm 
