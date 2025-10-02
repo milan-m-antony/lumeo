@@ -1,4 +1,5 @@
-import React, { useState, useEffect, createContext, useContext } from 'react';
+
+import React, { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import {
@@ -63,24 +64,32 @@ const AppMenu = () => {
     const { isMobile, setOpenMobile } = useSidebar();
     const { user, logout } = useAuth();
 
-    const menuItems = user ? [
-        { href: '/gallery', label: 'Gallery', icon: GalleryHorizontal },
-        { href: '/albums', label: 'Albums', icon: LayoutGrid },
-        { href: '/upload', label: 'Upload', icon: UploadCloud },
-        { href: '/trash', label: 'Trash', icon: Trash2 },
-        { href: '/storage', label: 'Storage', icon: Database },
-    ] : [
-        { href: '/', label: 'Home', icon: Home },
-        { href: '/login', label: 'Login', icon: LogIn },
-        { href: '/signup', label: 'Sign Up', icon: UserPlus },
-    ];
-
-    const handleLinkClick = (href) => {
+    const handleLinkClick = useCallback((href) => {
         if (isMobile) {
             setOpenMobile(false);
         }
         router.push(href);
-    };
+    }, [isMobile, setOpenMobile, router]);
+    
+    const handleLogout = useCallback(() => {
+        if (isMobile) {
+            setOpenMobile(false);
+        }
+        logout();
+    }, [isMobile, setOpenMobile, logout]);
+
+    const menuItems = user ? [
+        { href: '/gallery', label: 'Gallery', icon: GalleryHorizontal, onClick: () => handleLinkClick('/gallery') },
+        { href: '/albums', label: 'Albums', icon: LayoutGrid, onClick: () => handleLinkClick('/albums') },
+        { href: '/upload', label: 'Upload', icon: UploadCloud, onClick: () => handleLinkClick('/upload') },
+        { href: '/trash', label: 'Trash', icon: Trash2, onClick: () => handleLinkClick('/trash') },
+        { href: '/storage', label: 'Storage', icon: Database, onClick: () => handleLinkClick('/storage') },
+    ] : [
+        { href: '/', label: 'Home', icon: Home, onClick: () => handleLinkClick('/') },
+        { href: '/login', label: 'Login', icon: LogIn, onClick: () => handleLinkClick('/login') },
+        { href: '/signup', label: 'Sign Up', icon: UserPlus, onClick: () => handleLinkClick('/signup') },
+    ];
+
 
     const isPathActive = (path) => {
         if (!pathname || !path) return false;
@@ -92,20 +101,18 @@ const AppMenu = () => {
     return (
         <SidebarMenu>
             {menuItems.map((item) => (
-                 <SidebarMenuItem key={item.href}>
-                    <Link href={item.href} passHref>
-                        <SidebarMenuButton
-                             isActive={isPathActive(item.href)}
-                             tooltip={{children: item.label}}
-                        >
-                            <item.icon />
-                            <span>{item.label}</span>
-                        </SidebarMenuButton>
-                    </Link>
+                 <SidebarMenuItem key={item.href} onClick={item.onClick}>
+                    <SidebarMenuButton
+                         isActive={isPathActive(item.href)}
+                         tooltip={{children: item.label}}
+                    >
+                        <item.icon />
+                        <span>{item.label}</span>
+                    </SidebarMenuButton>
                  </SidebarMenuItem>
             ))}
             {user && (
-                <SidebarMenuItem onClick={logout}>
+                <SidebarMenuItem onClick={handleLogout}>
                      <SidebarMenuButton tooltip={{children: "Logout"}}>
                         <LogOut />
                         <span>Logout</span>
