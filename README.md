@@ -1,7 +1,8 @@
 README.md
 # 🎨 Lumeo - A Personal Media Gallery
 
-![Lumeo Banner](https://via.placeholder.com/1200x300?text=Lumeo+Media+Gallery)  
+![Lumeo Banner](assets/banner.png)
+ 
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)  
 [![Vercel](https://img.shields.io/badge/Deploy-Vercel-blue)](https://vercel.com/new)  
@@ -27,10 +28,39 @@ It uses **Telegram** for storage and **Supabase** for metadata management, allow
 
 ## 📸 Demo / Preview
 
-> Replace these placeholders with actual screenshots or GIFs
 
-![Gallery Screenshot](https://via.placeholder.com/800x400?text=Gallery+Preview)  
-![Upload Screenshot](https://via.placeholder.com/800x400?text=Upload+Demo)  
+### Front Page
+![Front Page](assets/front_page.png)
+*A clean landing page welcoming users to Lumeo.*
+
+### Sign In Form
+![Sign In Form](assets/sign_in.png)
+*Users can securely log in with email/password.*
+
+### Reset Password
+![Reset Password](assets/reset_password.png)
+*Easily reset your password with a simple form.*
+
+### Gmail OTP Verification
+![Gmail OTP](assets/gmail_otp.png)
+*Secure login with Gmail OTP for added security.*
+
+### gallery
+![gallery](assets/banner.png)
+*gallery view.*
+
+### Albums
+![Albums](assets/album.png)
+*Organize your files into albums for easy access.*
+
+### Upload Files
+![media Upload](assets/upload.png)
+*Upload your media files safely.*
+
+### Storage
+![Storage Upload](assets/storage.png)
+*monitor your storage.*
+
 
 ---
 
