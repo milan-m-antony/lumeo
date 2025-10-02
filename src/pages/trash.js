@@ -107,8 +107,8 @@ function TrashPage() {
   
   return (
     <div className="flex flex-col h-full w-full">
-      <header className="flex-shrink-0 sticky top-0 z-10 md:relative">
-        <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 border-b glass-effect md:glass-effect-none md:bg-transparent md:border-0 md:shadow-none md:backdrop-blur-none">
+      <header className="flex-shrink-0 sticky top-0 z-10 hidden md:block">
+        <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 border-b bg-background/95 backdrop-blur-sm md:bg-transparent md:border-0 md:shadow-none md:backdrop-blur-none">
           <h1 className="text-2xl font-bold text-foreground">Trash</h1>
         </div>
       </header>
@@ -118,7 +118,7 @@ function TrashPage() {
         {error && <p className="text-center text-destructive">Error: {error}</p>}
 
         {!loading && !error && trashedFiles.length === 0 && (
-          <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground group-data-[state=expanded]/sidebar-wrapper:md:-ml-96 md:ml-96 transition-all duration-200 ease-in-out">
+          <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground group-data-[state=expanded]/sidebar-wrapper:md:ml-0 md:ml-0 transition-all duration-200 ease-in-out">
             <Trash2 className="w-24 h-24 mx-auto text-muted-foreground/50" strokeWidth={1} />
             <h2 className="text-2xl mt-4 font-semibold">Your Trash is Empty</h2>
             <p className="mt-2">Deleted files will appear here.</p>

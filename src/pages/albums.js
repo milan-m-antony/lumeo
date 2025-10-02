@@ -107,8 +107,7 @@ function AlbumsPage() {
 
   return (
     <div className="flex flex-col h-full w-full">
-      <header className="flex-shrink-0 sticky top-0 z-10 md:relative">
-        <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 border-b glass-effect md:glass-effect-none md:bg-transparent md:border-0 md:shadow-none md:backdrop-blur-none">
+      <header className="flex-shrink-0 sticky top-0 z-10 hidden md:flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8 border-b bg-background/95 backdrop-blur-sm md:bg-transparent md:border-0 md:shadow-none md:backdrop-blur-none">
           <h1 className="text-2xl font-bold text-foreground">Albums</h1>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -139,7 +138,6 @@ function AlbumsPage() {
                 </DialogFooter>
             </DialogContent>
            </Dialog>
-        </div>
       </header>
 
       <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">

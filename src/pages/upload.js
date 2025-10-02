@@ -41,19 +41,19 @@ const FilePreview = ({ fileWithPreview, caption, onCaptionChange, onRemove }) =>
   }
 
   return (
-    <div className="flex items-center justify-between p-2 border rounded-lg bg-muted/50 gap-2">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-2 border rounded-lg bg-muted/50 gap-2">
       <div className="flex items-center gap-3 flex-shrink-0">
         {previewElement}
-        <span className="text-sm font-medium truncate hidden sm:inline-block max-w-[150px]">{file.name}</span>
+        <span className="text-sm font-medium truncate max-w-[150px]">{file.name}</span>
       </div>
       <Input 
         type="text" 
         placeholder="Enter caption..." 
         value={caption} 
         onChange={onCaptionChange}
-        className="flex-grow"
+        className="flex-grow w-full sm:w-auto"
       />
-      <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={() => onRemove(file)}>
+      <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 absolute top-1 right-1 sm:static" onClick={() => onRemove(file)}>
         <XIcon className="h-4 w-4" />
       </Button>
     </div>
@@ -248,13 +248,13 @@ function UploadPage() {
 
   return (
     <div className="flex flex-col h-full w-full">
-         <header className="flex-shrink-0 sticky top-0 z-10 md:relative">
-            <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 border-b glass-effect md:glass-effect-none md:bg-transparent md:border-0 md:shadow-none md:backdrop-blur-none">
+         <header className="flex-shrink-0 sticky top-0 z-10 hidden md:block">
+            <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 border-b bg-background/95 backdrop-blur-sm md:bg-transparent md:border-0 md:shadow-none md:backdrop-blur-none">
                 <h1 className="text-2xl font-bold text-foreground">Upload Files</h1>
             </div>
          </header>
-         <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8 flex items-center group-data-[state=expanded]/sidebar-wrapper:md:-ml-48 md:ml-72 transition-all duration-200 ease-in-out">
-            <div className="max-w-2xl">
+         <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8 flex items-center justify-center">
+            <div className="w-full max-w-2xl">
                 <Card className="shadow-lg bg-transparent border-border/20">
                   <form onSubmit={handleSubmit}>
                     <CardContent className="p-6">

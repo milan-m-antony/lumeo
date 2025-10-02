@@ -240,8 +240,8 @@ function GalleryPage() {
 
   return (
     <div className="flex flex-col h-full w-full">
-      <header className="flex-shrink-0 sticky top-0 z-10 md:relative">
-        <div className="px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 h-auto sm:h-16 border-b py-4 sm:py-0 glass-effect md:glass-effect-none md:bg-transparent md:border-0 md:shadow-none md:backdrop-blur-none">
+      <header className="flex-shrink-0 sticky top-0 z-10 hidden md:block">
+        <div className="px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 h-auto sm:h-16 border-b py-4 sm:py-0 bg-background/95 backdrop-blur-sm md:bg-transparent md:border-0 md:shadow-none md:backdrop-blur-none">
             <h1 className="text-2xl font-bold text-foreground">Gallery</h1>
              <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                 <div className="relative w-full sm:max-w-xs">
@@ -297,7 +297,7 @@ function GalleryPage() {
       </main>
 
       <Dialog open={!!selectedFile} onOpenChange={(isOpen) => !isOpen && setSelectedFile(null)}>
-          <DialogContent className="max-w-3xl w-11/12 p-0 flex flex-col h-[90vh]">
+          <DialogContent className="max-w-3xl w-full h-full md:h-[90vh] p-0 flex flex-col">
              {selectedFile && (
                 <>
                 <DialogHeader className="p-4 border-b flex-shrink-0">
@@ -314,7 +314,7 @@ function GalleryPage() {
                       {renderFilePreview(selectedFile)}
                     </div>
                 </div>
-                <CardFooter className="p-4 bg-background/80 border-t flex justify-end items-center gap-2 flex-shrink-0">
+                <CardFooter className="p-4 bg-background/80 border-t flex justify-end items-center gap-2 flex-shrink-0 glass-effect">
                     {editingId === selectedFile.id ? (
                         <>
                           <Button size="icon" variant="outline" onClick={() => handleUpdateCaption(selectedFile.id)} title="Save Caption"><Save className="w-4 h-4" /></Button>
