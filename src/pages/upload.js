@@ -256,6 +256,7 @@ function UploadPage() {
 
   return (
     <div className="flex flex-col h-full w-full">
+      <PageHeader title="Upload Files" />
       <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8 flex items-center justify-center">
         <div className="w-full max-w-2xl">
           <Card className="shadow-lg bg-transparent border-border/20">
