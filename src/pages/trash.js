@@ -17,9 +17,55 @@ function TrashPage() {
   const { toast } = useToast();
   const { setMobileHeaderContent } = useLayout();
 
+  const emptyBinButton = (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="destructive" disabled={trashedFiles.length === 0}>
+          <Trash2 className="mr-2 h-4 w-4" />
+          Empty Bin
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you sure you want to empty the trash?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This will permanently delete all {trashedFiles.length} items in the trash. This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={handleEmptyTrash}>Empty Bin</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+
   useEffect(() => {
-    setMobileHeaderContent({ title: "Trash" });
-  }, [setMobileHeaderContent]);
+    setMobileHeaderContent({ 
+      title: "Trash",
+      actions: (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="ghost" size="icon" disabled={trashedFiles.length === 0}>
+              <Trash2 className="h-5 w-5" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete all items in the trash. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleEmptyTrash}>Empty Trash</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )
+    });
+  }, [setMobileHeaderContent, trashedFiles.length]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -92,6 +138,25 @@ function TrashPage() {
       });
     }
   };
+  
+  const handleEmptyTrash = async () => {
+    const res = await fetchWithAuth('/api/empty-trash', { method: 'POST' });
+    const result = await res.json();
+
+    if (result.success) {
+        setTrashedFiles([]);
+        toast({
+            title: "Trash Emptied",
+            description: "All files have been permanently deleted.",
+        });
+    } else {
+        toast({
+            title: "Failed to Empty Trash",
+            description: result.error || "Could not empty the trash.",
+            variant: "destructive",
+        });
+    }
+  };
 
 
   const getFileUrl = (fileId) => `/api/download?file_id=${fileId}`;
@@ -115,7 +180,11 @@ function TrashPage() {
   
   return (
     <div className="flex flex-col h-full w-full">
-      <PageHeader title="Trash" />
+        <PageHeader title="Trash">
+            <div className="hidden md:block">
+                 {emptyBinButton}
+            </div>
+        </PageHeader>
       <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
         <div className="w-full max-w-7xl mx-auto">
           {loading && <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
