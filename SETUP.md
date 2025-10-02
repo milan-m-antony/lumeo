@@ -76,7 +76,7 @@ npm run supabase:secrets:set -- SUPABASE_URL=... SUPABASE_SERVICE_KEY=...
 
 >THIS FOR EMAIL OTP TEMPLATE YOU CAN ALSO MODIFY THE CODE TO MAKE IT MORE BEAUTIFUL.
 
-Edit Supabase → **Authentication → Templates → Reset Password**:
+Edit Supabase → **Authentication → Emails  → Reset Password → <> Source:Paste → Save Changes**:
 
 ### code editor
 
