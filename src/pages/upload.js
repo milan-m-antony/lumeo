@@ -44,10 +44,13 @@ const FilePreview = ({ fileWithPreview, caption, onCaptionChange, onRemove }) =>
   }
 
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-2 border rounded-lg bg-muted/50 gap-2 relative">
-      <div className="flex items-center gap-3 flex-shrink-0">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border rounded-lg bg-muted/50 gap-3 relative">
+      <div className="flex items-center gap-4 flex-grow w-full">
         {previewElement}
-        <span className="text-sm font-medium truncate max-w-[150px] sm:max-w-xs">{file.name}</span>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate">{file.name}</p>
+          <p className="text-xs text-muted-foreground">{Math.round(file.size / 1024)} KB</p>
+        </div>
       </div>
       <Input 
         type="text" 
@@ -86,14 +89,22 @@ function UploadPage() {
   const fetchAlbums = useCallback(async () => {
     try {
         const res = await fetchWithAuth('/api/albums');
+        if (!res.ok) throw new Error("Failed to fetch albums");
         const data = await res.json();
         if (Array.isArray(data)) {
           setAllAlbums(data);
+        } else {
+           if(data.error) throw new Error(data.error);
         }
     } catch(err) {
         console.error("Failed to fetch albums", err)
+        toast({
+            title: "Failed to load albums",
+            description: err.message,
+            variant: "destructive",
+        });
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     fetchAlbums();
@@ -238,15 +249,32 @@ function UploadPage() {
           resetForm();
         } else {
           setError(response.error || "An unknown error occurred during upload.");
+          toast({
+            title: "Upload Failed",
+            description: response.error || "An unknown error occurred.",
+            variant: "destructive"
+          });
         }
       } catch (e) {
-          setError("An unexpected error occurred parsing the server response.");
+          const errorMessage = "An unexpected error occurred parsing the server response.";
+          setError(errorMessage);
+          toast({
+              title: "Upload Failed",
+              description: errorMessage,
+              variant: "destructive"
+          });
       }
     };
 
     xhr.onerror = () => {
       setIsUploading(false);
-      setError("Upload failed. Please check your network connection and try again.");
+      const errorMessage = "Upload failed. Please check your network connection and try again.";
+      setError(errorMessage);
+      toast({
+          title: "Network Error",
+          description: errorMessage,
+          variant: "destructive"
+      });
     };
 
     xhr.send(formData);
@@ -257,11 +285,11 @@ function UploadPage() {
   return (
     <div className="flex flex-col h-full w-full">
       <PageHeader title="Upload Files" />
-      <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
+      <main className="flex-grow overflow-auto p-2 sm:p-6 lg:p-8">
         <div className="w-full max-w-2xl mx-auto">
           <Card className="shadow-lg bg-transparent border-border/20">
             <form onSubmit={handleSubmit}>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <div {...getRootProps()} className={`w-full border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}>
                   <input {...getInputProps()} />
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -378,7 +406,7 @@ function UploadPage() {
                 </div>
                 )}
 
-                {error && (
+                {error && !isUploading && (
                   <Alert variant="destructive" className="w-full mt-6">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Upload Failed</AlertTitle>
@@ -387,7 +415,7 @@ function UploadPage() {
                 )}
 
               </CardContent>
-              <CardFooter className="w-full p-6 pt-0">
+              <CardFooter className="w-full p-4 sm:p-6 pt-0">
                 <Button type="submit" disabled={fileEntries.length === 0 || isUploading} className="w-full">
                   {isUploading ? 'Uploading...' : `Upload ${fileEntries.length} File(s)`}
                 </Button>
