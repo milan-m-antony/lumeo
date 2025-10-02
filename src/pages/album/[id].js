@@ -20,7 +20,23 @@ import { GalleryItem } from "@/components/GalleryItem";
 import { useLayout } from "@/components/Layout";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar } from "@/components/ui/calendar";
-import { format, addDays } from "date-fns";
+import { format } from "date-fns";
+
+const useMediaQuery = (query) => {
+    const [matches, setMatches] = useState(false);
+
+    useEffect(() => {
+        const media = window.matchMedia(query);
+        if (media.matches !== matches) {
+            setMatches(media.matches);
+        }
+        const listener = () => setMatches(media.matches);
+        window.addEventListener("resize", listener);
+        return () => window.removeEventListener("resize", listener);
+    }, [matches, query]);
+
+    return matches;
+};
 
 function AlbumDetailPage() {
   const router = useRouter();
@@ -48,6 +64,8 @@ function AlbumDetailPage() {
   const isInitialLoad = useRef(true);
   
   const { setMobileHeaderContent } = useLayout();
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+
 
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0,
@@ -190,7 +208,7 @@ function AlbumDetailPage() {
                             defaultMonth={dateRange?.from}
                             selected={dateRange}
                             onSelect={setDateRange}
-                            numberOfMonths={2}
+                            numberOfMonths={isDesktop ? 2 : 1}
                           />
                         </PopoverContent>
                       </Popover>
@@ -201,7 +219,7 @@ function AlbumDetailPage() {
         </>
       ),
     });
-  }, [setMobileHeaderContent, album, search, typeFilter, sortOrder, dateRange, toggleSelectionMode]);
+  }, [setMobileHeaderContent, album, search, typeFilter, sortOrder, dateRange, toggleSelectionMode, isDesktop]);
 
   const fetchFiles = useCallback(async (isNewSearch = false) => {
     if (!albumId) return;
@@ -558,7 +576,7 @@ function AlbumDetailPage() {
                                             defaultMonth={dateRange?.from}
                                             selected={dateRange}
                                             onSelect={setDateRange}
-                                            numberOfMonths={2}
+                                            numberOfMonths={isDesktop ? 2 : 1}
                                         />
                                     </PopoverContent>
                                 </Popover>
