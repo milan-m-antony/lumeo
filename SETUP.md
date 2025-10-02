@@ -78,7 +78,8 @@ npm run supabase:secrets:set -- SUPABASE_URL=... SUPABASE_SERVICE_KEY=...
 
 Edit Supabase → **Authentication → Templates → Reset Password**:
 
-```html
+```bash
+html
 <!DOCTYPE html>
 <html>
 <head>
@@ -105,10 +106,13 @@ p { color: #4b5563; font-size: 15px; line-height: 1.6; text-align: center; margi
 </div>
 </body>
 </html>
+```
 
 #Deploy Edge Function
 
-npm run supabase:functions:deploy -- password-reset```
+```bash
+npm run supabase:functions:deploy -- password-reset
+```
 Verify deployment in **Supabase Dashboard → Edge Functions**.
 
 ---
@@ -118,7 +122,8 @@ Verify deployment in **Supabase Dashboard → Edge Functions**.
 Start the development server:
 
 ```bash
-npm run dev```
+npm run dev
+```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.  
 Create an account and start uploading your media.
