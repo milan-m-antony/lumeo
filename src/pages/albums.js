@@ -61,7 +61,7 @@ function AlbumsPage() {
       title: "Albums",
       actions: (
         <>
-           <Button variant="ghost" size="icon" onClick={() => setIsSearchVisible(!isSearchVisible)}>
+          <Button variant="ghost" size="icon" onClick={() => setIsSearchVisible(!isSearchVisible)}>
             <Search />
           </Button>
           <Popover>
