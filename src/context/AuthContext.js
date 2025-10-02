@@ -27,9 +27,6 @@ export function AuthProvider({ children }) {
         setUser(session ? session.user : null);
         setLoading(false);
         
-        if (event === 'SIGNED_IN') {
-            if (router.isReady) router.push('/gallery');
-        }
         if (event === 'SIGNED_OUT') {
             // The redirect is handled in the logout function to be more explicit.
         }

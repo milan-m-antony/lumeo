@@ -14,7 +14,8 @@ export default function Login() {
     setLoading(true);
     try {
       await login(email, password);
-      // The redirect is handled by the AuthProvider
+      // After a successful login, redirect to the gallery.
+      router.push('/gallery');
     } catch (err) {
       setError(err.message || 'An unexpected error occurred.');
     } finally {
