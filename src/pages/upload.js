@@ -256,7 +256,7 @@ function UploadPage() {
             </div>
          </header>
          <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
-            <div className="w-full max-w-2xl">
+            <div className="w-full max-w-2xl ml-72">
                 <Card className="w-full shadow-lg bg-transparent border-border/20">
                   <form onSubmit={handleSubmit}>
                     <CardContent className="p-6">
