@@ -26,6 +26,7 @@ function TrashPage() {
         toast({
             title: "Trash Emptied",
             description: "All files have been permanently deleted.",
+            variant: "success",
         });
     } else {
         toast({
@@ -84,7 +85,7 @@ function TrashPage() {
         </AlertDialog>
       )
     });
-  }, [setMobileHeaderContent, trashedFiles.length, loading]);
+  }, [setMobileHeaderContent, trashedFiles.length, loading, handleEmptyTrash]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -130,6 +131,7 @@ function TrashPage() {
       toast({
         title: "File Restored",
         description: "The file has been restored to your gallery.",
+        variant: "success",
       });
     } else {
       toast({
@@ -154,6 +156,7 @@ function TrashPage() {
       toast({
         title: "File Deleted Permanently",
         description: "The file has been permanently removed.",
+        variant: "success",
       });
     } else {
       toast({

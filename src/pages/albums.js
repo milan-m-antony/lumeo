@@ -75,7 +75,7 @@ function AlbumsPage() {
     if (res.ok) {
         const newAlbumWithDefaults = { ...result, files: [{ count: 0 }], cover_file_id: null };
         setAlbums([newAlbumWithDefaults, ...albums]);
-        toast({ title: "Album Created!", description: `"${result.name}" has been created.` });
+        toast({ title: "Album Created!", description: `"${result.name}" has been created.`, variant: "success" });
         setNewAlbumName("");
         setNewAlbumDescription("");
         setIsDialogOpen(false);
@@ -208,7 +208,7 @@ function AlbumsPage() {
 
     if (res.ok) {
         setAlbums(albums.filter(a => a.id !== albumId));
-        toast({ title: "Album Deleted", description: "The album has been deleted." });
+        toast({ title: "Album Deleted", description: "The album has been deleted.", variant: "success" });
     } else {
         toast({ title: "Deletion Failed", description: result.error, variant: "destructive" });
     }

@@ -2,7 +2,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/router';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 const AuthContext = createContext();
 
@@ -51,6 +52,7 @@ export function AuthProvider({ children }) {
     toast({
         title: "Registration Successful!",
         description: "Please check your email to confirm your account.",
+        variant: "success",
     });
     router.push('/login');
   };
@@ -102,7 +104,6 @@ export function withAuth(Component) {
     }, [user, loading, router]);
 
     if (loading || !user) {
-      // You can return a loader here
       return (
         <div className="flex items-center justify-center min-h-screen bg-background">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
