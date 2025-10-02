@@ -28,7 +28,7 @@ export function AuthProvider({ children }) {
         setLoading(false);
         
         if (event === 'SIGNED_OUT') {
-            // The redirect is handled in the logout function to be more explicit.
+            router.replace('/login');
         }
       }
     );
@@ -56,21 +56,18 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    try {
-        const { error } = await supabase.auth.signOut();
-        if (error && error.name !== 'AuthSessionMissingError') {
-            throw error;
-        }
-    } catch (error) {
-        // This case is for when the session is already expired, which is fine.
-        if (error.name !== 'AuthSessionMissingError') {
-          console.error("Error during sign out:", error);
-        }
-    } finally {
-        setUser(null);
-        toast({ title: "You have been logged out." });
-        router.push('/');
+    const { error } = await supabase.auth.signOut();
+    if (error && error.name !== 'AuthSessionMissingError') {
+      console.error('Error logging out:', error);
+      toast({
+        title: "Logout Failed",
+        description: error.message,
+        variant: 'destructive',
+      });
+    } else {
+       toast({ title: "You have been logged out." });
     }
+    // The onAuthStateChange listener will handle the redirect.
   };
   
   const value = {
@@ -106,7 +103,11 @@ export function withAuth(Component) {
 
     if (loading || !user) {
       // You can return a loader here
-      return null;
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-background">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      );
     }
 
     return <Component {...props} />;

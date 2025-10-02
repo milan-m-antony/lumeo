@@ -25,7 +25,6 @@ function AppContent({ Component, pageProps }) {
   }
   
   // If a user is logged in, always show the main layout.
-  // The `withAuth` HOC will handle redirecting from auth pages if needed.
   if (user) {
      return (
         <Layout>
@@ -34,13 +33,13 @@ function AppContent({ Component, pageProps }) {
      );
   }
   
-  // If there is no user, check if we are on a public or auth page.
+  // If there is no user, only render public/auth pages directly.
   if (!user && (isHomePage || isAuthPage)) {
      return <Component {...pageProps} />;
   }
 
-  // If there's no user and we're not on a public page, it means we're on a protected route.
-  // The `withAuth` HOC is handling the redirect. Show a loader in the meantime.
+  // For all other cases (no user on a protected route), show a loader.
+  // The withAuth HOC or onAuthStateChange listener will handle the redirect.
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
