@@ -15,7 +15,7 @@ function AppContent({ Component, pageProps }) {
   const isAuthPage = ['/login', '/signup', '/forgot-password', '/reset-password'].includes(router.pathname);
   const isHomePage = router.pathname === '/';
 
-  // While checking auth state, show a loader
+  // While the authentication state is loading, show a global loader.
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
@@ -24,7 +24,8 @@ function AppContent({ Component, pageProps }) {
     );
   }
   
-  // If user is logged in, wrap the component with the main layout
+  // If a user is logged in, always show the main layout.
+  // The `withAuth` HOC will handle redirecting from auth pages if needed.
   if (user) {
      return (
         <Layout>
@@ -33,13 +34,13 @@ function AppContent({ Component, pageProps }) {
      );
   }
   
-  // If not logged in, and on a public page, show the page without the main layout.
-  if (isHomePage || isAuthPage) {
+  // If there is no user, check if we are on a public or auth page.
+  if (!user && (isHomePage || isAuthPage)) {
      return <Component {...pageProps} />;
   }
 
-  // If not logged in and trying to access a protected page, AuthProvider will handle redirect.
-  // We show a loader as a fallback while the redirect is happening.
+  // If there's no user and we're not on a public page, it means we're on a protected route.
+  // The `withAuth` HOC is handling the redirect. Show a loader in the meantime.
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
