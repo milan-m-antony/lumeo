@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Sidebar,
   SidebarContent,
@@ -55,6 +55,7 @@ const MobileHeader = () => {
 
 const AppMenu = () => {
     const router = useRouter();
+    const pathname = usePathname();
     const { isMobile, setOpenMobile } = useSidebar();
     const { user, logout } = useAuth();
 
@@ -70,7 +71,7 @@ const AppMenu = () => {
         { href: '/signup', label: 'Sign Up', icon: UserPlus },
     ];
 
-    const handleLinkClick = (e, href) => {
+    const handleLinkClick = (href) => {
         if (isMobile) {
             setOpenMobile(false);
         }
@@ -80,24 +81,24 @@ const AppMenu = () => {
     };
 
     const isPathActive = (path) => {
-        if (path === '/') return router.pathname === '/';
-        if (path === '/gallery' && router.pathname === '/') return true; // Treat index as gallery for active state
-        return router.pathname.startsWith(path);
+        if (path === '/') return pathname === '/';
+        if (path === '/gallery' && pathname === '/') return true; // Treat index as gallery for active state
+        return pathname.startsWith(path);
     }
 
     return (
         <SidebarMenu>
             {menuItems.map((item) => (
-                 <SidebarMenuItem key={item.href} onClick={(e) => handleLinkClick(e, item.href)}>
+                 <SidebarMenuItem key={item.href} onClick={() => handleLinkClick(item.href)}>
                     <SidebarMenuButton
                          asChild
                          isActive={isPathActive(item.href)}
                          tooltip={{children: item.label}}
                     >
-                        <a>
+                        <Link href={item.href}>
                             <item.icon />
                             <span>{item.label}</span>
-                        </a>
+                        </Link>
                     </SidebarMenuButton>
                  </SidebarMenuItem>
             ))}
@@ -115,12 +116,12 @@ const AppMenu = () => {
 
 const Layout = ({ children }) => {
     const [mobileHeaderContent, setMobileHeaderContent] = useState(null);
-    const router = useRouter();
+    const pathname = usePathname();
 
     useEffect(() => {
       // Reset header content on route change
       setMobileHeaderContent(null);
-    }, [router.pathname]);
+    }, [pathname]);
 
     return (
         <LayoutContext.Provider value={{ mobileHeaderContent, setMobileHeaderContent }}>
