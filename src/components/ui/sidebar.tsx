@@ -5,6 +5,8 @@ import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
 import { PanelLeft } from "lucide-react"
+import { DialogTitle, DialogDescription } from "@radix-ui/react-dialog";
+
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -46,6 +48,23 @@ function useSidebar() {
 
   return context
 }
+
+const VisuallyHidden = ({ children }: { children: React.ReactNode }) => (
+  <div style={{
+    position: 'absolute',
+    width: '1px',
+    height: '1px',
+    padding: '0',
+    margin: '-1px',
+    overflow: 'hidden',
+    clip: 'rect(0, 0, 0, 0)',
+    whiteSpace: 'nowrap',
+    border: '0',
+  }}>
+    {children}
+  </div>
+);
+
 
 const SidebarProvider = React.forwardRef<
   HTMLDivElement,
@@ -213,6 +232,12 @@ const Sidebar = React.forwardRef<
             }
             side={side}
           >
+            <VisuallyHidden>
+              <DialogTitle>Navigation Menu</DialogTitle>
+              <DialogDescription>
+                Select an option to navigate to a different page.
+              </DialogDescription>
+            </VisuallyHidden>
             <div className="flex h-full w-full flex-col">{children}</div>
           </SheetContent>
         </Sheet>
