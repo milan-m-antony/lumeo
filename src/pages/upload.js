@@ -255,148 +255,150 @@ function UploadPage() {
 
   return (
     <div className="flex flex-col h-full w-full">
-      <header className="flex-shrink-0 sticky top-0 z-10 hidden md:flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8 border-b bg-background/95 backdrop-blur-sm">
-        <h1 className="text-2xl font-bold text-foreground">Upload Files</h1>
-      </header>
-      <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8 flex items-center justify-center">
-        <div className="w-full max-w-2xl">
-          <Card className="shadow-lg bg-transparent border-border/20">
-            <form onSubmit={handleSubmit}>
-              <CardContent className="p-6">
-                <div {...getRootProps()} className={`w-full border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}>
-                  <input {...getInputProps()} />
-                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                    <UploadCloud className="w-12 h-12"/>
-                    <p className="font-semibold">{isDragActive ? "Drop the files here..." : "Drag & drop files here, or click to select"}</p>
-                    <p className="text-xs">Supports multiple images, videos, and documents.</p>
-                  </div>
-                </div>
-                
-                {fileEntries.length > 0 && (
-                  <div className="mt-4">
-                    <Label>Selected Files ({fileEntries.length})</Label>
-                    <ScrollArea className="h-48 mt-2">
-                      <div className="space-y-2 pr-4">
-                        {fileEntries.map((entry, index) => (
-                          <FilePreview 
-                            key={`${entry.file.name}-${index}`} 
-                            fileWithPreview={{ file: entry.file, preview: entry.file.preview }}
-                            caption={entry.caption}
-                            onCaptionChange={(e) => handleCaptionChange(index, e.target.value)}
-                            onRemove={removeFile} 
-                          />
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  </div>
-                )}
-
-                <div className="grid w-full items-center gap-4 mt-6">
-                  <div>
-                    <Label className="font-medium">Add to Albums (optional, for all files)</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start font-normal mt-1">
-                          <div className="flex items-center justify-between w-full">
-                            <span className="truncate">
-                              {selectedAlbums.length === 0 && "Select albums..."}
-                              {selectedAlbums.length > 0 && selectedAlbums.map(a => a.name).join(', ')}
-                            </span>
-                            <ChevronDown className="h-4 w-4 opacity-50"/>
-                          </div>
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 glass-effect">
-                        <Dialog open={isCreateAlbumOpen} onOpenChange={setIsCreateAlbumOpen}>
-                          <DialogTrigger asChild>
-                            <Button variant="ghost" className="w-full justify-start rounded-none border-b">
-                              <PlusCircle className="mr-2 h-4 w-4" />
-                              Create New Album
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Create New Album</DialogTitle>
-                              <DialogDescription>
-                                Give your new album a name and an optional description. It will be automatically selected.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                              <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="new-album-name" className="text-right">Name</Label>
-                                <Input id="new-album-name" value={newAlbumName} onChange={(e) => setNewAlbumName(e.target.value)} className="col-span-3" />
-                              </div>
-                              <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="new-album-description" className="text-right">Description</Label>
-                                <Textarea id="new-album-description" value={newAlbumDescription} onChange={(e) => setNewAlbumDescription(e.target.value)} className="col-span-3" />
-                              </div>
+        <header className="flex-shrink-0 sticky top-14 md:top-0 z-10">
+          <div className="px-4 sm:px-6 lg:px-8 flex items-center h-16 border-b glass-effect">
+              <h1 className="text-2xl font-bold text-foreground">Upload Files</h1>
+          </div>
+        </header>
+        <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8 flex items-center justify-center">
+            <div className="w-full max-w-2xl">
+                <Card className="shadow-lg bg-transparent border-border/20">
+                    <form onSubmit={handleSubmit}>
+                        <CardContent className="p-6">
+                            <div {...getRootProps()} className={`w-full border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}>
+                                <input {...getInputProps()} />
+                                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                                <UploadCloud className="w-12 h-12"/>
+                                <p className="font-semibold">{isDragActive ? "Drop the files here..." : "Drag & drop files here, or click to select"}</p>
+                                <p className="text-xs">Supports multiple images, videos, and documents.</p>
+                                </div>
                             </div>
-                            <DialogFooter>
-                              <Button variant="outline" onClick={() => setIsCreateAlbumOpen(false)}>Cancel</Button>
-                              <Button type="button" onClick={handleCreateAlbum}>Create Album</Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-
-                        <ScrollArea className="h-48">
-                          <div className="p-2 space-y-2">
-                            {allAlbums.length > 0 ? allAlbums.map(album => (
-                              <div key={album.id} className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={`album-upload-${album.id}`}
-                                  checked={selectedAlbumIds.has(album.id)}
-                                  onCheckedChange={() => handleAlbumSelect(album.id)}
-                                />
-                                <Label htmlFor={`album-upload-${album.id}`} className="font-normal w-full truncate cursor-pointer">{album.name}</Label>
-                              </div>
-                            )) : (
-                              <p className="text-xs text-muted-foreground p-2 text-center">No albums created yet.</p>
+                            
+                            {fileEntries.length > 0 && (
+                            <div className="mt-4">
+                                <Label>Selected Files ({fileEntries.length})</Label>
+                                <ScrollArea className="h-48 mt-2">
+                                <div className="space-y-2 pr-4">
+                                    {fileEntries.map((entry, index) => (
+                                    <FilePreview 
+                                        key={`${entry.file.name}-${index}`} 
+                                        fileWithPreview={{ file: entry.file, preview: entry.file.preview }}
+                                        caption={entry.caption}
+                                        onCaptionChange={(e) => handleCaptionChange(index, e.target.value)}
+                                        onRemove={removeFile} 
+                                    />
+                                    ))}
+                                </div>
+                                </ScrollArea>
+                            </div>
                             )}
-                          </div>
-                        </ScrollArea>
-                      </PopoverContent>
-                    </Popover>
-                    <div className="pt-2 flex flex-wrap gap-1">
-                      {selectedAlbums.map(album => (
-                        <Badge key={album.id} variant="secondary">
-                          {album.name}
-                          <button type="button" onClick={() => handleAlbumSelect(album.id)} className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2">
-                            <XIcon className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                
-                {isUploading && (
-                  <div className="w-full mt-6">
-                    <Label>Overall Progress</Label>
-                    <Progress value={uploadProgress} className="mt-1" />
-                    <p className="text-sm text-center mt-2 text-muted-foreground">
-                      {`Uploading ${fileEntries.length} files... ${uploadProgress}%`}
-                    </p>
-                  </div>
-                )}
 
-                {error && (
-                  <Alert variant="destructive" className="w-full mt-6">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Upload Failed</AlertTitle>
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
+                            <div className="grid w-full items-center gap-4 mt-6">
+                            <div>
+                                <Label className="font-medium">Add to Albums (optional, for all files)</Label>
+                                <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="outline" className="w-full justify-start font-normal mt-1">
+                                    <div className="flex items-center justify-between w-full">
+                                        <span className="truncate">
+                                        {selectedAlbums.length === 0 && "Select albums..."}
+                                        {selectedAlbums.length > 0 && selectedAlbums.map(a => a.name).join(', ')}
+                                        </span>
+                                        <ChevronDown className="h-4 w-4 opacity-50"/>
+                                    </div>
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 glass-effect">
+                                    <Dialog open={isCreateAlbumOpen} onOpenChange={setIsCreateAlbumOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button variant="ghost" className="w-full justify-start rounded-none border-b">
+                                        <PlusCircle className="mr-2 h-4 w-4" />
+                                        Create New Album
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                        <DialogTitle>Create New Album</DialogTitle>
+                                        <DialogDescription>
+                                            Give your new album a name and an optional description. It will be automatically selected.
+                                        </DialogDescription>
+                                        </DialogHeader>
+                                        <div className="grid gap-4 py-4">
+                                        <div className="grid grid-cols-4 items-center gap-4">
+                                            <Label htmlFor="new-album-name" className="text-right">Name</Label>
+                                            <Input id="new-album-name" value={newAlbumName} onChange={(e) => setNewAlbumName(e.target.value)} className="col-span-3" />
+                                        </div>
+                                        <div className="grid grid-cols-4 items-center gap-4">
+                                            <Label htmlFor="new-album-description" className="text-right">Description</Label>
+                                            <Textarea id="new-album-description" value={newAlbumDescription} onChange={(e) => setNewAlbumDescription(e.target.value)} className="col-span-3" />
+                                        </div>
+                                        </div>
+                                        <DialogFooter>
+                                        <Button variant="outline" onClick={() => setIsCreateAlbumOpen(false)}>Cancel</Button>
+                                        <Button type="button" onClick={handleCreateAlbum}>Create Album</Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                    </Dialog>
 
-              </CardContent>
-              <CardFooter className="w-full p-6 pt-0">
-                <Button type="submit" disabled={fileEntries.length === 0 || isUploading} className="w-full">
-                  {isUploading ? 'Uploading...' : `Upload ${fileEntries.length} File(s)`}
-                </Button>
-              </CardFooter>
-            </form>
-          </Card>
-        </div>
-      </main>
+                                    <ScrollArea className="h-48">
+                                    <div className="p-2 space-y-2">
+                                        {allAlbums.length > 0 ? allAlbums.map(album => (
+                                        <div key={album.id} className="flex items-center space-x-2">
+                                            <Checkbox
+                                            id={`album-upload-${album.id}`}
+                                            checked={selectedAlbumIds.has(album.id)}
+                                            onCheckedChange={() => handleAlbumSelect(album.id)}
+                                            />
+                                            <Label htmlFor={`album-upload-${album.id}`} className="font-normal w-full truncate cursor-pointer">{album.name}</Label>
+                                        </div>
+                                        )) : (
+                                        <p className="text-xs text-muted-foreground p-2 text-center">No albums created yet.</p>
+                                        )}
+                                    </div>
+                                    </ScrollArea>
+                                </PopoverContent>
+                                </Popover>
+                                <div className="pt-2 flex flex-wrap gap-1">
+                                {selectedAlbums.map(album => (
+                                    <Badge key={album.id} variant="secondary">
+                                    {album.name}
+                                    <button type="button" onClick={() => handleAlbumSelect(album.id)} className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                                        <XIcon className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                                    </button>
+                                    </Badge>
+                                ))}
+                                </div>
+                            </div>
+                            </div>
+                            
+                            {isUploading && (
+                            <div className="w-full mt-6">
+                                <Label>Overall Progress</Label>
+                                <Progress value={uploadProgress} className="mt-1" />
+                                <p className="text-sm text-center mt-2 text-muted-foreground">
+                                {`Uploading ${fileEntries.length} files... ${uploadProgress}%`}
+                                </p>
+                            </div>
+                            )}
+
+                            {error && (
+                            <Alert variant="destructive" className="w-full mt-6">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertTitle>Upload Failed</AlertTitle>
+                                <AlertDescription>{error}</AlertDescription>
+                            </Alert>
+                            )}
+
+                        </CardContent>
+                        <CardFooter className="w-full p-6 pt-0">
+                            <Button type="submit" disabled={fileEntries.length === 0 || isUploading} className="w-full">
+                            {isUploading ? 'Uploading...' : `Upload ${fileEntries.length} File(s)`}
+                            </Button>
+                        </CardFooter>
+                    </form>
+                </Card>
+            </div>
+        </main>
     </div>
   );
 }
