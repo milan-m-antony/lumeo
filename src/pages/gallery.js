@@ -380,14 +380,14 @@ function GalleryPage() {
                     animate={{ y: 0 }}
                     exit={{ y: "100%" }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className="fixed bottom-4 left-1/2 -translate-x-1/2 w-auto z-50"
+                    className="fixed bottom-0 left-0 right-0 w-full z-50"
                 >
-                    <div className="glass-effect flex items-center justify-between gap-4 p-3 rounded-lg shadow-2xl">
+                    <div className="glass-effect flex items-center justify-between gap-4 p-3 md:p-3 md:mb-4 md:mx-auto md:rounded-lg md:max-w-md md:shadow-2xl">
                         <p className="text-sm font-medium">{selectedIds.size} item(s) selected</p>
                         <div className="flex gap-2">
                            <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <Button variant="destructive" size="sm"><Trash2 className="mr-2 h-4 w-4"/> Delete Selected</Button>
+                                  <Button variant="destructive" size="sm"><Trash2 className="mr-2 h-4 w-4"/><span className="hidden sm:inline">Delete Selected</span></Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
