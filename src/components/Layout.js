@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -16,7 +15,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { GalleryHorizontal, UploadCloud, Home, Menu, Trash2, LayoutGrid, Database, LogIn, UserPlus, LogOut } from 'lucide-react';
+import { GalleryHorizontal, UploadCloud, Home, Menu, Trash2, LayoutGrid, Database, LogIn, UserPlus, LogOut, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const LayoutContext = createContext(null);
@@ -25,6 +24,9 @@ export const useLayout = () => useContext(LayoutContext);
 const MobileHeader = () => {
     const { toggleSidebar } = useSidebar();
     const { mobileHeaderContent } = useLayout();
+    const { user } = useAuth();
+    const router = useRouter();
+    const isAuthPage = ['/login', '/signup', '/forgot-password', '/reset-password'].includes(router.pathname);
 
     return (
         <header className="md:hidden flex items-center justify-between p-2 h-14 border-b sticky top-0 z-30 glass-effect">
@@ -44,10 +46,12 @@ const MobileHeader = () => {
             </div>
              <div className="flex items-center gap-1">
                 {mobileHeaderContent?.actions}
-                <Button variant="ghost" size="icon" onClick={toggleSidebar}>
-                    <Menu />
-                    <span className="sr-only">Toggle Menu</span>
-                </Button>
+                {(user && !isAuthPage) && (
+                    <Button variant="ghost" size="icon" onClick={toggleSidebar}>
+                        <Menu />
+                        <span className="sr-only">Toggle Menu</span>
+                    </Button>
+                )}
             </div>
         </header>
     )
@@ -81,21 +85,23 @@ const AppMenu = () => {
     const isPathActive = (path) => {
         if (!pathname || !path) return false;
         if (path === '/') return pathname === '/';
-        if (path === '/gallery' && (pathname === '/' || pathname === '/gallery')) return true;
+        if (path === '/gallery' && (pathname === '/' || pathname.startsWith('/gallery'))) return true;
         return pathname.startsWith(path);
     }
 
     return (
         <SidebarMenu>
             {menuItems.map((item) => (
-                 <SidebarMenuItem key={item.href} onClick={() => handleLinkClick(item.href)}>
-                    <SidebarMenuButton
-                         isActive={isPathActive(item.href)}
-                         tooltip={{children: item.label}}
-                    >
-                        <item.icon />
-                        <span>{item.label}</span>
-                    </SidebarMenuButton>
+                 <SidebarMenuItem key={item.href} asChild>
+                    <Link href={item.href} passHref>
+                        <SidebarMenuButton
+                             isActive={isPathActive(item.href)}
+                             tooltip={{children: item.label}}
+                        >
+                            <item.icon />
+                            <span>{item.label}</span>
+                        </SidebarMenuButton>
+                    </Link>
                  </SidebarMenuItem>
             ))}
             {user && (
@@ -112,12 +118,41 @@ const AppMenu = () => {
 
 const Layout = ({ children }) => {
     const [mobileHeaderContent, setMobileHeaderContent] = useState(null);
-    const { pathname } = useRouter();
+    const { user, loading } = useAuth();
+    const router = useRouter();
+    const { pathname } = router;
 
     useEffect(() => {
       // Reset header content on route change
       setMobileHeaderContent(null);
     }, [pathname]);
+
+    const isAuthPage = ['/login', '/signup', '/forgot-password', '/reset-password'].includes(pathname);
+    const isHomePage = pathname === '/';
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-background">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+        );
+    }
+
+    if (!user && !isHomePage && !isAuthPage) {
+        // This case should be handled by withAuth HOC redirecting,
+        // but as a fallback, we show a loader.
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-background">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+        );
+    }
+    
+    // Render pages like login, signup, or home without the main sidebar layout
+    if (!user && (isHomePage || isAuthPage)) {
+        return <>{children}</>;
+    }
+
 
     return (
         <LayoutContext.Provider value={{ mobileHeaderContent, setMobileHeaderContent }}>
