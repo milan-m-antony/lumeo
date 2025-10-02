@@ -76,7 +76,7 @@ npm run supabase:secrets:set -- SUPABASE_URL=... SUPABASE_SERVICE_KEY=...
 
 >THIS FOR EMAIL OTP TEMPLATE YOU CAN ALSO MODIFY THE CODE TO MAKE IT MORE BEAUTIFUL.
 
-Edit Supabase → **Authentication → Emails  → Reset Password → <> Source:Paste → Save Changes**:
+Edit Supabase → **Authentication → Emails  → Reset Password → <> Source : Paste → Save Changes**:
 
 ### code editor
 
@@ -134,6 +134,7 @@ Create an account and start uploading your media.
 ## 6️⃣ Production Deployment
 
 ```bash
-npm run deploy```
+npm run deploy
+```
 
 This deploys the **password-reset Edge Function** and builds an optimized production version of Lumeo.
