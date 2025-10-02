@@ -17,6 +17,25 @@ function TrashPage() {
   const { toast } = useToast();
   const { setMobileHeaderContent } = useLayout();
 
+  const handleEmptyTrash = async () => {
+    const res = await fetchWithAuth('/api/empty-trash', { method: 'POST' });
+    const result = await res.json();
+
+    if (result.success) {
+        setTrashedFiles([]);
+        toast({
+            title: "Trash Emptied",
+            description: "All files have been permanently deleted.",
+        });
+    } else {
+        toast({
+            title: "Failed to Empty Trash",
+            description: result.error || "Could not empty the trash.",
+            variant: "destructive",
+        });
+    }
+  };
+
   const emptyBinButton = (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -139,26 +158,6 @@ function TrashPage() {
     }
   };
   
-  const handleEmptyTrash = async () => {
-    const res = await fetchWithAuth('/api/empty-trash', { method: 'POST' });
-    const result = await res.json();
-
-    if (result.success) {
-        setTrashedFiles([]);
-        toast({
-            title: "Trash Emptied",
-            description: "All files have been permanently deleted.",
-        });
-    } else {
-        toast({
-            title: "Failed to Empty Trash",
-            description: result.error || "Could not empty the trash.",
-            variant: "destructive",
-        });
-    }
-  };
-
-
   const getFileUrl = (fileId) => `/api/download?file_id=${fileId}`;
 
   const renderFilePreview = (file) => {
