@@ -73,13 +73,13 @@ It uses **Telegram** for storage and **Supabase** for metadata management, allow
 
 ---
 
+
+
 ## 🚀 Getting Started
 
 ### 1️⃣ Clone the Repository
-
 ```bash
 git clone https://github.com/milan-m-antony/lumeo-teli-gallery.git
-
 cd lumeo
 
 2️⃣ Install Dependencies
@@ -90,7 +90,7 @@ Installs all required packages including Supabase CLI.
 
 3️⃣ Setup Environment Variables
 
-Create .env.local in the root:
+Create a .env.local file in the root:
 
 # Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=
@@ -107,22 +107,20 @@ Replace each value with your credentials.
 
 🔧 Setup & Configuration
 
-For database setup, migrations, and Edge Function deployment, see SETUP.md
-.
+For database setup, migrations, and Edge Function deployment, see SETUP.md.
 
 🖥 Running Locally
 npm run dev
 
 
 Visit http://localhost:3000
-.
-Create an account and start uploading your media.
+ and create an account to start uploading your media.
 
 🌐 Production Deployment
 npm run deploy
 
 
-This deploys the password-reset Edge Function and builds an optimized production version of the app.
+Deploys the password-reset Edge Function and builds an optimized production version of the app.
 
 🤝 Contributing
 
@@ -136,9 +134,10 @@ Commit your changes
 
 Open a Pull Request
 
----
+📄 License
 
-This project is licensed under the [MIT License](./LICENSE).
+This project is licensed under the MIT License
+.
 
 © 2025 Milan M Antony
----
+
