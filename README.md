@@ -73,25 +73,23 @@ It uses **Telegram** for storage and **Supabase** for metadata management, allow
 
 ---
 
-
-
 ## 🚀 Getting Started
 
 ### 1️⃣ Clone the Repository
+```bash
+git clone https://github.com/milan-m-antony/lumeo-teli-gallery.git```
+```bash
+cd lumeo```
 
-git clone https://github.com/milan-m-antony/lumeo-teli-gallery.git
-cd lumeo
-
-2️⃣ Install Dependencies
-npm install
-
-
+### 2️⃣ Install Dependencies
+```bash
+npm install```
 Installs all required packages including Supabase CLI.
 
-3️⃣ Setup Environment Variables
+### 3️⃣ Setup Environment Variables
+Create a `.env.local` file in the root:
 
-Create a .env.local file in the root:
-
+```bash
 # Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
@@ -100,44 +98,36 @@ SUPABASE_SERVICE_KEY=
 # Telegram Bot Configuration
 TELEGRAM_BOT_TOKEN=
 TELEGRAM_CHANNEL_ID=
-NEXT_PUBLIC_TG_BOT_TOKEN=
+NEXT_PUBLIC_TG_BOT_TOKEN=```
 
+> Replace each value with your credentials.
 
-Replace each value with your credentials.
+### 🔧 Setup & Configuration
+For database setup, migrations, and Edge Function deployment, see `SETUP.md`.
 
-🔧 Setup & Configuration
+### 🖥 Running Locally
+```bash
+npm run dev```
+Visit [http://localhost:3000](http://localhost:3000) and create an account to start uploading your media.
 
-For database setup, migrations, and Edge Function deployment, see SETUP.md.
-
-🖥 Running Locally
-npm run dev
-
-
-Visit http://localhost:3000
- and create an account to start uploading your media.
-
-🌐 Production Deployment
-npm run deploy
-
-
+### 🌐 Production Deployment
+```bash
+npm run deploy```
 Deploys the password-reset Edge Function and builds an optimized production version of the app.
 
-🤝 Contributing
+---
 
-Contributions are welcome!
+## 🤝 Contributing
+Contributions are welcome!  
 
-Fork the repository
+1. Fork the repository  
+2. Create a branch: `feature/YourFeature`  
+3. Commit your changes  
+4. Open a Pull Request
 
-Create a branch: feature/YourFeature
-
-Commit your changes
-
-Open a Pull Request
+---
 
 ## 📄 License
-
 This project is licensed under the [MIT License](./LICENSE).
 
 © 2025 Milan M Antony
-
-
