@@ -667,10 +667,6 @@ function AlbumDetailPage() {
                         selectedFile.caption || "No Caption"
                     )}
                   </DialogTitle>
-                    <DialogClose className="md:hidden absolute right-2 top-2 rounded-sm p-2 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-                        <XIcon className="h-5 w-5" />
-                        <span className="sr-only">Close</span>
-                   </DialogClose>
                 </DialogHeader>
                 <div className="flex-grow p-4 flex items-center justify-center bg-black/50 min-h-0">
                     <div className="relative w-full h-full flex items-center justify-center">
