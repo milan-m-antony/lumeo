@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 import {
   Sidebar,
   SidebarContent,
@@ -55,7 +55,7 @@ const MobileHeader = () => {
 
 const AppMenu = () => {
     const router = useRouter();
-    const pathname = usePathname();
+    const { pathname } = router;
     const { isMobile, setOpenMobile } = useSidebar();
     const { user, logout } = useAuth();
 
@@ -75,15 +75,13 @@ const AppMenu = () => {
         if (isMobile) {
             setOpenMobile(false);
         }
-        if (href) {
-            router.push(href);
-        }
+        router.push(href);
     };
 
     const isPathActive = (path) => {
         if (!pathname || !path) return false;
         if (path === '/') return pathname === '/';
-        if (path === '/gallery' && pathname === '/') return true; // Treat index as gallery for active state
+        if (path === '/gallery' && (pathname === '/' || pathname === '/gallery')) return true;
         return pathname.startsWith(path);
     }
 
@@ -92,14 +90,11 @@ const AppMenu = () => {
             {menuItems.map((item) => (
                  <SidebarMenuItem key={item.href} onClick={() => handleLinkClick(item.href)}>
                     <SidebarMenuButton
-                         asChild
                          isActive={isPathActive(item.href)}
                          tooltip={{children: item.label}}
                     >
-                        <Link href={item.href}>
-                            <item.icon />
-                            <span>{item.label}</span>
-                        </Link>
+                        <item.icon />
+                        <span>{item.label}</span>
                     </SidebarMenuButton>
                  </SidebarMenuItem>
             ))}
@@ -117,7 +112,7 @@ const AppMenu = () => {
 
 const Layout = ({ children }) => {
     const [mobileHeaderContent, setMobileHeaderContent] = useState(null);
-    const pathname = usePathname();
+    const { pathname } = useRouter();
 
     useEffect(() => {
       // Reset header content on route change

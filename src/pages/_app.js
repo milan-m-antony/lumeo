@@ -2,44 +2,36 @@ import { Toaster } from "@/components/ui/toaster";
 import Layout from "@/components/Layout";
 import { AuthProvider } from "@/context/AuthContext";
 import "@/app/globals.css";
-import { useRouter } from "next/router";
-import { useAuth } from "@/context/AuthContext";
-import { Loader2 } from "lucide-react";
 import Head from 'next/head';
 import AppKeepAlive from "@/components/AppKeepAlive";
+import { useAuth } from "@/context/AuthContext";
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/router";
 
 function AppContent({ Component, pageProps }) {
-  const router = useRouter();
   const { user, loading } = useAuth();
+  const router = useRouter();
   
   const isAuthPage = ['/login', '/signup', '/forgot-password', '/reset-password'].includes(router.pathname);
   const isHomePage = router.pathname === '/';
 
-  // While the authentication state is loading, show a global loader.
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-  
-  // If a user is logged in, always show the main layout.
-  if (user) {
+  // The withAuth HOC handles redirection for protected routes.
+  // We only need to decide whether to show the main layout or the component directly.
+  if (user && !isAuthPage) {
      return (
         <Layout>
           <Component {...pageProps} />
         </Layout>
      );
   }
-  
-  // If there is no user, only render public/auth pages directly.
+
+  // Render auth pages or home page directly without the main layout if there's no user.
   if (!user && (isHomePage || isAuthPage)) {
      return <Component {...pageProps} />;
   }
 
-  // For all other cases (no user on a protected route), show a loader.
-  // The withAuth HOC or onAuthStateChange listener will handle the redirect.
+  // For any other case (e.g., loading auth state, or a logged-in user on an auth page being redirected), show a loader.
+  // The onAuthStateChange listener in AuthContext and the withAuth HOC will manage redirects.
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
