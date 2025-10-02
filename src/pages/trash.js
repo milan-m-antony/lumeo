@@ -113,7 +113,7 @@ function TrashPage() {
         </div>
       </header>
 
-      <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
+      <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8 ml-48">
         {loading && <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
         {error && <p className="text-center text-destructive">Error: {error}</p>}
 
