@@ -1,3 +1,4 @@
+
 import { getSupabaseWithAuth } from "../../lib/supabase";
 import { validateToken } from "../../lib/auth";
 
@@ -12,7 +13,7 @@ export default async function handler(req, res) {
   const token = req.headers.authorization.split(' ')[1];
   const supabase = getSupabaseWithAuth(token);
 
-  const { albumId, caption, type, page = 1 } = req.query;
+  const { albumId, caption, type, page = 1, sortOrder = 'desc', startDate, endDate } = req.query;
 
   if (!albumId) {
     return res.status(400).json({ error: "Album ID is required" });
@@ -44,7 +45,7 @@ export default async function handler(req, res) {
     .select("*, file_album_links!inner(album_id)", { count: 'exact' })
     .in('id', fileIds)
     .is('deleted_at', null)
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: sortOrder === 'asc' })
     .range(startRange, endRange);
 
   if (caption) {
@@ -53,6 +54,17 @@ export default async function handler(req, res) {
   
   if (type && type !== 'all') {
     query = query.eq("type", type);
+  }
+
+  if (startDate) {
+    query = query.gte('created_at', new Date(startDate).toISOString());
+  }
+
+  if (endDate) {
+    // Add 1 day to the end date to include the whole day
+    const to = new Date(endDate);
+    to.setDate(to.getDate() + 1);
+    query = query.lt('created_at', to.toISOString());
   }
 
   const { data, error, count } = await query;

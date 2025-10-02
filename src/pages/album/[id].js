@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { CardFooter } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Edit, Download, Save, X as XIcon, Image as ImageIcon, Video, FileText, Search, PlayCircle, Loader2, Trash2, FolderUp, ArrowLeft, Filter, AlertCircle, CheckSquare } from "lucide-react";
+import { Edit, Download, Save, X as XIcon, Image as ImageIcon, Video, FileText, Search, PlayCircle, Loader2, Trash2, FolderUp, ArrowLeft, Filter, AlertCircle, CheckSquare, Calendar as CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import Link from "next/link";
@@ -19,6 +19,8 @@ import { useInView } from "react-intersection-observer";
 import { GalleryItem } from "@/components/GalleryItem";
 import { useLayout } from "@/components/Layout";
 import { motion, AnimatePresence } from "framer-motion";
+import { Calendar } from "@/components/ui/calendar";
+import { format, addDays } from "date-fns";
 
 function AlbumDetailPage() {
   const router = useRouter();
@@ -27,6 +29,8 @@ function AlbumDetailPage() {
   const [files, setFiles] = useState([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [dateRange, setDateRange] = useState(undefined);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -71,23 +75,25 @@ function AlbumDetailPage() {
 
   const handleBulkDelete = async () => {
     const ids = Array.from(selectedIds);
-    const res = await fetchWithAuth('/api/delete-multiple', {
-      method: 'POST',
-      body: JSON.stringify({ ids }),
-    });
-    const result = await res.json();
+    try {
+        const res = await fetchWithAuth('/api/delete-multiple', {
+          method: 'POST',
+          body: JSON.stringify({ ids }),
+        });
+        const result = await res.json();
 
-    if (result.success) {
-      setFiles(files.filter(f => !selectedIds.has(f.id)));
-      toast({
-        title: `${ids.length} file(s) moved to trash.`,
-      });
-    } else {
-      toast({
-        title: "Failed to delete files",
-        description: result.error || "An unknown error occurred.",
-        variant: "destructive",
-      });
+        if (!res.ok) throw new Error(result.error || "Server error");
+
+        setFiles(files.filter(f => !selectedIds.has(f.id)));
+        toast({
+          title: `${ids.length} file(s) moved to trash.`,
+        });
+    } catch (err) {
+        toast({
+            title: "Failed to delete files",
+            description: err.message || "An unknown error occurred.",
+            variant: "destructive",
+        });
     }
     toggleSelectionMode(); // Exit selection mode
   };
@@ -147,13 +153,55 @@ function AlbumDetailPage() {
                             <SelectItem value="document">Documents</SelectItem>
                         </SelectContent>
                     </Select>
+                     <Select value={sortOrder} onValueChange={setSortOrder}>
+                        <SelectTrigger className="w-full bg-muted/50 border-0 focus:ring-primary">
+                            <SelectValue placeholder="Sort by" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="desc">Newest First</SelectItem>
+                            <SelectItem value="asc">Oldest First</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                             <Button
+                                id="date"
+                                variant={"outline"}
+                                className={`w-full justify-start text-left font-normal ${!dateRange && "text-muted-foreground"}`}
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {dateRange?.from ? (
+                                  dateRange.to ? (
+                                    <>
+                                      {format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")}
+                                    </>
+                                  ) : (
+                                    format(dateRange.from, "LLL dd, y")
+                                  )
+                                ) : (
+                                  <span>Pick a date range</span>
+                                )}
+                              </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            initialFocus
+                            mode="range"
+                            defaultMonth={dateRange?.from}
+                            selected={dateRange}
+                            onSelect={setDateRange}
+                            numberOfMonths={2}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      {dateRange && <Button variant="ghost" onClick={() => setDateRange(undefined)}>Clear Date</Button>}
                 </div>
               </PopoverContent>
             </Popover>
         </>
       ),
     });
-  }, [setMobileHeaderContent, album, search, typeFilter, toggleSelectionMode]);
+  }, [setMobileHeaderContent, album, search, typeFilter, sortOrder, dateRange, toggleSelectionMode]);
 
   const fetchFiles = useCallback(async (isNewSearch = false) => {
     if (!albumId) return;
@@ -168,7 +216,17 @@ function AlbumDetailPage() {
     
     const currentPage = isNewSearch ? 1 : page;
     try {
-        const res = await fetchWithAuth(`/api/files-in-album?albumId=${albumId}&caption=${search}&type=${typeFilter}&page=${currentPage}`);
+        const params = new URLSearchParams({
+            albumId,
+            caption: search,
+            type: typeFilter,
+            page: currentPage,
+            sortOrder,
+        });
+        if(dateRange?.from) params.append('startDate', dateRange.from.toISOString());
+        if(dateRange?.to) params.append('endDate', dateRange.to.toISOString());
+
+        const res = await fetchWithAuth(`/api/files-in-album?${params.toString()}`);
         if (!res.ok) throw new Error("Network response was not ok");
         const data = await res.json();
         if (data.files && Array.isArray(data.files)) {
@@ -191,7 +249,7 @@ function AlbumDetailPage() {
       setLoadingMore(false);
       isInitialLoad.current = false;
     }
-  }, [albumId, search, typeFilter, page, toast]);
+  }, [albumId, search, typeFilter, page, sortOrder, dateRange, toast]);
 
 
   const fetchAlbumDetails = useCallback(async () => {
@@ -231,7 +289,7 @@ function AlbumDetailPage() {
         fetchFiles(true);
     }, 500);
     return () => clearTimeout(handler);
-  }, [search, typeFilter, albumId, fetchFiles]);
+  }, [search, typeFilter, sortOrder, dateRange, albumId]);
   
   useEffect(() => {
     if (inView && hasMore && !loading && !loadingMore && !isInitialLoad.current) {
@@ -258,12 +316,14 @@ function AlbumDetailPage() {
   };
 
   const handleUpdateCaption = async (fileId) => {
-     const res = await fetchWithAuth('/api/update', {
-        method: 'POST',
-        body: JSON.stringify({ id: fileId, caption: editingCaption }),
-    });
-    const result = await res.json();
-    if (result.success && result.file) {
+    try {
+         const res = await fetchWithAuth('/api/update', {
+            method: 'POST',
+            body: JSON.stringify({ id: fileId, caption: editingCaption }),
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || "Server error");
+
         const updatedFile = { ...result.file, file_album_links: selectedFile.file_album_links };
         setFiles(files.map(f => (f.id === fileId ? updatedFile : f)));
         if (selectedFile && selectedFile.id === fileId) {
@@ -271,82 +331,84 @@ function AlbumDetailPage() {
         }
         handleCancelEdit();
         toast({ title: "Caption Saved" });
-    } else {
+    } catch (err) {
         toast({
             title: "Update Failed",
-            description: result.error || "Unknown error",
+            description: err.message,
             variant: "destructive"
         });
     }
   };
 
   const handleAlbumLinkChange = async (fileId, targetAlbumId, isChecked) => {
+    try {
       const res = await fetchWithAuth('/api/file-album-link', {
           method: 'POST',
           body: JSON.stringify({ fileId: fileId, albumId: targetAlbumId, isChecked }),
       });
       const result = await res.json();
-      if (result.success) {
-            if (String(targetAlbumId) === String(albumId) && !isChecked) {
-                setFiles(files.filter(f => f.id !== fileId));
-                setSelectedFile(null); 
-                toast({ title: "File removed from this album." });
-            } else {
-                const updatedFiles = files.map(file => {
-                    if (file.id === fileId) {
-                        let newLinks = [...file.file_album_links];
-                        if (isChecked) {
-                            newLinks.push({ album_id: targetAlbumId });
-                        } else {
-                            newLinks = newLinks.filter(link => link.album_id !== targetAlbumId);
-                        }
-                        return { ...file, file_album_links: newLinks };
-                    }
-                    return file;
-                });
-                setFiles(updatedFiles);
+      if (!res.ok) throw new Error(result.error || "Server error");
 
-                if (selectedFile && selectedFile.id === fileId) {
-                   let newLinks = [...selectedFile.file_album_links];
-                   if (isChecked) {
-                       newLinks.push({ album_id: targetAlbumId });
-                   } else {
-                       newLinks = newLinks.filter(link => link.album_id !== targetAlbumId);
-                   }
-                   setSelectedFile({...selectedFile, file_album_links: newLinks});
+        if (String(targetAlbumId) === String(albumId) && !isChecked) {
+            setFiles(files.filter(f => f.id !== fileId));
+            setSelectedFile(null); 
+            toast({ title: "File removed from this album." });
+        } else {
+            const updatedFiles = files.map(file => {
+                if (file.id === fileId) {
+                    let newLinks = [...file.file_album_links];
+                    if (isChecked) {
+                        newLinks.push({ album_id: targetAlbumId });
+                    } else {
+                        newLinks = newLinks.filter(link => link.album_id !== targetAlbumId);
+                    }
+                    return { ...file, file_album_links: newLinks };
                 }
-                toast({ title: "Album link updated." });
+                return file;
+            });
+            setFiles(updatedFiles);
+
+            if (selectedFile && selectedFile.id === fileId) {
+               let newLinks = [...selectedFile.file_album_links];
+               if (isChecked) {
+                   newLinks.push({ album_id: targetAlbumId });
+               } else {
+                   newLinks = newLinks.filter(link => link.album_id !== targetAlbumId);
+               }
+               setSelectedFile({...selectedFile, file_album_links: newLinks});
             }
-      } else {
-          toast({
-              title: "Update Failed",
-              description: result.error || "Could not update album link.",
-              variant: "destructive",
-          });
-      }
+            toast({ title: "Album link updated." });
+        }
+    } catch (err) {
+      toast({
+          title: "Update Failed",
+          description: err.message,
+          variant: "destructive",
+      });
+    }
   };
 
 
   const handleMoveToTrash = async (fileToTrash) => {
     if (!fileToTrash) return;
-
-    const res = await fetchWithAuth('/api/delete', {
-      method: 'POST',
-      body: JSON.stringify({ id: fileToTrash.id }),
-    });
-    const result = await res.json();
-
-    if (result.success) {
-      setFiles(files.filter(f => f.id !== fileToTrash.id));
-      setSelectedFile(null);
-      toast({
-        title: "Moved to Trash",
-        description: "The file has been moved to the trash bin.",
-      });
-    } else {
+    try {
+        const res = await fetchWithAuth('/api/delete', {
+          method: 'POST',
+          body: JSON.stringify({ id: fileToTrash.id }),
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || "Server error");
+        
+        setFiles(files.filter(f => f.id !== fileToTrash.id));
+        setSelectedFile(null);
+        toast({
+          title: "Moved to Trash",
+          description: "The file has been moved to the trash bin.",
+        });
+    } catch (err) {
       toast({
         title: "Failed to Move",
-        description: result.error || "Could not move the file to trash.",
+        description: err.message,
         variant: "destructive",
       });
     }
@@ -436,7 +498,7 @@ function AlbumDetailPage() {
                     )}
                 </div>
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
-                    <SelectTrigger className="w-full sm:w-[180px] bg-muted/50 border-0 focus:ring-primary">
+                    <SelectTrigger className="w-[150px] bg-muted/50 border-0 focus:ring-primary">
                         <SelectValue placeholder="Filter by type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -446,6 +508,48 @@ function AlbumDetailPage() {
                         <SelectItem value="document">Documents</SelectItem>
                     </SelectContent>
                 </Select>
+                 <Select value={sortOrder} onValueChange={setSortOrder}>
+                    <SelectTrigger className="w-[150px] bg-muted/50 border-0 focus:ring-primary">
+                        <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="desc">Newest First</SelectItem>
+                        <SelectItem value="asc">Oldest First</SelectItem>
+                    </SelectContent>
+                </Select>
+                 <Popover>
+                    <PopoverTrigger asChild>
+                         <Button
+                            id="date"
+                            variant={"outline"}
+                            className={`w-[240px] justify-start text-left font-normal bg-muted/50 border-0 focus-visible:ring-primary ${!dateRange && "text-muted-foreground"}`}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {dateRange?.from ? (
+                              dateRange.to ? (
+                                <>
+                                  {format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")}
+                                </>
+                              ) : (
+                                format(dateRange.from, "LLL dd, y")
+                              )
+                            ) : (
+                              <span>Pick a date range</span>
+                            )}
+                          </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <Calendar
+                        initialFocus
+                        mode="range"
+                        defaultMonth={dateRange?.from}
+                        selected={dateRange}
+                        onSelect={setDateRange}
+                        numberOfMonths={2}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {dateRange && <Button size="icon" variant="ghost" onClick={() => setDateRange(undefined)}><XIcon className="h-4 w-4" /></Button>}
             </div>
           </div>
       </header>
@@ -606,5 +710,3 @@ function AlbumDetailPage() {
 }
 
 export default withAuth(AlbumDetailPage);
-
-    
