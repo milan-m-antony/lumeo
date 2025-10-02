@@ -66,23 +66,23 @@ function AlbumsPage() {
           </Button>
           <Popover>
             <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon"><SlidersHorizontal /></Button>
+              <Button variant="ghost" size="icon"><SlidersHorizontal /></Button>
             </PopoverTrigger>
             <PopoverContent className="mr-2 p-0 glass-effect w-56">
-                <div className="p-2 space-y-2">
-                    <Label className="px-2 text-xs text-muted-foreground">Sort by</Label>
-                    <Select value={sortOrder} onValueChange={setSortOrder}>
-                        <SelectTrigger className="w-full bg-muted/50 border-0 focus:ring-primary">
-                            <SelectValue placeholder="Sort by..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="created_at_desc">Newest</SelectItem>
-                            <SelectItem value="created_at_asc">Oldest</SelectItem>
-                            <SelectItem value="name_asc">Name (A-Z)</SelectItem>
-                            <SelectItem value="name_desc">Name (Z-A)</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
+              <div className="p-2 space-y-2">
+                <Label className="px-2 text-xs text-muted-foreground">Sort by</Label>
+                <Select value={sortOrder} onValueChange={setSortOrder}>
+                  <SelectTrigger className="w-full bg-muted/50 border-0 focus:ring-primary">
+                    <SelectValue placeholder="Sort by..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="created_at_desc">Newest</SelectItem>
+                    <SelectItem value="created_at_asc">Oldest</SelectItem>
+                    <SelectItem value="name_asc">Name (A-Z)</SelectItem>
+                    <SelectItem value="name_desc">Name (Z-A)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </PopoverContent>
           </Popover>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -112,7 +112,8 @@ function AlbumsPage() {
         </>
       )
     });
-  }, [setMobileHeaderContent, isDialogOpen, newAlbumName, newAlbumDescription, sortOrder, isSearchVisible]);
+  }, [setMobileHeaderContent, isDialogOpen, newAlbumName, newAlbumDescription, sortOrder, isSearchVisible, handleCreateAlbum]);
+
 
   const fetchAlbums = async () => {
     setLoading(true);
@@ -169,27 +170,33 @@ function AlbumsPage() {
   }, [albums, searchQuery, sortOrder]);
 
 
-  const handleCreateAlbum = async () => {
-    if (!newAlbumName.trim()) {
-        toast({ title: "Album name is required", variant: "destructive" });
-        return;
-    }
-    const res = await fetchWithAuth('/api/albums', {
-        method: 'POST',
-        body: JSON.stringify({ name: newAlbumName, description: newAlbumDescription }),
-    });
+  function handleCreateAlbum() {
+    // This function is defined within the useEffect to be passed to the mobile header
+    // but the actual logic needs to be here to access state.
+    // This is a bit of a workaround due to how the mobile header is structured.
+    const createAlbumLogic = async () => {
+        if (!newAlbumName.trim()) {
+            toast({ title: "Album name is required", variant: "destructive" });
+            return;
+        }
+        const res = await fetchWithAuth('/api/albums', {
+            method: 'POST',
+            body: JSON.stringify({ name: newAlbumName, description: newAlbumDescription }),
+        });
 
-    const result = await res.json();
-    if (res.ok) {
-        const newAlbumWithDefaults = { ...result, files: [{count: 0}], cover_file_id: null };
-        setAlbums([newAlbumWithDefaults, ...albums]);
-        toast({ title: "Album Created!", description: `"${result.name}" has been created.` });
-        setNewAlbumName("");
-        setNewAlbumDescription("");
-        setIsDialogOpen(false);
-    } else {
-        toast({ title: "Failed to Create Album", description: result.error, variant: "destructive" });
+        const result = await res.json();
+        if (res.ok) {
+            const newAlbumWithDefaults = { ...result, files: [{ count: 0 }], cover_file_id: null };
+            setAlbums([newAlbumWithDefaults, ...albums]);
+            toast({ title: "Album Created!", description: `"${result.name}" has been created.` });
+            setNewAlbumName("");
+            setNewAlbumDescription("");
+            setIsDialogOpen(false);
+        } else {
+            toast({ title: "Failed to Create Album", description: result.error, variant: "destructive" });
+        }
     }
+    createAlbumLogic();
   }
   
   const handleDeleteAlbum = async (albumId) => {
@@ -378,3 +385,5 @@ function AlbumsPage() {
 }
 
 export default withAuth(AlbumsPage);
+
+    
