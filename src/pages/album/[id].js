@@ -220,7 +220,7 @@ function AlbumDetailPage() {
         </>
       ),
     });
-  }, [setMobileHeaderContent, album, search, typeFilter, sortOrder, dateRange, toggleSelectionMode, isDesktop]);
+  }, [setMobileHeaderContent, album, search, typeFilter, sortOrder, dateRange, toggleSelectionMode, isDesktop, router]);
 
   const fetchFiles = useCallback(async (isNewSearch = false) => {
     if (!albumId) return;
