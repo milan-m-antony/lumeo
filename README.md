@@ -121,15 +121,133 @@ npm run deploy
 ```
 Deploys the password-reset Edge Function and builds an optimized production version of the app.
 
+![Lumeo Banner](assets/banner.png)
+
+# 🎨 Lumeo - Personal Media Gallery
+
+![License](https://img.shields.io/badge/license-MIT-green)
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
+
+Lumeo is a **Next.js application** that acts as a personal media gallery.  
+It uses **Telegram** for file storage and **Supabase** for metadata management.  
+Upload, view, and manage your photos, videos, and documents in a clean, web-based interface.
+
 ---
 
-## 🤝 Contributing
-Contributions are welcome!  
+## 📌 Features
+- Multi-album organization  
+- File upload and storage  
+- Sign in / Sign up / Gmail OTP authentication  
+- Password reset  
+- Responsive front page and dashboard  
+- Production-ready deployment with Edge Functions  
 
-1. Fork the repository  
-2. Create a branch: `feature/YourFeature`  
-3. Commit your changes  
-4. Open a Pull Request
+---
+
+## 📸 Demo / Preview
+
+### Front Page
+![Front Page](assets/front_page.png)
+
+### Sign In Form
+![Sign In Form](assets/sign_in.png)
+
+### Reset Password
+![Reset Password](assets/reset_password.png)
+
+### Gmail OTP Verification
+![Gmail OTP](assets/gmail_otp.png)
+
+### Storage / Upload Files
+![Storage Upload](assets/storage.png)
+
+### Albums
+![Albums](assets/album.png)
+
+---
+
+## 🚀 Getting Started
+
+### 1️⃣ Clone the Repository
+```bash
+git clone https://github.com/milan-m-antony/lumeo-teli-gallery.git```
+```bash
+cd lumeo```
+
+### 2️⃣ Install Dependencies
+```bash
+npm install```
+Installs all required packages including Supabase CLI.
+
+### 3️⃣ Setup Environment Variables
+Create a `.env.local` file in the root:
+
+```bash
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_KEY=
+
+# Telegram Bot Configuration
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHANNEL_ID=
+NEXT_PUBLIC_TG_BOT_TOKEN=```
+
+> ⚠️ **Do not commit secrets to GitHub.** Keep them only in `.env.local` or in Vercel.
+
+### 🔧 Setup & Configuration
+For database setup, migrations, and Edge Function deployment, see `SETUP.md`.
+
+### 🖥 Running Locally
+```bash
+npm run dev```
+Visit [http://localhost:3000](http://localhost:3000) and create an account to start uploading your media.
+
+### 🌐 Production Deployment
+```bash
+npm run deploy```
+Deploys the password-reset Edge Function and builds an optimized production version of the app.
+
+---
+
+## ☁️ Hosting on Vercel
+
+You can easily deploy **Lumeo** on Vercel:
+
+### 1️⃣ Sign Up / Login
+- Go to [Vercel](https://vercel.com)  
+- Sign in with **GitHub** and authorize access to your repo.
+
+### 2️⃣ Import Repository
+- Click **New Project → Import Git Repository**  
+- Select `lumeo-teli-gallery` and click **Import**  
+
+### 3️⃣ Add Environment Variables
+Go to **Settings → Environment Variables** and add the following:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_KEY=your-service-key
+TELEGRAM_BOT_TOKEN=your-bot-token
+TELEGRAM_CHANNEL_ID=your-channel-id
+NEXT_PUBLIC_TG_BOT_TOKEN=your-public-bot-token```
+
+> ⚠️ **Important:** Do not commit secrets to GitHub.
+
+### 4️⃣ Deploy
+- **Framework Preset:** Next.js  
+- **Build Command:** `npm run build`  
+- **Output Directory:** `.next`  
+- Click **Deploy**  
+
+Vercel will provide a live URL like: 🌐 `https://your-project.vercel.app`  
+Your app is now online! Updates are automatically deployed whenever you push to GitHub.
+
+### 🔧 Tips
+- Use **Preview Environment** for testing changes before production.  
+- Edge Functions (like password-reset) are automatically deployed as serverless functions.  
+- You can connect a **custom domain** via Vercel settings.
 
 ---
 
