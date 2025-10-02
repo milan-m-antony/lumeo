@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import { useAuth } from "@/context/AuthContext";
 import { Loader2 } from "lucide-react";
 import Head from 'next/head';
+import AppKeepAlive from "@/components/AppKeepAlive";
 
 function AppContent({ Component, pageProps }) {
   const router = useRouter();
@@ -56,6 +57,7 @@ function MyApp({ Component, pageProps }) {
         <meta name="theme-color" content="#4a29a0" />
       </Head>
       <AuthProvider>
+        <AppKeepAlive />
         <AppContent Component={Component} pageProps={pageProps} />
         <Toaster />
       </AuthProvider>
