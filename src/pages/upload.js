@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
@@ -46,7 +47,7 @@ const FilePreview = ({ fileWithPreview, caption, onCaptionChange, onRemove }) =>
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-2 border rounded-lg bg-muted/50 gap-2 relative">
       <div className="flex items-center gap-3 flex-shrink-0">
         {previewElement}
-        <span className="text-sm font-medium truncate max-w-[150px]">{file.name}</span>
+        <span className="text-sm font-medium truncate max-w-[150px] sm:max-w-xs">{file.name}</span>
       </div>
       <Input 
         type="text" 
