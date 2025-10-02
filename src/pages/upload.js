@@ -1,5 +1,4 @@
 
-
 import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
@@ -303,7 +302,7 @@ function UploadPage() {
   return (
     <div className="flex flex-col h-full w-full">
       <PageHeader title="Upload Files" />
-      <main className="flex-grow overflow-auto p-2 sm:p-6 lg:p-8">
+      <main className="flex-grow overflow-auto p-2 sm:p-6 lg:p-8 flex items-center justify-center">
         <div className="w-full max-w-4xl mx-auto">
           <AnimatePresence>
             {!isUploading && (
