@@ -1,6 +1,7 @@
+
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Database, Send } from 'lucide-react';
+import { Database, Send } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { withAuth, fetchWithAuth } from '@/context/AuthContext';
 import { useLayout } from '@/components/Layout';
@@ -54,7 +55,7 @@ function StoragePage() {
     return (
         <div className="flex flex-col h-full w-full">
             <header className="flex-shrink-0 sticky top-0 z-10 hidden md:block">
-                <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 border-b bg-background/95 backdrop-blur-sm md:bg-transparent md:border-0 md:shadow-none md:backdrop-blur-none">
+                <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 border-b bg-background/95 backdrop-blur-sm">
                     <h1 className="text-2xl font-bold text-foreground">Storage</h1>
                 </div>
             </header>
@@ -68,7 +69,7 @@ function StoragePage() {
                     )}
                     {error && <p className="text-center text-destructive">Error: {error}</p>}
                     {!loading && storage && (
-                         <div className="grid gap-4 md:grid-cols-2">
+                         <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                              <Card className="bg-transparent border-border/20">
                                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                                     <CardTitle className="text-sm font-medium">

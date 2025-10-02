@@ -3,11 +3,10 @@ import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CheckCircle, AlertCircle, UploadCloud, X as XIcon, ChevronDown, Folder, File as FileIcon, PlusCircle } from "lucide-react";
+import { CheckCircle, AlertCircle, UploadCloud, X as XIcon, ChevronDown, File as FileIcon, PlusCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
@@ -23,7 +22,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { withAuth, fetchWithAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { useLayout } from "@/components/Layout";
@@ -257,7 +256,7 @@ function UploadPage() {
   return (
     <div className="flex flex-col h-full w-full">
          <header className="flex-shrink-0 sticky top-0 z-10 hidden md:block">
-            <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 border-b bg-background/95 backdrop-blur-sm md:bg-transparent md:border-0 md:shadow-none md:backdrop-blur-none">
+            <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 border-b bg-background/95 backdrop-blur-sm">
                 <h1 className="text-2xl font-bold text-foreground">Upload Files</h1>
             </div>
          </header>
