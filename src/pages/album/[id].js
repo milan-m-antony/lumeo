@@ -108,6 +108,7 @@ function AlbumDetailPage() {
         setFiles(files.filter(f => !selectedIds.has(f.id)));
         toast({
           title: `${ids.length} file(s) moved to trash.`,
+          variant: "warning",
         });
     } catch (err) {
         toast({
@@ -423,6 +424,7 @@ function AlbumDetailPage() {
         toast({
           title: "Moved to Trash",
           description: "The file has been moved to the trash bin.",
+          variant: "warning",
         });
     } catch (err) {
       toast({

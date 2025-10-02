@@ -208,7 +208,7 @@ function AlbumsPage() {
 
     if (res.ok) {
         setAlbums(albums.filter(a => a.id !== albumId));
-        toast({ title: "Album Deleted", description: "The album has been deleted.", variant: "success" });
+        toast({ title: "Album Deleted", description: "The album has been deleted.", variant: "warning" });
     } else {
         toast({ title: "Deletion Failed", description: result.error, variant: "destructive" });
     }

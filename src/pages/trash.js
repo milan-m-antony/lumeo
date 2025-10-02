@@ -1,4 +1,5 @@
 
+
 import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,7 +27,7 @@ function TrashPage() {
         toast({
             title: "Trash Emptied",
             description: "All files have been permanently deleted.",
-            variant: "success",
+            variant: "warning",
         });
     } else {
         toast({
@@ -156,7 +157,7 @@ function TrashPage() {
       toast({
         title: "File Deleted Permanently",
         description: "The file has been permanently removed.",
-        variant: "success",
+        variant: "warning",
       });
     } else {
       toast({
