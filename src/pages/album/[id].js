@@ -1,4 +1,5 @@
 
+
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from 'next/router';
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,8 @@ import { useLayout } from "@/components/Layout";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
 
 const useMediaQuery = (query) => {
     const [matches, setMatches] = useState(false);
@@ -120,11 +123,9 @@ function AlbumDetailPage() {
   useEffect(() => {
     const mobileTitle = (
       <div className="flex items-center gap-2 min-w-0">
-        <Button variant="ghost" size="icon" className="h-8 w-8 -ml-2" asChild>
-            <Link href="/albums" title="Back to Albums">
-                <ArrowLeft />
-            </Link>
-        </Button>
+        <Link href="/albums" title="Back to Albums" className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "h-8 w-8 -ml-2")}>
+            <ArrowLeft />
+        </Link>
         <div className="flex-1 min-w-0">
           <h1 className="text-lg font-bold text-foreground truncate" title={album?.name}>{album?.name}</h1>
           <p className="text-xs text-muted-foreground">{album?.files[0]?.count || 0} items</p>
@@ -485,11 +486,9 @@ function AlbumDetailPage() {
       <header className="flex-shrink-0 sticky top-0 md:top-0 z-10 hidden md:flex items-center justify-between gap-4 h-16 border-b py-4 sm:py-0 bg-background/95 backdrop-blur-sm">
           <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between w-full">
             <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                    <Link href="/albums" title="Back to Albums">
-                        <ArrowLeft />
-                    </Link>
-                </Button>
+                <Link href="/albums" title="Back to Albums" className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "h-8 w-8")}>
+                    <ArrowLeft />
+                </Link>
                 <div>
                   <h1 className="text-2xl font-bold text-foreground truncate" title={album?.name}>{album?.name}</h1>
                   <p className="text-sm text-muted-foreground">{album?.files[0]?.count || 0} items</p>
@@ -741,3 +740,5 @@ function AlbumDetailPage() {
 }
 
 export default withAuth(AlbumDetailPage);
+
+    
