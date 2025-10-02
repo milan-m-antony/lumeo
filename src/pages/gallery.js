@@ -40,38 +40,36 @@ function GalleryPage() {
     setMobileHeaderContent({
       title: "Gallery",
       actions: (
-        <div className="md:hidden">
-            <Popover>
-            <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon"><Filter /></Button>
-            </PopoverTrigger>
-            <PopoverContent className="mr-2 p-0 glass-effect">
-                <div className="p-4 space-y-4">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            type="text"
-                            placeholder="Search..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="pl-10 bg-muted/50 border-0 focus-visible:ring-primary w-full"
-                        />
-                    </div>
-                    <Select value={typeFilter} onValueChange={setTypeFilter}>
-                        <SelectTrigger className="w-full bg-muted/50 border-0 focus:ring-primary">
-                            <SelectValue placeholder="Filter by type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Types</SelectItem>
-                            <SelectItem value="photo">Photos</SelectItem>
-                            <SelectItem value="video">Videos</SelectItem>
-                            <SelectItem value="document">Documents</SelectItem>
-                        </SelectContent>
-                    </Select>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon"><Filter /></Button>
+          </PopoverTrigger>
+          <PopoverContent className="mr-2 p-0 glass-effect">
+            <div className="p-4 space-y-4">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        type="text"
+                        placeholder="Search..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="pl-10 bg-muted/50 border-0 focus-visible:ring-primary w-full"
+                    />
                 </div>
-            </PopoverContent>
-            </Popover>
-        </div>
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                    <SelectTrigger className="w-full bg-muted/50 border-0 focus:ring-primary">
+                        <SelectValue placeholder="Filter by type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="photo">Photos</SelectItem>
+                        <SelectItem value="video">Videos</SelectItem>
+                        <SelectItem value="document">Documents</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+          </PopoverContent>
+        </Popover>
       ),
     });
   }, [setMobileHeaderContent, search, typeFilter]);
@@ -281,10 +279,10 @@ function GalleryPage() {
 
   return (
     <div className="flex flex-col h-full w-full">
-      <header className="flex-shrink-0 sticky top-14 md:relative md:top-0 z-10">
+      <header className="flex-shrink-0 sticky top-14 md:top-0 z-10">
         <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 h-16 border-b bg-background/95 backdrop-blur-sm">
             <h1 className="text-2xl font-bold text-foreground hidden md:block">Gallery</h1>
-             <div className="flex items-center gap-2 w-full md:w-auto">
+             <div className="hidden md:flex items-center gap-2 w-full md:w-auto justify-end">
                 <div className="relative w-full max-w-xs">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
