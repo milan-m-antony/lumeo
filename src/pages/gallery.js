@@ -37,10 +37,11 @@ function GalleryPage() {
   const { setMobileHeaderContent } = useLayout();
 
   useEffect(() => {
+    // We set a simple title here because the search/filter controls are now part of the page content
     setMobileHeaderContent({
       title: "Gallery"
     });
-  }, [setMobileHeaderContent, search, typeFilter]);
+  }, [setMobileHeaderContent]);
 
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0,
@@ -248,7 +249,7 @@ function GalleryPage() {
   return (
     <div className="flex flex-col h-full w-full">
       <header className="flex-shrink-0 sticky top-0 md:top-0 z-10">
-        <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 h-16 border-b bg-background/95 backdrop-blur-sm">
+        <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 h-16 border-b glass-effect">
             <h1 className="text-2xl font-bold text-foreground hidden md:block">Gallery</h1>
              <div className="flex items-center gap-2 w-full md:w-auto justify-end">
                 <div className="relative w-full max-w-xs">
