@@ -114,9 +114,9 @@ function TrashPage() {
   
   return (
     <div className="flex flex-col h-full w-full">
-      <header className="flex-shrink-0 sticky top-14 md:top-0 z-10 border-b bg-background/95 backdrop-blur-sm">
-        <div className="px-4 sm:px-6 lg:px-8 flex items-center h-16">
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">
+      <header className="w-full flex-shrink-0 sticky top-14 md:top-0 z-10 border-b bg-background/95 backdrop-blur-sm">
+        <div className="flex items-center h-16 px-4 sm:px-6 lg:px-8 w-full">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
             Trash
           </h1>
         </div>
