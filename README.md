@@ -1,4 +1,3 @@
-README.md
 # 🎨 Lumeo - A Personal Free Cloud Media Gallery Storage
 
 ![Lumeo Banner](assets/banner.png)
