@@ -497,5 +497,3 @@ function AlbumDetailPage() {
 }
 
 export default withAuth(AlbumDetailPage);
-
-    
