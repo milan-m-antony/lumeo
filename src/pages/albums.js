@@ -82,6 +82,7 @@ function AlbumsPage() {
 
   const fetchAlbums = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
         const res = await fetchWithAuth('/api/albums');
         if (!res.ok) throw new Error("Failed to fetch albums");
@@ -93,10 +94,15 @@ function AlbumsPage() {
         }
     } catch(err) {
         setError(err.message)
+        toast({
+            title: "Failed to load albums",
+            description: err.message,
+            variant: "destructive",
+        });
     } finally {
         setLoading(false)
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     fetchAlbums();
@@ -176,13 +182,12 @@ function AlbumsPage() {
 
       <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
         {loading && <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
-        {error && <p className="text-center text-destructive">Error: {error}</p>}
         
-        {!loading && !error && albums.length === 0 && (
+        {!loading && albums.length === 0 && (
           <div className="text-center text-muted-foreground py-16">
             <Folder className="w-24 h-24 mx-auto text-muted-foreground/50" strokeWidth={1} />
-            <h2 className="text-2xl mt-4 font-semibold">No Albums Yet</h2>
-            <p className="mt-2">Click "Create Album" to get started.</p>
+            <h2 className="text-2xl mt-4 font-semibold">{error ? "Error Loading Albums" : "No Albums Yet"}</h2>
+            <p className="mt-2">{error ? error : "Click \"Create Album\" to get started."}</p>
           </div>
         )}
 

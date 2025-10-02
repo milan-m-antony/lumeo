@@ -54,6 +54,7 @@ function GalleryPage() {
         setFiles([]);
         setPage(1);
         setHasMore(true);
+        setError(null);
     } else {
         setLoadingMore(true);
     }
@@ -75,19 +76,24 @@ function GalleryPage() {
       }
     } catch (err) {
       setError(err.message || "An unexpected error occurred.");
+      toast({
+        title: "Failed to load files",
+        description: err.message,
+        variant: "destructive",
+      });
     } finally {
       if (isNewSearch) setLoading(false);
       setLoadingMore(false);
       isInitialLoad.current = false;
     }
-  }, [search, typeFilter, page]);
+  }, [search, typeFilter, page, toast]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
         fetchFiles(true);
     }, 500); 
     return () => clearTimeout(handler);
-  }, [search, typeFilter]);
+  }, [search, typeFilter, fetchFiles]);
 
   useEffect(() => {
     if (inView && hasMore && !loading && !loadingMore && !isInitialLoad.current) {
@@ -283,9 +289,7 @@ function GalleryPage() {
       </header>
       
       <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
-        {loading && <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
-        
-        {!loading && error && <p className="text-center text-destructive">Error: {error}</p>}
+        {loading && isInitialLoad.current && <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
         
         {!loading && !error && files.length === 0 && (
            <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground">

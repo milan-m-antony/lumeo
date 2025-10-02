@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { CardFooter } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Edit, Download, Save, X as XIcon, Image as ImageIcon, Video, FileText, Search, PlayCircle, Loader2, Trash2, FolderUp, ArrowLeft, Filter } from "lucide-react";
+import { Edit, Download, Save, X as XIcon, Image as ImageIcon, Video, FileText, Search, PlayCircle, Loader2, Trash2, FolderUp, ArrowLeft, Filter, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import Link from "next/link";
@@ -129,12 +129,17 @@ function AlbumDetailPage() {
         }
     } catch (err) {
         setError(err.message || "An unexpected error occurred.");
+        toast({
+            title: "Failed to load files",
+            description: err.message,
+            variant: "destructive",
+        });
     } finally {
       if (isNewSearch) setLoading(false);
       setLoadingMore(false);
       isInitialLoad.current = false;
     }
-  }, [albumId, search, typeFilter, page]);
+  }, [albumId, search, typeFilter, page, toast]);
 
 
   const fetchAlbumDetails = useCallback(async () => {
@@ -142,15 +147,20 @@ function AlbumDetailPage() {
     try {
         const res = await fetchWithAuth(`/api/albums/${albumId}`);
         const data = await res.json();
-        if (data && !data.error) {
+        if (res.ok && data && !data.error) {
             setAlbum(data);
         } else {
-            setError(data.error || "Could not load album details");
+             throw new Error(data.error || "Could not load album details");
         }
     } catch (err) {
         setError(err.message);
+        toast({
+            title: "Failed to load album",
+            description: err.message,
+            variant: "destructive",
+        });
     }
-  }, [albumId]);
+  }, [albumId, toast]);
   
   const fetchAllAlbums = useCallback(async () => {
     try {
@@ -169,7 +179,7 @@ function AlbumDetailPage() {
         fetchFiles(true);
     }, 500);
     return () => clearTimeout(handler);
-  }, [search, typeFilter, albumId]);
+  }, [search, typeFilter, albumId, fetchFiles]);
   
   useEffect(() => {
     if (inView && hasMore && !loading && !loadingMore && !isInitialLoad.current) {
@@ -326,13 +336,14 @@ function AlbumDetailPage() {
     return null;
   }
 
-  if (!album && loading) {
+  if (loading && isInitialLoad.current) {
     return <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   }
 
-  if (error && !loading) {
+  if (error && !loading && files.length === 0) {
     return <div className="flex flex-col gap-4 justify-center items-center h-full text-destructive">
-        <p>Error: {error}</p>
+        <AlertCircle className="w-16 h-16" />
+        <p className="text-lg">Error: {error}</p>
         <Button asChild><Link href="/albums"><ArrowLeft className="mr-2 h-4 w-4"/> Back to Albums</Link></Button>
     </div>
   }
@@ -384,9 +395,9 @@ function AlbumDetailPage() {
       </header>
       
       <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
-        {loading && <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
+        {loading && isInitialLoad.current && <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
         
-        {!loading && !error && files.length === 0 && (
+        {!loading && files.length === 0 && (
            <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground">
             <ImageIcon className="w-24 h-24 mx-auto text-muted-foreground/50" strokeWidth={1} />
             <h2 className="text-2xl mt-4 font-semibold">This Album is Empty</h2>

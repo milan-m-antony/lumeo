@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { withAuth, fetchWithAuth } from '@/context/AuthContext';
 import { useLayout } from '@/components/Layout';
 import { PageHeader } from '@/components/PageHeader';
+import { useToast } from "@/hooks/use-toast";
 
 
 const StorageSkeleton = () => (
@@ -26,6 +27,7 @@ function StoragePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const { setMobileHeaderContent } = useLayout();
+    const { toast } = useToast();
 
     useEffect(() => {
         setMobileHeaderContent({ title: "Storage" });
@@ -34,6 +36,7 @@ function StoragePage() {
     useEffect(() => {
         const getStorage = async () => {
             setLoading(true);
+            setError(null);
             try {
                 const res = await fetchWithAuth('/api/storage-summary');
                 if (!res.ok) {
@@ -46,12 +49,17 @@ function StoragePage() {
                 setStorage(data);
             } catch (err) {
                 setError(err.message);
+                 toast({
+                    title: "Failed to Load Storage Info",
+                    description: err.message,
+                    variant: "destructive",
+                });
             } finally {
                 setLoading(false);
             }
         };
         getStorage();
-    }, []);
+    }, [toast]);
 
     return (
         <div className="flex flex-col h-full w-full">
@@ -64,7 +72,16 @@ function StoragePage() {
                             <StorageSkeleton />
                         </div>
                     )}
-                    {error && <p className="text-center text-destructive">Error: {error}</p>}
+                    {error && !loading && (
+                        <Card className="bg-destructive/10 border-destructive/30">
+                            <CardHeader>
+                                <CardTitle className="text-destructive">Error</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p>{error}</p>
+                            </CardContent>
+                        </Card>
+                    )}
                     {!loading && storage && (
                          <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                              <Card className="bg-transparent border-border/20">

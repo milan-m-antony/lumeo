@@ -39,7 +39,7 @@ function TrashPage() {
   const emptyBinButton = (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive" disabled={trashedFiles.length === 0}>
+        <Button variant="destructive" disabled={trashedFiles.length === 0 || loading}>
           <Trash2 className="mr-2 h-4 w-4" />
           Empty Bin
         </Button>
@@ -65,7 +65,7 @@ function TrashPage() {
       actions: (
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="ghost" size="icon" disabled={trashedFiles.length === 0}>
+            <Button variant="ghost" size="icon" disabled={trashedFiles.length === 0 || loading}>
               <Trash2 className="h-5 w-5" />
             </Button>
           </AlertDialogTrigger>
@@ -84,10 +84,11 @@ function TrashPage() {
         </AlertDialog>
       )
     });
-  }, [setMobileHeaderContent, trashedFiles.length]);
+  }, [setMobileHeaderContent, trashedFiles.length, loading]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
         const res = await fetchWithAuth('/api/trashed-files');
         if (!res.ok) throw new Error("Network response was not ok");
@@ -101,10 +102,15 @@ function TrashPage() {
     } catch(err) {
         setTrashedFiles([]);
         setError(err.message || "An unexpected error occurred.");
+        toast({
+            title: "Failed to load trash",
+            description: err.message,
+            variant: "destructive",
+        });
     } finally {
         setLoading(false);
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     fetchData();
@@ -187,13 +193,12 @@ function TrashPage() {
       <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
         <div className="w-full max-w-7xl mx-auto">
           {loading && <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
-          {error && <p className="text-center text-destructive">Error: {error}</p>}
-
-          {!loading && !error && trashedFiles.length === 0 && (
+          
+          {!loading && trashedFiles.length === 0 && (
           <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground py-16">
               <Trash2 className="w-24 h-24 mx-auto text-muted-foreground/50" strokeWidth={1} />
-              <h2 className="text-2xl mt-4 font-semibold">Your Trash is Empty</h2>
-              <p className="mt-2">Deleted files will appear here.</p>
+              <h2 className="text-2xl mt-4 font-semibold">{error ? "Error Loading Trash" : "Your Trash is Empty"}</h2>
+              <p className="mt-2">{error ? error : "Deleted files will appear here."}</p>
           </div>
           )}
           
