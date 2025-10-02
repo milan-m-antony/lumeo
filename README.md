@@ -147,7 +147,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_KEY=your-service-key
 TELEGRAM_BOT_TOKEN=your-bot-token
 TELEGRAM_CHANNEL_ID=your-channel-id
-NEXT_PUBLIC_TG_BOT_TOKEN=your-public-bot-token```
+NEXT_PUBLIC_TG_BOT_TOKEN=your-public-bot-token
+```
 
 > ⚠️ **Important:** Do not commit secrets to GitHub.
 
