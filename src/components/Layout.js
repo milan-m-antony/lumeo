@@ -118,7 +118,7 @@ const Layout = ({ children }) => {
                 </Sidebar>
                 <div className="flex flex-col flex-1">
                     <MobileHeader />
-                    <SidebarInset>{children}</SidebarInset>
+                    <SidebarInset className="justify-center">{children}</SidebarInset>
                 </div>
             </div>
         </SidebarProvider>
