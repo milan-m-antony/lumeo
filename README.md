@@ -78,7 +78,7 @@ It uses **Telegram** for storage and **Supabase** for metadata management, allow
 ## 🚀 Getting Started
 
 ### 1️⃣ Clone the Repository
-```bash
+
 git clone https://github.com/milan-m-antony/lumeo-teli-gallery.git
 cd lumeo
 
@@ -134,10 +134,10 @@ Commit your changes
 
 Open a Pull Request
 
-📄 License
+## 📄 License
 
-This project is licensed under the MIT License
-.
+This project is licensed under the [MIT License](./LICENSE).
 
 © 2025 Milan M Antony
+
 
