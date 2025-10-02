@@ -76,9 +76,11 @@ npm run supabase:secrets:set -- SUPABASE_URL=... SUPABASE_SERVICE_KEY=...
 
 >THIS FOR EMAIL OTP TEMPLATE YOU CAN ALSO MODIFY THE CODE TO MAKE IT MORE BEAUTIFUL.
 
-Edit Supabase → **Authentication → Templates → Reset Password**:
+Edit Supabase → **Authentication → Emails  → Reset Password → <> Source : Paste → Save Changes**:
 
-```html
+### code editor
+
+```bash
 <!DOCTYPE html>
 <html>
 <head>
@@ -105,10 +107,13 @@ p { color: #4b5563; font-size: 15px; line-height: 1.6; text-align: center; margi
 </div>
 </body>
 </html>
+```
 
 #Deploy Edge Function
 
-npm run supabase:functions:deploy -- password-reset```
+```bash
+npm run supabase:functions:deploy -- password-reset
+```
 Verify deployment in **Supabase Dashboard → Edge Functions**.
 
 ---
@@ -118,7 +123,8 @@ Verify deployment in **Supabase Dashboard → Edge Functions**.
 Start the development server:
 
 ```bash
-npm run dev```
+npm run dev
+```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.  
 Create an account and start uploading your media.
@@ -128,6 +134,7 @@ Create an account and start uploading your media.
 ## 6️⃣ Production Deployment
 
 ```bash
-npm run deploy```
+npm run deploy
+```
 
 This deploys the **password-reset Edge Function** and builds an optimized production version of Lumeo.
