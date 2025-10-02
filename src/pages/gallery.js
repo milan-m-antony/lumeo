@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { CardFooter } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Edit, Download, Save, X as XIcon, Image as ImageIcon, Video, FileText, Search, PlayCircle, Loader2, Trash2, FolderUp, Filter } from "lucide-react";
+import { Edit, Download, Save, X as XIcon, Image as ImageIcon, Video, FileText, Search, PlayCircle, Loader2, Trash2, FolderUp, Filter, CheckSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -16,6 +16,7 @@ import { withAuth, fetchWithAuth } from "@/context/AuthContext";
 import { useInView } from "react-intersection-observer";
 import { GalleryItem } from "@/components/GalleryItem";
 import { useLayout } from "@/components/Layout";
+import { motion, AnimatePresence } from "framer-motion";
 
 function GalleryPage() {
   const [files, setFiles] = useState([]);
@@ -30,16 +31,65 @@ function GalleryPage() {
   const [albums, setAlbums] = useState([]);
   const { toast } = useToast();
 
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const isInitialLoad = useRef(true);
 
   const { setMobileHeaderContent } = useLayout();
 
+  const toggleSelectionMode = () => {
+    setSelectionMode(!selectionMode);
+    setSelectedIds(new Set());
+  };
+
+  const handleFileClick = (file) => {
+    if (selectionMode) {
+      const newSelectedIds = new Set(selectedIds);
+      if (newSelectedIds.has(file.id)) {
+        newSelectedIds.delete(file.id);
+      } else {
+        newSelectedIds.add(file.id);
+      }
+      setSelectedIds(newSelectedIds);
+    } else {
+      setSelectedFile(file);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const ids = Array.from(selectedIds);
+    const res = await fetchWithAuth('/api/delete-multiple', {
+      method: 'POST',
+      body: JSON.stringify({ ids }),
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      setFiles(files.filter(f => !selectedIds.has(f.id)));
+      toast({
+        title: `${ids.length} file(s) moved to trash.`,
+      });
+    } else {
+      toast({
+        title: "Failed to delete files",
+        description: result.error || "An unknown error occurred.",
+        variant: "destructive",
+      });
+    }
+    toggleSelectionMode(); // Exit selection mode
+  };
+
   useEffect(() => {
-    // We set a simple title here because the search/filter controls are now part of the page content
     setMobileHeaderContent({
-      title: "Gallery"
+      title: "Gallery",
+      actions: (
+         <Button variant="ghost" size="icon" onClick={toggleSelectionMode}>
+            <CheckSquare />
+         </Button>
+      )
     });
   }, [setMobileHeaderContent]);
 
@@ -258,6 +308,10 @@ function GalleryPage() {
         <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 h-16 border-b glass-effect">
             <h1 className="text-2xl font-bold text-foreground hidden md:block">Gallery</h1>
              <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+                <Button variant="outline" onClick={toggleSelectionMode} className="hidden md:inline-flex">
+                    <CheckSquare className="mr-2 h-4 w-4"/>
+                    Select
+                </Button>
                 <div className="relative w-full max-w-xs">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -301,7 +355,13 @@ function GalleryPage() {
         
         <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6 gap-4 space-y-4">
           {files.map((file) => (
-            <GalleryItem key={file.id} file={file} onSelectFile={setSelectedFile} />
+            <GalleryItem 
+                key={file.id} 
+                file={file} 
+                onFileClick={handleFileClick} 
+                isSelected={selectedIds.has(file.id)}
+                isSelectionMode={selectionMode}
+             />
           ))}
         </div>
         
@@ -312,6 +372,42 @@ function GalleryPage() {
         )}
 
       </main>
+
+       <AnimatePresence>
+            {selectionMode && selectedIds.size > 0 && (
+                <motion.div
+                    initial={{ y: "100%" }}
+                    animate={{ y: 0 }}
+                    exit={{ y: "100%" }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    className="fixed bottom-4 left-1/2 -translate-x-1/2 w-auto z-50"
+                >
+                    <div className="glass-effect flex items-center justify-between gap-4 p-3 rounded-lg shadow-2xl">
+                        <p className="text-sm font-medium">{selectedIds.size} item(s) selected</p>
+                        <div className="flex gap-2">
+                           <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="destructive" size="sm"><Trash2 className="mr-2 h-4 w-4"/> Delete Selected</Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This will move {selectedIds.size} file(s) to the trash. You can restore them later.
+                                    </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleBulkDelete}>Move to Trash</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                            <Button variant="secondary" size="sm" onClick={toggleSelectionMode}><XIcon className="mr-2 h-4 w-4"/> Cancel</Button>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
 
        <Dialog open={!!selectedFile} onOpenChange={(isOpen) => !isOpen && setSelectedFile(null)}>
           <DialogContent className="max-w-3xl w-full h-full md:h-auto md:max-h-[90vh] p-0 flex flex-col sm:rounded-lg">
@@ -403,5 +499,3 @@ function GalleryPage() {
 }
 
 export default withAuth(GalleryPage);
-
-    

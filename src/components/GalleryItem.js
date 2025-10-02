@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
-import { PlayCircle, Video, FileText, ImageIcon } from "lucide-react";
+import { PlayCircle, Video, FileText, ImageIcon, CheckCircle } from "lucide-react";
 
 // A generic base64-encoded transparent GIF.
 const shimmer = (w, h) => `data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7`;
@@ -55,12 +55,20 @@ const FilePreview = ({ file }) => {
 };
 
 
-export const GalleryItem = ({ file, onSelectFile }) => {
+export const GalleryItem = ({ file, onFileClick, isSelected, isSelectionMode }) => {
   return (
     <Card 
-        className="break-inside-avoid overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 group bg-transparent border-border/20"
-        onClick={() => onSelectFile(file)}
+        className="break-inside-avoid overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 group bg-transparent border-border/20 relative"
+        onClick={() => onFileClick(file)}
     >
+       {isSelectionMode && (
+         <div className={`absolute top-2 right-2 z-10 h-6 w-6 rounded-full flex items-center justify-center transition-all duration-200 ${isSelected ? 'bg-primary text-primary-foreground' : 'bg-black/40 text-white/70'}`}>
+            {isSelected ? <CheckCircle className="h-5 w-5" /> : <div className="h-4 w-4 rounded-full border-2 border-white"></div>}
+         </div>
+       )}
+       {isSelected && (
+           <div className="absolute inset-0 bg-primary/40 ring-2 ring-primary z-0 pointer-events-none" />
+       )}
       <CardContent className="p-0 cursor-pointer">
         <FilePreview file={file} />
       </CardContent>
