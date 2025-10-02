@@ -78,8 +78,9 @@ npm run supabase:secrets:set -- SUPABASE_URL=... SUPABASE_SERVICE_KEY=...
 
 Edit Supabase → **Authentication → Templates → Reset Password**:
 
+### code editor
+
 ```bash
-html
 <!DOCTYPE html>
 <html>
 <head>
