@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { CardFooter } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Edit, Download, Save, X as XIcon, Image as ImageIcon, Video, FileText, Search, PlayCircle, Loader2, Trash2, FolderUp, ArrowLeft, Filter, AlertCircle, CheckSquare, Calendar as CalendarIcon } from "lucide-react";
@@ -75,10 +75,10 @@ function AlbumDetailPage() {
     triggerOnce: false,
   });
 
-  const toggleSelectionMode = () => {
-    setSelectionMode(!selectionMode);
+  const toggleSelectionMode = useCallback(() => {
+    setSelectionMode(prev => !prev);
     setSelectedIds(new Set());
-  };
+  }, []);
 
   const handleFileClick = (file) => {
     if (selectionMode) {
@@ -220,7 +220,7 @@ function AlbumDetailPage() {
         </>
       ),
     });
-  }, [setMobileHeaderContent, album, search, typeFilter, sortOrder, dateRange, toggleSelectionMode, isDesktop, router]);
+  }, [setMobileHeaderContent, album, search, typeFilter, sortOrder, dateRange, toggleSelectionMode, isDesktop]);
 
   const fetchFiles = useCallback(async (isNewSearch = false) => {
     if (!albumId) return;
@@ -308,7 +308,7 @@ function AlbumDetailPage() {
         fetchFiles(true);
     }, 500);
     return () => clearTimeout(handler);
-  }, [search, typeFilter, sortOrder, dateRange, albumId]);
+  }, [search, typeFilter, sortOrder, dateRange, albumId, fetchFiles]);
   
   useEffect(() => {
     if (inView && hasMore && !loading && !loadingMore && !isInitialLoad.current) {
@@ -486,8 +486,10 @@ function AlbumDetailPage() {
       <header className="flex-shrink-0 sticky top-0 md:top-0 z-10 hidden md:flex items-center justify-between gap-4 h-16 border-b py-4 sm:py-0 bg-background/95 backdrop-blur-sm">
           <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between w-full">
             <div className="flex items-center gap-2">
-                <Link href="/albums" title="Back to Albums" className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "h-8 w-8")}>
+                <Link href="/albums" passHref>
+                  <span className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "h-8 w-8")}>
                     <ArrowLeft />
+                  </span>
                 </Link>
                 <div>
                   <h1 className="text-2xl font-bold text-foreground truncate" title={album?.name}>{album?.name}</h1>
@@ -658,15 +660,18 @@ function AlbumDetailPage() {
            <DialogContent className="max-w-3xl w-full h-full md:h-auto md:max-h-[90vh] p-0 flex flex-col sm:rounded-lg">
              {selectedFile && (
                 <>
-                <DialogHeader className="p-4 border-b flex-shrink-0">
-                  <DialogTitle className="truncate">
-                    {editingId === selectedFile.id ? (
-                        <Input value={editingCaption} onChange={(e) => setEditingCaption(e.target.value)} placeholder="Enter caption" className="text-lg"/>
-                    ) : (
-                        selectedFile.caption || "No Caption"
-                    )}
-                  </DialogTitle>
-                </DialogHeader>
+                 <DialogHeader className="p-4 border-b flex-shrink-0">
+                   <DialogTitle className="truncate">
+                     {editingId === selectedFile.id ? (
+                         <Input value={editingCaption} onChange={(e) => setEditingCaption(e.target.value)} placeholder="Enter caption" className="text-lg"/>
+                     ) : (
+                         selectedFile.caption || "No Caption"
+                     )}
+                   </DialogTitle>
+                   <DialogDescription>
+                     Details for {selectedFile.caption || 'this file'}.
+                   </DialogDescription>
+                 </DialogHeader>
                 <div className="flex-grow p-4 flex items-center justify-center bg-black/50 min-h-0">
                     <div className="relative w-full h-full flex items-center justify-center">
                       {renderFilePreview(selectedFile)}

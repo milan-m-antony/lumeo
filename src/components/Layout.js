@@ -92,7 +92,7 @@ const AppMenu = () => {
     return (
         <SidebarMenu>
             {menuItems.map((item) => (
-                 <SidebarMenuItem key={item.href} asChild>
+                 <SidebarMenuItem key={item.href}>
                     <Link href={item.href} passHref>
                         <SidebarMenuButton
                              isActive={isPathActive(item.href)}

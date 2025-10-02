@@ -1,11 +1,12 @@
 
+
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { CardFooter } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Edit, Download, Save, X as XIcon, Image as ImageIcon, Video, FileText, Search, PlayCircle, Loader2, Trash2, FolderUp, Filter, CheckSquare, Calendar as CalendarIcon } from "lucide-react";
@@ -62,10 +63,10 @@ function GalleryPage() {
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
 
-  const toggleSelectionMode = () => {
-    setSelectionMode(!selectionMode);
+  const toggleSelectionMode = useCallback(() => {
+    setSelectionMode(prev => !prev);
     setSelectedIds(new Set());
-  };
+  }, []);
 
   const handleFileClick = (file) => {
     if (selectionMode) {
@@ -175,7 +176,7 @@ function GalleryPage() {
         fetchFiles(true);
     }, 500); 
     return () => clearTimeout(handler);
-  }, [search, typeFilter, sortOrder, dateRange]);
+  }, [search, typeFilter, sortOrder, dateRange, fetchFiles]);
 
   useEffect(() => {
     if (inView && hasMore && !loading && !loadingMore && !isInitialLoad.current) {
@@ -523,6 +524,9 @@ function GalleryPage() {
                         selectedFile.caption || "No Caption"
                     )}
                   </DialogTitle>
+                  <DialogDescription>
+                    Details for {selectedFile.caption || 'this file'}.
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="flex-grow p-4 flex items-center justify-center bg-black/50 min-h-0">
                     <div className="relative w-full h-full flex items-center justify-center">
