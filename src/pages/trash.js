@@ -48,14 +48,14 @@ function TrashPage() {
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure you want to empty the trash?</AlertDialogTitle>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete all {trashedFiles.length} items in the trash. This action cannot be undone.
+            This action cannot be undone. This will permanently delete all <strong>{trashedFiles.length} items</strong>.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleEmptyTrash}>Empty Bin</AlertDialogAction>
+          <AlertDialogAction onClick={handleEmptyTrash}>Yes, delete all</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -73,14 +73,14 @@ function TrashPage() {
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently delete all items in the trash. This action cannot be undone.
+                 This action cannot be undone. This will permanently delete all <strong>{trashedFiles.length} items</strong>.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleEmptyTrash}>Empty Trash</AlertDialogAction>
+              <AlertDialogAction onClick={handleEmptyTrash}>Yes, delete all</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
