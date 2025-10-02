@@ -81,6 +81,7 @@ const AppMenu = () => {
     };
 
     const isPathActive = (path) => {
+        if (!pathname || !path) return false;
         if (path === '/') return pathname === '/';
         if (path === '/gallery' && pathname === '/') return true; // Treat index as gallery for active state
         return pathname.startsWith(path);
