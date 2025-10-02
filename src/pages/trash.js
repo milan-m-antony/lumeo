@@ -6,12 +6,18 @@ import { Image as ImageIcon, Video, FileText, Loader2, Trash2, RotateCcw } from 
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from 'date-fns';
 import { withAuth, fetchWithAuth } from "@/context/AuthContext";
+import { useLayout } from "@/components/Layout";
 
 function TrashPage() {
   const [trashedFiles, setTrashedFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { toast } = useToast();
+  const { setMobileHeaderContent } = useLayout();
+
+  useEffect(() => {
+    setMobileHeaderContent({ title: "Trash" });
+  }, [setMobileHeaderContent]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -118,7 +124,7 @@ function TrashPage() {
         {error && <p className="text-center text-destructive">Error: {error}</p>}
 
         {!loading && !error && trashedFiles.length === 0 && (
-          <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground group-data-[state=expanded]/sidebar-wrapper:md:ml-0 md:ml-0 transition-all duration-200 ease-in-out">
+          <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground">
             <Trash2 className="w-24 h-24 mx-auto text-muted-foreground/50" strokeWidth={1} />
             <h2 className="text-2xl mt-4 font-semibold">Your Trash is Empty</h2>
             <p className="mt-2">Deleted files will appear here.</p>

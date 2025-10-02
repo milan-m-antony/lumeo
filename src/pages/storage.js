@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Loader2, Database, Send } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { withAuth, fetchWithAuth } from '@/context/AuthContext';
+import { useLayout } from '@/components/Layout';
+
 
 const StorageSkeleton = () => (
     <Card className="bg-transparent border-border/20">
@@ -21,6 +23,11 @@ function StoragePage() {
     const [storage, setStorage] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const { setMobileHeaderContent } = useLayout();
+
+    useEffect(() => {
+        setMobileHeaderContent({ title: "Storage" });
+    }, [setMobileHeaderContent]);
 
     useEffect(() => {
         const getStorage = async () => {

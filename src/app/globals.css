@@ -93,6 +93,7 @@
 
   .glass-effect {
     @apply bg-card backdrop-blur-md border shadow-lg;
-    background-color: hsla(var(--card), 0.6);
+    background-color: hsla(var(--card), 0.8);
+    border-color: hsla(var(--border), 0.5);
   }
 }

@@ -5,10 +5,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { CardFooter } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Edit, Download, Save, X, Image as ImageIcon, Video, FileText, Search, PlayCircle, Loader2, Trash2, FolderUp, ArrowLeft } from "lucide-react";
+import { Edit, Download, Save, X, Image as ImageIcon, Video, FileText, Search, PlayCircle, Loader2, Trash2, FolderUp, ArrowLeft, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import Link from "next/link";
@@ -16,7 +16,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { withAuth, fetchWithAuth } from "@/context/AuthContext";
 import { useInView } from "react-intersection-observer";
 import { GalleryItem } from "@/components/GalleryItem";
-
+import { useLayout } from "@/components/Layout";
 
 function AlbumDetailPage() {
   const router = useRouter();
@@ -37,11 +37,65 @@ function AlbumDetailPage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const isInitialLoad = useRef(true);
+  
+  const { setMobileHeaderContent } = useLayout();
 
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0,
     triggerOnce: false,
   });
+
+  useEffect(() => {
+    const mobileTitle = (
+      <div className="flex items-center gap-2 min-w-0">
+        <Button variant="ghost" size="icon" className="h-8 w-8 -ml-2" asChild>
+            <Link href="/albums" title="Back to Albums">
+                <ArrowLeft />
+            </Link>
+        </Button>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-lg font-bold text-foreground truncate" title={album?.name}>{album?.name}</h1>
+          <p className="text-xs text-muted-foreground">{album?.files[0]?.count || 0} items</p>
+        </div>
+      </div>
+    );
+
+    setMobileHeaderContent({
+      title: mobileTitle,
+      actions: (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon"><Filter /></Button>
+          </PopoverTrigger>
+          <PopoverContent className="mr-2 p-0 glass-effect">
+            <div className="p-4 space-y-4">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        type="text"
+                        placeholder="Search..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="pl-10 bg-muted/50 border-0 focus-visible:ring-primary w-full"
+                    />
+                </div>
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                    <SelectTrigger className="w-full bg-muted/50 border-0 focus:ring-primary">
+                        <SelectValue placeholder="Filter by type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="photo">Photos</SelectItem>
+                        <SelectItem value="video">Videos</SelectItem>
+                        <SelectItem value="document">Documents</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+          </PopoverContent>
+        </Popover>
+      ),
+    });
+  }, [setMobileHeaderContent, album, search, typeFilter]);
 
   const fetchFiles = useCallback(async (isNewSearch = false) => {
     if (!albumId) return;
@@ -343,7 +397,7 @@ function AlbumDetailPage() {
       </main>
 
       <Dialog open={!!selectedFile} onOpenChange={(isOpen) => !isOpen && setSelectedFile(null)}>
-          <DialogContent className="max-w-3xl w-full h-full md:h-[90vh] p-0 flex flex-col">
+           <DialogContent className="max-w-3xl w-full h-full md:h-[90vh] p-0 flex flex-col sm:rounded-lg">
              {selectedFile && (
                 <>
                 <DialogHeader className="p-4 border-b flex-shrink-0">
@@ -354,13 +408,17 @@ function AlbumDetailPage() {
                         selectedFile.caption || "No Caption"
                     )}
                   </DialogTitle>
+                    <DialogClose className="md:hidden absolute right-2 top-2 rounded-sm p-2 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+                        <X className="h-5 w-5" />
+                        <span className="sr-only">Close</span>
+                   </DialogClose>
                 </DialogHeader>
                 <div className="flex-grow p-4 flex items-center justify-center bg-black/50 min-h-0">
                     <div className="relative w-full h-full flex items-center justify-center">
                       {renderFilePreview(selectedFile)}
                     </div>
                 </div>
-                <CardFooter className="p-4 bg-background/80 border-t flex justify-end items-center gap-2 flex-shrink-0 glass-effect">
+                <CardFooter className="p-2 md:p-4 bg-background/80 border-t flex justify-end items-center gap-2 flex-shrink-0 glass-effect md:rounded-b-lg">
                     {editingId === selectedFile.id ? (
                         <>
                           <Button size="icon" variant="outline" onClick={() => handleUpdateCaption(selectedFile.id)} title="Save Caption"><Save className="w-4 h-4" /></Button>

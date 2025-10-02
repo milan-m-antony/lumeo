@@ -35,6 +35,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Loader2, Folder, PlusCircle, MoreVertical, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { withAuth, fetchWithAuth } from "@/context/AuthContext";
+import { useLayout } from "@/components/Layout";
 
 function AlbumsPage() {
   const [albums, setAlbums] = useState([]);
@@ -45,6 +46,39 @@ function AlbumsPage() {
   const [newAlbumDescription, setNewAlbumDescription] = useState("");
   const { toast } = useToast();
   const router = useRouter();
+  const { setMobileHeaderContent } = useLayout();
+
+  useEffect(() => {
+    setMobileHeaderContent({
+      title: "Albums",
+      actions: (
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="ghost" size="icon"><PlusCircle /></Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Create New Album</DialogTitle>
+              <DialogDescription>Give your new album a name and an optional description.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">Name</Label>
+                <Input id="name" value={newAlbumName} onChange={(e) => setNewAlbumName(e.target.value)} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="description" className="text-right">Description</Label>
+                <Textarea id="description" value={newAlbumDescription} onChange={(e) => setNewAlbumDescription(e.target.value)} className="col-span-3" />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit" onClick={handleCreateAlbum}>Create Album</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )
+    });
+  }, [setMobileHeaderContent, isDialogOpen, newAlbumName, newAlbumDescription]);
 
   const fetchAlbums = useCallback(async () => {
     setLoading(true);

@@ -25,6 +25,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { withAuth, fetchWithAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
+import { useLayout } from "@/components/Layout";
+
 
 const FilePreview = ({ fileWithPreview, caption, onCaptionChange, onRemove }) => {
   const { file, preview } = fileWithPreview;
@@ -41,7 +43,7 @@ const FilePreview = ({ fileWithPreview, caption, onCaptionChange, onRemove }) =>
   }
 
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-2 border rounded-lg bg-muted/50 gap-2">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-2 border rounded-lg bg-muted/50 gap-2 relative">
       <div className="flex items-center gap-3 flex-shrink-0">
         {previewElement}
         <span className="text-sm font-medium truncate max-w-[150px]">{file.name}</span>
@@ -73,6 +75,11 @@ function UploadPage() {
   const [isCreateAlbumOpen, setIsCreateAlbumOpen] = useState(false);
   const [newAlbumName, setNewAlbumName] = useState("");
   const [newAlbumDescription, setNewAlbumDescription] = useState("");
+  const { setMobileHeaderContent } = useLayout();
+
+  useEffect(() => {
+    setMobileHeaderContent({ title: "Upload Files" });
+  }, [setMobileHeaderContent]);
 
 
   const fetchAlbums = useCallback(async () => {
