@@ -1,5 +1,5 @@
 README.md
-# 🎨 Lumeo - A Personal Media Gallery
+# 🎨 Lumeo - A Personal Free Cloud Media Gallery Storage
 
 ![Lumeo Banner](assets/banner.png)
  
@@ -78,7 +78,8 @@ It uses **Telegram** for storage and **Supabase** for metadata management, allow
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/lumeo.git
+git clone https://github.com/milan-m-antony/lumeo-teli-gallery.git
+
 cd lumeo
 
 2️⃣ Install Dependencies
@@ -135,8 +136,9 @@ Commit your changes
 
 Open a Pull Request
 
-## License
+---
 
 This project is licensed under the [MIT License](./LICENSE).
 
 © 2025 Milan M Antony
+---
