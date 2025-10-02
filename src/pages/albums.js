@@ -112,7 +112,7 @@ function AlbumsPage() {
         </>
       )
     });
-  }, [setMobileHeaderContent, isDialogOpen, newAlbumName, newAlbumDescription, isSearchVisible, sortOrder]);
+  }, [setMobileHeaderContent, isDialogOpen, newAlbumName, newAlbumDescription, sortOrder, isSearchVisible]);
 
   const fetchAlbums = async () => {
     setLoading(true);
