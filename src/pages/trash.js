@@ -114,18 +114,20 @@ function TrashPage() {
   
   return (
     <div className="flex flex-col h-full w-full">
-       <header className="flex-shrink-0 sticky top-14 md:top-0 z-10 border-b bg-background/95 backdrop-blur-sm">
+      <header className="flex-shrink-0 sticky top-14 md:top-0 z-10 border-b bg-background/95 backdrop-blur-sm">
         <div className="px-4 sm:px-6 lg:px-8 flex items-center h-16">
-          <h1 className="text-2xl font-bold text-foreground">Trash</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">
+            Trash
+          </h1>
         </div>
       </header>
       <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
-        <div className="w-full">
+        <div className="w-full max-w-7xl mx-auto">
           {loading && <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
           {error && <p className="text-center text-destructive">Error: {error}</p>}
 
           {!loading && !error && trashedFiles.length === 0 && (
-          <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground">
+          <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground py-16">
               <Trash2 className="w-24 h-24 mx-auto text-muted-foreground/50" strokeWidth={1} />
               <h2 className="text-2xl mt-4 font-semibold">Your Trash is Empty</h2>
               <p className="mt-2">Deleted files will appear here.</p>
