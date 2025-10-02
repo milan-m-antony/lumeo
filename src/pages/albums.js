@@ -213,9 +213,10 @@ function AlbumsPage() {
 
   return (
     <div className="flex flex-col h-full w-full">
-      <div className="flex-shrink-0 sticky top-14 md:top-0 z-10">
-        <PageHeader title="Albums">
-            <div className="hidden md:flex items-center gap-2">
+      <header className="flex-shrink-0 sticky top-14 md:top-0 z-10 glass-effect">
+         <div className="p-4 border-b hidden md:flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-foreground">Albums</h1>
+            <div className="flex items-center gap-2">
                 <div className="relative w-full max-w-xs">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -272,7 +273,7 @@ function AlbumsPage() {
                     </DialogContent>
                 </Dialog>
             </div>
-        </PageHeader>
+         </div>
         <AnimatePresence>
             {isSearchVisible && (
             <motion.div
@@ -299,7 +300,7 @@ function AlbumsPage() {
             </motion.div>
             )}
         </AnimatePresence>
-      </div>
+      </header>
 
       <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
         {loading && <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
