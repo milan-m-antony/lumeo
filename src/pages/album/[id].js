@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from 'next/router';
 import { Button } from "@/components/ui/button";
@@ -333,8 +334,8 @@ function AlbumDetailPage() {
 
   return (
     <div className="flex flex-col h-full w-full">
-      <header className="flex-shrink-0 sticky top-0 z-10 hidden md:block">
-        <div className="px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 h-auto sm:h-16 border-b py-4 sm:py-0 bg-background/95 backdrop-blur-sm md:bg-transparent md:border-0 md:shadow-none md:backdrop-blur-none">
+      <header className="flex-shrink-0 sticky top-0 md:top-14 z-10 hidden md:flex items-center justify-between gap-4 h-16 border-b py-4 sm:py-0 bg-background/95 backdrop-blur-sm">
+          <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between w-full">
             <div className="flex items-center gap-2">
                 <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
                     <Link href="/albums" title="Back to Albums">
@@ -346,8 +347,8 @@ function AlbumDetailPage() {
                   <p className="text-sm text-muted-foreground">{album?.files[0]?.count || 0} items</p>
                 </div>
             </div>
-             <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-                <div className="relative w-full sm:max-w-xs">
+             <div className="flex items-center gap-2">
+                <div className="relative w-full max-w-xs">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         type="text"
@@ -358,7 +359,7 @@ function AlbumDetailPage() {
                     />
                 </div>
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
-                    <SelectTrigger className="w-full sm:w-[150px] bg-muted/50 border-0 focus:ring-primary">
+                    <SelectTrigger className="w-full sm:w-[180px] bg-muted/50 border-0 focus:ring-primary">
                         <SelectValue placeholder="Filter by type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -369,7 +370,7 @@ function AlbumDetailPage() {
                     </SelectContent>
                 </Select>
             </div>
-        </div>
+          </div>
       </header>
       
       <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
