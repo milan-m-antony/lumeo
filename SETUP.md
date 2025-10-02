@@ -1,197 +1,122 @@
-# Lumeo Setup Guide
+SETUP.md
+# ⚙️ Lumeo Setup Guide
 
-This guide will walk you through the process of setting up and running a local copy of the Lumeo application.
+This guide walks you through **setting up and running Lumeo locally**.
 
-## 1. Install Dependencies
+---
 
-First, install the necessary packages. This command also installs the Supabase CLI, which is required for managing the database and Edge Functions.
+## 1️⃣ Install Dependencies
+
+Install all required packages, including **Supabase CLI**:
 
 ```bash
 npm install
-```
 
-## 2. Supabase Project Setup
+2️⃣ Supabase Project Setup
 
-Supabase will be used to store the metadata for your files, such as captions, file IDs, and timestamps.
+Supabase stores metadata for your files (captions, IDs, timestamps, etc.).
 
-### A. Create a Supabase Project
+A. Create a Supabase Project
 
-1.  Go to [supabase.com](https://supabase.com) and sign in or create a new account.
-2.  Click on "**New project**" and give it a name.
-3.  Save the **Database Password** that you create. You will need it in the next step.
-4.  Wait for your project to be provisioned.
+Go to supabase.com
+ and sign in or create an account
 
-### B. Create `.env.local` File
+Click New Project and give it a name
 
-Create a new file named `.env.local` in the root of your project. Copy the contents of the example below into this new file and fill in the values from your Supabase project.
+Save your Database Password (needed later)
 
--   `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in **Project Settings > API > Project API keys**.
--   `SUPABASE_SERVICE_ROLE_KEY` is also in **Project Settings > API** but you must click "Show" and enter your password to reveal it. This key must be kept secret.
--   `SUPABASE_DB_PASSWORD` is the database password you saved during project creation.
--   `TELEGRAM_...` keys need to be filled in with your own Telegram bot credentials.
+Wait for the project to be provisioned
 
-```
+B. Create .env.local
+
+In the project root, create a file named .env.local and add the following:
+
+# Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-SUPABASE_DB_PASSWORD=
+SUPABASE_SERVICE_KEY=
+
+# Telegram Bot Configuration
 TELEGRAM_BOT_TOKEN=
 TELEGRAM_CHANNEL_ID=
-```
+NEXT_PUBLIC_TG_BOT_TOKEN=
 
-## 3. Link Supabase and Push Schema
 
-Now, we will connect your local project to your Supabase project in the cloud and set up the database.
+Replace each value with your own credentials.
 
-### A. Log in to Supabase
-
-Run this command. It will open a browser window asking you to authorize the application.
-
-```bash
+3️⃣ Connect Supabase & Push Schema
+A. Log in to Supabase
 npm run supabase:login
-```
 
-### B. Link your Project
-
-Run the following command. It will ask you to select your Supabase organization and project. You will also be asked for your database password.
-
-```bash
+B. Link Your Project
 npm run supabase:link
-```
 
-### C. Push the Database Migrations
 
-This command will read the migration files in this repository and apply them to your live Supabase database, creating all the necessary tables and security policies.
+Select your organization and project, then enter your database password.
 
-```bash
+C. Push Database Migrations
 npm run supabase:db push
-```
 
-## 4. Deploy the Edge Function
 
-This project uses a Supabase Edge Function for the password reset flow.
+This applies all migration files, creating tables and security policies.
 
-### A. Set the Function Secrets
+4️⃣ Deploy Edge Function (Password Reset)
+A. Set Function Secrets
+npm run supabase:secrets:set -- SUPABASE_URL=... SUPABASE_SERVICE_KEY=...
 
-The function needs access to your project URL and service key to perform admin actions. Run this command, replacing the placeholders with your actual credentials from your `.env.local` file.
 
-```bash
-npm run supabase:secrets:set -- SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=...
-```
+Replace ... with the values from your .env.local.
 
-### B. Customize the Password Reset Email
+B. Customize Password Reset Email
 
-Supabase will send an email with the OTP. You need to edit the email template to show it.
-   - Go to **Authentication > Templates** in your Supabase dashboard.
-   - Edit the **Reset password** template.
-   - Change the content to the following HTML to provide a professional-looking email with the required reset code.
-     ```html
-     <!DOCTYPE html>
-     <html>
-       <head>
-         <meta charset="utf-8" />
-         <style>
-           body {
-             font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
-             background: #f3f4f6;
-             margin: 0;
-             padding: 0;
-           }
-           .container {
-             max-width: 520px;
-             margin: 40px auto;
-             background: #ffffff;
-             border-radius: 16px;
-             padding: 40px 30px;
-             box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-           }
-           .logo {
-             text-align: center;
-             font-size: 26px;
-             font-weight: 700;
-             color: #3b82f6;
-             margin-bottom: 10px;
-             letter-spacing: 1px;
-           }
-           h2 {
-             font-size: 20px;
-             text-align: center;
-             color: #1f2937;
-             margin-bottom: 15px;
-           }
-           p {
-             color: #4b5563;
-             font-size: 15px;
-             line-height: 1.6;
-             text-align: center;
-             margin: 12px 0;
-           }
-           .code-box {
-             background: linear-gradient(135deg, #6366f1, #3b82f6);
-             border-radius: 12px;
-             padding: 18px;
-             text-align: center;
-             font-size: 26px;
-             font-weight: 700;
-             letter-spacing: 4px;
-             color: #ffffff;
-             margin: 25px auto;
-             width: fit-content;
-           }
-           .footer {
-             text-align: center;
-             font-size: 12px;
-             color: #9ca3af;
-             margin-top: 40px;
-           }
-         </style>
-       </head>
-       <body>
-         <div class="container">
-           <div class="logo">Lumeo</div>
-           <h2>Reset your password</h2>
-           <p>Hello,</p>
-           <p>We received a request to reset your Lumeo account password.</p>
-     
-           <div class="code-box">
-             {{ .Token }}
-           </div>
-     
-           <p>This code will expire in <strong>10 minutes</strong>.</p>
-           <p>If you didn’t request this, you can safely ignore this email.</p>
-     
-           <div class="footer">
-             © 2025 Lumeo · Secure Authentication  
-           </div>
-         </div>
-       </body>
-     </html>
-     ```
+Edit Supabase → Authentication → Templates → Reset Password:
 
-### C. Deploy the Function
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body { font-family: "Inter", sans-serif; background: #f3f4f6; margin: 0; padding: 0; }
+.container { max-width: 520px; margin: 40px auto; background: #fff; border-radius: 16px; padding: 40px 30px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+.logo { text-align: center; font-size: 26px; font-weight: 700; color: #3b82f6; margin-bottom: 10px; letter-spacing: 1px; }
+h2 { font-size: 20px; text-align: center; color: #1f2937; margin-bottom: 15px; }
+p { color: #4b5563; font-size: 15px; line-height: 1.6; text-align: center; margin: 12px 0; }
+.code-box { background: linear-gradient(135deg, #6366f1, #3b82f6); border-radius: 12px; padding: 18px; text-align: center; font-size: 26px; font-weight: 700; letter-spacing: 4px; color: #fff; margin: 25px auto; width: fit-content; }
+.footer { text-align: center; font-size: 12px; color: #9ca3af; margin-top: 40px; }
+</style>
+</head>
+<body>
+<div class="container">
+<div class="logo">Lumeo</div>
+<h2>Reset your password</h2>
+<p>Hello,</p>
+<p>We received a request to reset your Lumeo account password.</p>
+<div class="code-box">{{ .Token }}</div>
+<p>This code will expire in <strong>10 minutes</strong>.</p>
+<p>If you didn’t request this, ignore this email.</p>
+<div class="footer">© 2025 Lumeo · Secure Authentication</div>
+</div>
+</body>
+</html>
 
-Now, run the deployment command from your terminal:
-```bash
+C. Deploy the Function
 npm run supabase:functions:deploy -- password-reset
-```
-After a moment, you should see "Deployed function 'password-reset' to project". You can verify this by going to the **Edge Functions** section in your Supabase dashboard.
 
-## 5. Running the Application
 
-Now that your environment is configured, you can run the app.
+Verify the deployment in Supabase Dashboard → Edge Functions.
 
-```bash
+5️⃣ Running Locally
+
+Start the development server:
+
 npm run dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. You can start by creating an account and then uploading files via the "Upload" link in the sidebar.
 
-## 6. Building and Deploying for Production
+Open http://localhost:3000
+ in your browser.
+Create an account and start uploading your media.
 
-The `deploy` script combines deploying the function and building the Next.js app.
-
-```bash
+6️⃣ Production Deployment
 npm run deploy
-```
 
-This will first deploy any changes to the `password-reset` function and then create an optimized production build of your Next.js application in the `.next` folder.
+
+This deploys the password-reset function and builds an optimized Next.js app.
