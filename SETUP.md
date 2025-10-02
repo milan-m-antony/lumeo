@@ -1,4 +1,3 @@
-SETUP.md
 # ⚙️ Lumeo Setup Guide
 
 This guide walks you through **setting up and running Lumeo locally**.
@@ -11,26 +10,24 @@ Install all required packages, including **Supabase CLI**:
 
 ```bash
 npm install
+```
 
-2️⃣ Supabase Project Setup
+---
+
+## 2️⃣ Supabase Project Setup
 
 Supabase stores metadata for your files (captions, IDs, timestamps, etc.).
 
-A. Create a Supabase Project
+### A. Create a Supabase Project
+1. Go to [Supabase](https://supabase.com) and sign in or create an account.  
+2. Click **New Project** and give it a name.  
+3. Save your **Database Password** (needed later).  
+4. Wait for the project to be provisioned.
 
-Go to supabase.com
- and sign in or create an account
+### B. Create `.env.local`
+In the project root, create a file named `.env.local` and add:
 
-Click New Project and give it a name
-
-Save your Database Password (needed later)
-
-Wait for the project to be provisioned
-
-B. Create .env.local
-
-In the project root, create a file named .env.local and add the following:
-
+```bash
 # Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
@@ -40,37 +37,48 @@ SUPABASE_SERVICE_KEY=
 TELEGRAM_BOT_TOKEN=
 TELEGRAM_CHANNEL_ID=
 NEXT_PUBLIC_TG_BOT_TOKEN=
+```
 
+> Replace each value with your own credentials.
 
-Replace each value with your own credentials.
+---
 
-3️⃣ Connect Supabase & Push Schema
-A. Log in to Supabase
+## 3️⃣ Connect Supabase & Push Schema
+
+### A. Log in to Supabase
+```bash
 npm run supabase:login
+```
 
-B. Link Your Project
+### B. Link Your Project
+```bash
 npm run supabase:link
-
-
+```
 Select your organization and project, then enter your database password.
 
-C. Push Database Migrations
+### C. Push Database Migrations
+```bash
 npm run supabase:db push
-
-
+```
 This applies all migration files, creating tables and security policies.
 
-4️⃣ Deploy Edge Function (Password Reset)
-A. Set Function Secrets
+---
+
+## 4️⃣ Deploy Edge Function (Password Reset)
+
+### A. Set Function Secrets
+```bash
 npm run supabase:secrets:set -- SUPABASE_URL=... SUPABASE_SERVICE_KEY=...
+```
+> Replace `...` with the values from your `.env.local`.
 
+### B. Customize Password Reset Email
 
-Replace ... with the values from your .env.local.
+>THIS FOR EMAIL OTP TEMPLATE YOU CAN ALSO MODIFY THE CODE TO MAKE IT MORE BEAUTIFUL.
 
-B. Customize Password Reset Email
+Edit Supabase → **Authentication → Templates → Reset Password**:
 
-Edit Supabase → Authentication → Templates → Reset Password:
-
+```html
 <!DOCTYPE html>
 <html>
 <head>
@@ -98,25 +106,28 @@ p { color: #4b5563; font-size: 15px; line-height: 1.6; text-align: center; margi
 </body>
 </html>
 
-C. Deploy the Function
-npm run supabase:functions:deploy -- password-reset
+#Deploy Edge Function
 
+npm run supabase:functions:deploy -- password-reset```
+Verify deployment in **Supabase Dashboard → Edge Functions**.
 
-Verify the deployment in Supabase Dashboard → Edge Functions.
+---
 
-5️⃣ Running Locally
+## 5️⃣ Running Locally
 
 Start the development server:
 
-npm run dev
+```bash
+npm run dev```
 
-
-Open http://localhost:3000
- in your browser.
+Open [http://localhost:3000](http://localhost:3000) in your browser.  
 Create an account and start uploading your media.
 
-6️⃣ Production Deployment
-npm run deploy
+---
 
+## 6️⃣ Production Deployment
 
-This deploys the password-reset function and builds an optimized Next.js app.
+```bash
+npm run deploy```
+
+This deploys the **password-reset Edge Function** and builds an optimized production version of Lumeo.
