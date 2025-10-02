@@ -255,7 +255,7 @@ function UploadPage() {
                 <h1 className="text-2xl font-bold text-foreground">Upload Files</h1>
             </div>
          </header>
-         <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8 flex justify-center items-center pl-64">
+         <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8 flex justify-center items-center ml-24">
             <div className="w-full max-w-2xl">
                 <Card className="w-full shadow-lg bg-transparent border-border/20">
                   <form onSubmit={handleSubmit}>
