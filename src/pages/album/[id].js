@@ -497,59 +497,76 @@ function AlbumDetailPage() {
                       </Button>
                     )}
                 </div>
-                <Select value={typeFilter} onValueChange={setTypeFilter}>
-                    <SelectTrigger className="w-[150px] bg-muted/50 border-0 focus:ring-primary">
-                        <SelectValue placeholder="Filter by type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Types</SelectItem>
-                        <SelectItem value="photo">Photos</SelectItem>
-                        <SelectItem value="video">Videos</SelectItem>
-                        <SelectItem value="document">Documents</SelectItem>
-                    </SelectContent>
-                </Select>
-                 <Select value={sortOrder} onValueChange={setSortOrder}>
-                    <SelectTrigger className="w-[150px] bg-muted/50 border-0 focus:ring-primary">
-                        <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="desc">Newest First</SelectItem>
-                        <SelectItem value="asc">Oldest First</SelectItem>
-                    </SelectContent>
-                </Select>
                  <Popover>
                     <PopoverTrigger asChild>
-                         <Button
-                            id="date"
-                            variant={"outline"}
-                            className={`w-[240px] justify-start text-left font-normal bg-muted/50 border-0 focus-visible:ring-primary ${!dateRange && "text-muted-foreground"}`}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {dateRange?.from ? (
-                              dateRange.to ? (
-                                <>
-                                  {format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")}
-                                </>
-                              ) : (
-                                format(dateRange.from, "LLL dd, y")
-                              )
-                            ) : (
-                              <span>Pick a date range</span>
-                            )}
-                          </Button>
+                        <Button variant="outline"><Filter className="mr-2 h-4 w-4"/>Filters</Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="end">
-                      <Calendar
-                        initialFocus
-                        mode="range"
-                        defaultMonth={dateRange?.from}
-                        selected={dateRange}
-                        onSelect={setDateRange}
-                        numberOfMonths={2}
-                      />
+                    <PopoverContent align="end" className="w-80">
+                        <div className="space-y-4">
+                            <h4 className="font-medium leading-none">Display Options</h4>
+                            <div className="grid gap-2">
+                                <Label>Type</Label>
+                                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Filter by type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Types</SelectItem>
+                                        <SelectItem value="photo">Photos</SelectItem>
+                                        <SelectItem value="video">Videos</SelectItem>
+                                        <SelectItem value="document">Documents</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                             <div className="grid gap-2">
+                                <Label>Sort Order</Label>
+                                <Select value={sortOrder} onValueChange={setSortOrder}>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Sort by" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="desc">Newest First</SelectItem>
+                                        <SelectItem value="asc">Oldest First</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Date Range</Label>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            id="date-desktop"
+                                            variant={"outline"}
+                                            className={`w-full justify-start text-left font-normal ${!dateRange && "text-muted-foreground"}`}
+                                        >
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {dateRange?.from ? (
+                                                dateRange.to ? (
+                                                    <>{format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")}</>
+                                                ) : (
+                                                    format(dateRange.from, "LLL dd, y")
+                                                )
+                                            ) : (
+                                                <span>Pick a date range</span>
+                                            )}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            initialFocus
+                                            mode="range"
+                                            defaultMonth={dateRange?.from}
+                                            selected={dateRange}
+                                            onSelect={setDateRange}
+                                            numberOfMonths={2}
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                                {dateRange && <Button variant="ghost" size="sm" className="w-full" onClick={() => setDateRange(undefined)}>Clear Date</Button>}
+                            </div>
+                        </div>
                     </PopoverContent>
-                  </Popover>
-                  {dateRange && <Button size="icon" variant="ghost" onClick={() => setDateRange(undefined)}><XIcon className="h-4 w-4" /></Button>}
+                </Popover>
             </div>
           </div>
       </header>
