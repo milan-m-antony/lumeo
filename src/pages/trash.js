@@ -114,66 +114,65 @@ function TrashPage() {
   
   return (
     <div className="flex flex-col h-full w-full">
-        <header className="flex-shrink-0 sticky top-14 md:top-0 z-10 px-4 sm:px-6 lg:px-8 flex items-center h-16 border-b glass-effect">
-            <h1 className="text-2xl font-bold text-foreground">Trash</h1>
-        </header>
+      <header className="flex-shrink-0 sticky top-14 md:top-0 z-10 px-4 sm:px-6 lg:px-8 flex items-center h-16 border-b glass-effect">
+        <h1 className="text-2xl font-bold text-foreground">Trash</h1>
+      </header>
+      <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
+        <div className="w-full">
+          {loading && <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
+          {error && <p className="text-center text-destructive">Error: {error}</p>}
 
-        <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8 flex justify-center">
-            <div className="w-full">
-                {loading && <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
-                {error && <p className="text-center text-destructive">Error: {error}</p>}
-
-                {!loading && !error && trashedFiles.length === 0 && (
-                <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground">
-                    <Trash2 className="w-24 h-24 mx-auto text-muted-foreground/50" strokeWidth={1} />
-                    <h2 className="text-2xl mt-4 font-semibold">Your Trash is Empty</h2>
-                    <p className="mt-2">Deleted files will appear here.</p>
+          {!loading && !error && trashedFiles.length === 0 && (
+          <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground">
+              <Trash2 className="w-24 h-24 mx-auto text-muted-foreground/50" strokeWidth={1} />
+              <h2 className="text-2xl mt-4 font-semibold">Your Trash is Empty</h2>
+              <p className="mt-2">Deleted files will appear here.</p>
+          </div>
+          )}
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            {trashedFiles.map((f) => (
+              <Card key={f.id} className="overflow-hidden shadow-md flex flex-col bg-transparent border-border/20">
+                <CardContent className="p-0">
+                  {renderFilePreview(f)}
+                </CardContent>
+                <div className="p-4 flex-grow flex flex-col bg-background/50 backdrop-blur-sm">
+                  <p className="text-sm font-medium truncate flex-grow" title={f.caption || "No Caption"}>{f.caption || "No Caption"}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Deleted {formatDistanceToNow(new Date(f.deleted_at), { addSuffix: true })}
+                  </p>
                 </div>
-                )}
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                {trashedFiles.map((f) => (
-                    <Card key={f.id} className="overflow-hidden shadow-md flex flex-col bg-transparent border-border/20">
-                        <CardContent className="p-0">
-                            {renderFilePreview(f)}
-                        </CardContent>
-                        <div className="p-4 flex-grow flex flex-col bg-background/50 backdrop-blur-sm">
-                            <p className="text-sm font-medium truncate flex-grow" title={f.caption || "No Caption"}>{f.caption || "No Caption"}</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                                Deleted {formatDistanceToNow(new Date(f.deleted_at), { addSuffix: true })}
-                            </p>
-                        </div>
-                        <CardFooter className="p-2 border-t bg-muted/50">
-                            <div className="flex w-full justify-end gap-2">
-                                <Button size="sm" variant="outline" onClick={() => handleRestoreFile(f)} title="Restore">
-                                    <RotateCcw className="w-4 h-4" />
-                                </Button>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button size="sm" variant="destructive" title="Delete Permanently">
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            This action cannot be undone. This will permanently delete the file from your gallery and from Telegram.
-                                        </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={() => handlePermanentDelete(f)}>Delete Permanently</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
-                        </CardFooter>
-                    </Card>
-                ))}
-                </div>
-            </div>
-        </main>
+                <CardFooter className="p-2 border-t bg-muted/50">
+                  <div className="flex w-full justify-end gap-2">
+                    <Button size="sm" variant="outline" onClick={() => handleRestoreFile(f)} title="Restore">
+                      <RotateCcw className="w-4 h-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="sm" variant="destructive" title="Delete Permanently">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the file from your gallery and from Telegram.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handlePermanentDelete(f)}>Delete Permanently</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
