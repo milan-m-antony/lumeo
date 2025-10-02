@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog"
 import {
   DropdownMenu,
@@ -116,22 +117,25 @@ function AlbumsPage() {
             <DialogTrigger asChild>
                 <Button variant="ghost" size="icon"><PlusCircle /></Button>
             </DialogTrigger>
-             <DialogContent className="sm:max-w-[425px]">
+             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Create New Album</DialogTitle>
                 <DialogDescription>Give your new album a name and an optional description.</DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="name-mobile" className="text-right">Name</Label>
-                  <Input id="name-mobile" value={newAlbumName} onChange={(e) => setNewAlbumName(e.target.value)} className="col-span-3" />
+              <div className="space-y-4 py-2 pb-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name-mobile">Name</Label>
+                  <Input id="name-mobile" value={newAlbumName} onChange={(e) => setNewAlbumName(e.target.value)} />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="description-mobile" className="text-right">Description</Label>
-                  <Textarea id="description-mobile" value={newAlbumDescription} onChange={(e) => setNewAlbumDescription(e.target.value)} className="col-span-3" />
+                <div className="space-y-2">
+                  <Label htmlFor="description-mobile">Description</Label>
+                  <Textarea id="description-mobile" value={newAlbumDescription} onChange={(e) => setNewAlbumDescription(e.target.value)} />
                 </div>
               </div>
               <DialogFooter>
+                 <DialogClose asChild>
+                    <Button variant="outline">Cancel</Button>
+                  </DialogClose>
                 <Button type="submit" onClick={handleCreateAlbum}>Create Album</Button>
               </DialogFooter>
             </DialogContent>
@@ -213,74 +217,76 @@ function AlbumsPage() {
 
   return (
     <div className="flex flex-col h-full w-full">
-      <header className="flex-shrink-0 sticky top-14 md:top-0 z-10 glass-effect">
-         <div className="p-4 border-b hidden md:flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-foreground">Albums</h1>
-            <div className="flex items-center gap-2">
-                <div className="relative w-full max-w-xs">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        type="text"
-                        placeholder="Search albums..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10 pr-10 bg-muted/50 border-0 focus-visible:ring-primary w-full"
-                    />
-                    {searchQuery && (
-                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setSearchQuery('')}>
-                            <XIcon className="h-4 w-4" />
-                        </Button>
-                    )}
-                </div>
-                <Select value={sortOrder} onValueChange={setSortOrder}>
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Sort by..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="created_at_desc">Newest</SelectItem>
-                        <SelectItem value="created_at_asc">Oldest</SelectItem>
-                        <SelectItem value="name_asc">Name (A-Z)</SelectItem>
-                        <SelectItem value="name_desc">Name (Z-A)</SelectItem>
-                    </SelectContent>
-                </Select>
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Create Album
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                            <DialogTitle>Create New Album</DialogTitle>
-                            <DialogDescription>
-                                Give your new album a name and an optional description.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="name-desktop" className="text-right">Name</Label>
-                                <Input id="name-desktop" value={newAlbumName} onChange={(e) => setNewAlbumName(e.target.value)} className="col-span-3" />
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="description-desktop" className="text-right">Description</Label>
-                                <Textarea id="description-desktop" value={newAlbumDescription} onChange={(e) => setNewAlbumDescription(e.target.value)} className="col-span-3" />
-                            </div>
-                        </div>
-                        <DialogFooter>
-                            <Button type="submit" onClick={handleCreateAlbum}>Create Album</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+      <div className="p-4 border-b hidden md:flex items-center justify-between sticky top-0 z-10 glass-effect">
+        <h1 className="text-2xl font-bold text-foreground">Albums</h1>
+        <div className="flex items-center gap-2">
+            <div className="relative w-full max-w-xs">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                    type="text"
+                    placeholder="Search albums..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 pr-10 bg-muted/50 border-0 focus-visible:ring-primary w-full"
+                />
+                {searchQuery && (
+                    <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setSearchQuery('')}>
+                        <XIcon className="h-4 w-4" />
+                    </Button>
+                )}
             </div>
-         </div>
-        <AnimatePresence>
+            <Select value={sortOrder} onValueChange={setSortOrder}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Sort by..." />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="created_at_desc">Newest</SelectItem>
+                    <SelectItem value="created_at_asc">Oldest</SelectItem>
+                    <SelectItem value="name_asc">Name (A-Z)</SelectItem>
+                    <SelectItem value="name_desc">Name (Z-A)</SelectItem>
+                </SelectContent>
+            </Select>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                    <Button>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Create Album
+                    </Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Create New Album</DialogTitle>
+                        <DialogDescription>
+                            Give your new album a name and an optional description.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-2 pb-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name-desktop">Name</Label>
+                            <Input id="name-desktop" value={newAlbumName} onChange={(e) => setNewAlbumName(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="description-desktop">Description</Label>
+                            <Textarea id="description-desktop" value={newAlbumDescription} onChange={(e) => setNewAlbumDescription(e.target.value)} />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                         <DialogClose asChild>
+                            <Button variant="outline">Cancel</Button>
+                          </DialogClose>
+                        <Button type="submit" onClick={handleCreateAlbum}>Create Album</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
+      </div>
+       <AnimatePresence>
             {isSearchVisible && (
             <motion.div
                 initial={{ y: -50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -50, opacity: 0 }}
-                className="p-2 border-b glass-effect md:hidden"
+                className="p-2 border-b glass-effect md:hidden sticky top-14 z-10"
             >
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -300,7 +306,6 @@ function AlbumsPage() {
             </motion.div>
             )}
         </AnimatePresence>
-      </header>
 
       <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
         {loading && <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
@@ -383,5 +388,3 @@ function AlbumsPage() {
 }
 
 export default withAuth(AlbumsPage);
-
-    

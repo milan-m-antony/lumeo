@@ -21,6 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea";
 import { withAuth, fetchWithAuth } from "@/context/AuthContext";
@@ -348,18 +349,20 @@ function UploadPage() {
                                 Give your new album a name and an optional description. It will be automatically selected.
                               </DialogDescription>
                             </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                              <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="new-album-name" className="text-right">Name</Label>
-                                <Input id="new-album-name" value={newAlbumName} onChange={(e) => setNewAlbumName(e.target.value)} className="col-span-3" />
-                              </div>
-                              <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="new-album-description" className="text-right">Description</Label>
-                                <Textarea id="new-album-description" value={newAlbumDescription} onChange={(e) => setNewAlbumDescription(e.target.value)} className="col-span-3" />
-                              </div>
+                            <div className="space-y-4 py-2 pb-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="new-album-name">Name</Label>
+                                    <Input id="new-album-name" value={newAlbumName} onChange={(e) => setNewAlbumName(e.target.value)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="new-album-description">Description</Label>
+                                    <Textarea id="new-album-description" value={newAlbumDescription} onChange={(e) => setNewAlbumDescription(e.target.value)} />
+                                </div>
                             </div>
                             <DialogFooter>
-                              <Button variant="outline" onClick={() => setIsCreateAlbumOpen(false)}>Cancel</Button>
+                              <DialogClose asChild>
+                                <Button variant="outline">Cancel</Button>
+                              </DialogClose>
                               <Button type="button" onClick={handleCreateAlbum}>Create Album</Button>
                             </DialogFooter>
                           </DialogContent>
