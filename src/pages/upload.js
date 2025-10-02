@@ -1,5 +1,3 @@
-
-
 import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
@@ -255,7 +253,7 @@ function UploadPage() {
                 <h1 className="text-2xl font-bold text-foreground">Upload Files</h1>
             </div>
          </header>
-         <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8 flex items-center group-data-[state=expanded]/sidebar-wrapper:md:-ml-32 md:ml-72 transition-all duration-200 ease-in-out">
+         <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8 flex items-center group-data-[state=expanded]/sidebar-wrapper:md:-ml-48 md:ml-72 transition-all duration-200 ease-in-out">
             <div className="max-w-2xl">
                 <Card className="shadow-lg bg-transparent border-border/20">
                   <form onSubmit={handleSubmit}>
