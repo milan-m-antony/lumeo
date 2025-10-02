@@ -91,7 +91,7 @@ function GalleryPage() {
          </Button>
       )
     });
-  }, [setMobileHeaderContent]);
+  }, [setMobileHeaderContent, toggleSelectionMode]);
 
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0,
@@ -499,3 +499,5 @@ function GalleryPage() {
 }
 
 export default withAuth(GalleryPage);
+
+    

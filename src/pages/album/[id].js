@@ -153,7 +153,7 @@ function AlbumDetailPage() {
         </>
       ),
     });
-  }, [setMobileHeaderContent, album, search, typeFilter]);
+  }, [setMobileHeaderContent, album, search, typeFilter, toggleSelectionMode]);
 
   const fetchFiles = useCallback(async (isNewSearch = false) => {
     if (!albumId) return;
@@ -606,3 +606,5 @@ function AlbumDetailPage() {
 }
 
 export default withAuth(AlbumDetailPage);
+
+    
