@@ -33,12 +33,13 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Loader2, Folder, PlusCircle, MoreVertical, Trash2, Search, X as XIcon } from "lucide-react";
+import { Loader2, Folder, PlusCircle, MoreVertical, Trash2, Search, X as XIcon, SlidersHorizontal } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { withAuth, fetchWithAuth } from "@/context/AuthContext";
 import { useLayout } from "@/components/Layout";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AnimatePresence, motion } from "framer-motion";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 function AlbumsPage() {
   const [albums, setAlbums] = useState([]);
@@ -63,6 +64,27 @@ function AlbumsPage() {
            <Button variant="ghost" size="icon" onClick={() => setIsSearchVisible(!isSearchVisible)}>
             <Search />
           </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon"><SlidersHorizontal /></Button>
+            </PopoverTrigger>
+            <PopoverContent className="mr-2 p-0 glass-effect w-56">
+                <div className="p-2 space-y-2">
+                    <Label className="px-2 text-xs text-muted-foreground">Sort by</Label>
+                    <Select value={sortOrder} onValueChange={setSortOrder}>
+                        <SelectTrigger className="w-full bg-muted/50 border-0 focus:ring-primary">
+                            <SelectValue placeholder="Sort by..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="created_at_desc">Newest</SelectItem>
+                            <SelectItem value="created_at_asc">Oldest</SelectItem>
+                            <SelectItem value="name_asc">Name (A-Z)</SelectItem>
+                            <SelectItem value="name_desc">Name (Z-A)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </PopoverContent>
+          </Popover>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="ghost" size="icon"><PlusCircle /></Button>
@@ -90,7 +112,7 @@ function AlbumsPage() {
         </>
       )
     });
-  }, [setMobileHeaderContent, isDialogOpen, newAlbumName, newAlbumDescription, isSearchVisible]);
+  }, [setMobileHeaderContent, isDialogOpen, newAlbumName, newAlbumDescription, isSearchVisible, sortOrder]);
 
   const fetchAlbums = async () => {
     setLoading(true);
