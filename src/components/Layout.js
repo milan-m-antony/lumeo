@@ -143,9 +143,6 @@ const Layout = ({ children }) => {
                         </SidebarFooter>
                     </Sidebar>
                     <div className="flex flex-col flex-1">
-                        <header className="h-14 md:flex items-center justify-between px-6 border-b hidden sticky top-0 z-20 bg-background/90 backdrop-blur-sm">
-                            {/* Desktop header content can go here if needed in the future */}
-                        </header>
                         <MobileHeader />
                         <SidebarInset>{children}</SidebarInset>
                     </div>
