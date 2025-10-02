@@ -213,94 +213,94 @@ function AlbumsPage() {
 
   return (
     <div className="flex flex-col h-full w-full">
-      <header className="flex-shrink-0 sticky top-14 md:top-0 z-10">
-         <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 h-16 border-b glass-effect">
-            <h1 className="text-2xl font-bold text-foreground hidden md:block">Albums</h1>
-            <div className="flex-1" />
-            <div className="flex items-center gap-2">
-                 <div className="relative w-full max-w-xs hidden md:block">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        type="text"
-                        placeholder="Search albums..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10 pr-10 bg-muted/50 border-0 focus-visible:ring-primary w-full"
-                    />
-                    {searchQuery && (
-                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setSearchQuery('')}>
-                            <XIcon className="h-4 w-4" />
-                        </Button>
-                    )}
-                 </div>
-                 <Select value={sortOrder} onValueChange={setSortOrder}>
-                    <SelectTrigger className="w-[180px] hidden md:flex">
-                        <SelectValue placeholder="Sort by..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="created_at_desc">Newest</SelectItem>
-                        <SelectItem value="created_at_asc">Oldest</SelectItem>
-                        <SelectItem value="name_asc">Name (A-Z)</SelectItem>
-                        <SelectItem value="name_desc">Name (Z-A)</SelectItem>
-                    </SelectContent>
-                 </Select>
-                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button className="hidden md:inline-flex">
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Create Album
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                        <DialogTitle>Create New Album</DialogTitle>
-                        <DialogDescription>
-                            Give your new album a name and an optional description.
-                        </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="name-desktop" className="text-right">Name</Label>
-                                <Input id="name-desktop" value={newAlbumName} onChange={(e) => setNewAlbumName(e.target.value)} className="col-span-3" />
+        <header className="flex-shrink-0 sticky top-14 md:top-0 z-10">
+            <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 h-16 border-b glass-effect">
+                <h1 className="text-2xl font-bold text-foreground hidden md:block">Albums</h1>
+                <div className="flex-1" />
+                <div className="hidden md:flex items-center gap-2">
+                    <div className="relative w-full max-w-xs">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            type="text"
+                            placeholder="Search albums..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10 pr-10 bg-muted/50 border-0 focus-visible:ring-primary w-full"
+                        />
+                        {searchQuery && (
+                            <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setSearchQuery('')}>
+                                <XIcon className="h-4 w-4" />
+                            </Button>
+                        )}
+                    </div>
+                    <Select value={sortOrder} onValueChange={setSortOrder}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Sort by..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="created_at_desc">Newest</SelectItem>
+                            <SelectItem value="created_at_asc">Oldest</SelectItem>
+                            <SelectItem value="name_asc">Name (A-Z)</SelectItem>
+                            <SelectItem value="name_desc">Name (Z-A)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Create Album
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                                <DialogTitle>Create New Album</DialogTitle>
+                                <DialogDescription>
+                                    Give your new album a name and an optional description.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid gap-4 py-4">
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="name-desktop" className="text-right">Name</Label>
+                                    <Input id="name-desktop" value={newAlbumName} onChange={(e) => setNewAlbumName(e.target.value)} className="col-span-3" />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="description-desktop" className="text-right">Description</Label>
+                                    <Textarea id="description-desktop" value={newAlbumDescription} onChange={(e) => setNewAlbumDescription(e.target.value)} className="col-span-3" />
+                                </div>
                             </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="description-desktop" className="text-right">Description</Label>
-                                <Textarea id="description-desktop" value={newAlbumDescription} onChange={(e) => setNewAlbumDescription(e.target.value)} className="col-span-3" />
-                            </div>
-                        </div>
-                        <DialogFooter>
-                        <Button type="submit" onClick={handleCreateAlbum}>Create Album</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                 </Dialog>
+                            <DialogFooter>
+                                <Button type="submit" onClick={handleCreateAlbum}>Create Album</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                </div>
             </div>
-         </div>
-          <AnimatePresence>
-            {isSearchVisible && (
-              <motion.div
-                initial={{ y: -50, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -50, opacity: 0 }}
-                className="p-2 border-b glass-effect md:hidden"
-              >
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        type="text"
-                        placeholder="Search albums..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10 pr-10 bg-muted/50 border-0 focus-visible:ring-primary w-full"
-                    />
-                     {searchQuery && (
-                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setSearchQuery('')}>
-                            <XIcon className="h-4 w-4" />
-                        </Button>
-                    )}
-                  </div>
-              </motion.div>
-            )}
-        </AnimatePresence>
+            <AnimatePresence>
+                {isSearchVisible && (
+                <motion.div
+                    initial={{ y: -50, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -50, opacity: 0 }}
+                    className="p-2 border-b glass-effect md:hidden"
+                >
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            type="text"
+                            placeholder="Search albums..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10 pr-10 bg-muted/50 border-0 focus-visible:ring-primary w-full"
+                        />
+                        {searchQuery && (
+                            <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setSearchQuery('')}>
+                                <XIcon className="h-4 w-4" />
+                            </Button>
+                        )}
+                    </div>
+                </motion.div>
+                )}
+            </AnimatePresence>
       </header>
 
       <main className="flex-grow overflow-auto p-4 sm:p-6 lg:p-8">
