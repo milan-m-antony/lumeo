@@ -116,7 +116,7 @@ const Layout = ({ children }) => {
                         <SidebarTrigger />
                     </SidebarFooter>
                 </Sidebar>
-                <div className="flex flex-col flex-1">
+                <div className="flex flex-col flex-1 justify-center items-center">
                     <MobileHeader />
                     <SidebarInset>{children}</SidebarInset>
                 </div>
