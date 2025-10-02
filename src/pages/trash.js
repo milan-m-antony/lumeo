@@ -120,7 +120,7 @@ function TrashPage() {
         {error && <p className="text-center text-destructive">Error: {error}</p>}
 
         {!loading && !error && trashedFiles.length === 0 && (
-          <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground md:ml-96 group-data-[state=expanded]/sidebar-wrapper:md:ml-64 transition-all duration-200 ease-in-out">
+          <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground group-data-[state=expanded]/sidebar-wrapper:md:ml-56 md:ml-96 transition-all duration-200 ease-in-out">
             <Trash2 className="w-24 h-24 mx-auto text-muted-foreground/50" strokeWidth={1} />
             <h2 className="text-2xl mt-4 font-semibold">Your Trash is Empty</h2>
             <p className="mt-2">Deleted files will appear here.</p>
